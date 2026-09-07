@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+{% block title %}Home Directory - AyudaMap{% endblock %}
+
+{% block content %}
+<!-- Search and Filter Block -->
+<div class="card">
+    <form method="GET" style="display: flex; gap: 1rem; flex-wrap: wrap;">
+        <div style="flex: 2; min-width: 200px;">
+            <label>Search Directory</label>
+            <input type="text" name="q" value="{{ query }}" placeholder="Search by resource name or keyword...">
+        </div>
+        <div style="flex: 1; min-width: 180px;">
+            <label>Filter Category</label>
+            <select name="category">
+                <option value="">All Categories</option>
+                {% for key, val in categories %}
+                    <option value="{{ key }}" {% if selected_category == key %}selected{% endif %}>{{ val }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div style="display: flex; align-items: flex-end; margin-bottom: 1rem;">
+            <button type="submit" class="btn btn-primary">Filter</button>
+        </div>
+    </form>
+</div>
+
+<!-- Layout: Interactive Map Placeholder + Directory List -->
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+    <!-- Map Block -->
+    <div class="card" style="height: fit-content;">
+        <h3>📍 Interactive Map Area</h3>
+        <div style="height: 320px; background: #e9ecef; border: 2px dashed #bbb; display: flex; align-items: center; justify-content: center; text-align: center; padding: 1rem; border-radius: 4px;">
+            <p><strong>Map Viewport Placeholder</strong><br>(Leaflet / OpenStreetMap integrates here)</p>
+        </div>
+    </div>
+
+    <!-- Directory List Block -->
+    <div>
+        <h3>Verified Community Resources</h3>
+        {% if resources %}
+            {% for resource in resources %}
+                <div class="card" style="margin-bottom: 1rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <h4 style="margin: 0;">{{ resource.name }}</h4>
+                        <span style="background: #e0f2f1; color: #004d40; padding: 0.2rem 0.6rem; border-radius: 12px; font-size: 0.8rem;">
+                            {{ resource.get_category_display }}
+                        </span>
+                    </div>
+                    <p style="margin: 0.5rem 0; color: #555;">{{ resource.description|default:"No description provided." }}</p>
+                    <p style="font-size: 0.85rem; margin: 0.2rem 0;">📍 <strong>Location:</strong> {{ resource.location }}</p>
+                    <p style="font-size: 0.85rem; margin: 0.2rem 0;">🕒 <strong>Hours:</strong> {{ resource.operating_hours }}</p>
+                    <p style="font-size: 0.85rem; margin: 0.2rem 0;">📞 <strong>Contact:</strong> {{ resource.contact_info }}</p>
+                </div>
+            {% endfor %}
+        {% else %}
+            <div class="card">
+                <p>No resources found matching your criteria.</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

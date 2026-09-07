@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+{% block title %}Login - AyudaMap{% endblock %}
+
+{% block content %}
+<div style="max-width: 450px; margin: 0 auto;" class="card">
+    <h3>Sign In to AyudaMap</h3>
+    <p style="color: #666; font-size: 0.9rem;">Access community resources or submit updates.</p>
+    <form method="POST">
+        {% csrf_token %}
+        <label>Username</label>
+        {{ form.username }}
+        
+        <label>Password</label>
+        {{ form.password }}
+
+        <button type="submit" class="btn btn-primary" style="width: 100%;">Log In</button>
+    </form>
+    <p style="margin-top: 1rem; font-size: 0.9rem;">
+        Don't have an account? <a href="{% url 'register:register' %}">Register here</a>
+    </p>
+</div>
+{% endblock %}
