@@ -1,0 +1,77 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Create Account - AyudaMap{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/register/register.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="auth-wrapper">
+    <div class="card auth-card register-card">
+        <div class="auth-header">
+            <div class="auth-icon-circle register-icon">
+                <i class="fa-solid fa-user-plus"></i>
+            </div>
+            <h2>Create an Account</h2>
+            <p>Join AyudaMap to discover, pin, and update relief efforts.</p>
+        </div>
+
+        {% if form.errors %}
+            <div class="auth-error-banner">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+                <div>
+                    {% for field, errors in form.errors.items %}
+                        {% for error in errors %}
+                            <div><strong>{{ field|title }}:</strong> {{ error }}</div>
+                        {% endfor %}
+                    {% endfor %}
+                </div>
+            </div>
+        {% endif %}
+
+        <form method="POST" class="auth-form" id="registerForm">
+            {% csrf_token %}
+            
+            <div class="form-group">
+                <label for="{{ form.username.id_for_label }}"><i class="fa-solid fa-user"></i> Username</label>
+                {{ form.username }}
+            </div>
+
+            <div class="form-group">
+                <label for="{{ form.email.id_for_label }}"><i class="fa-solid fa-envelope"></i> Email Address</label>
+                {{ form.email }}
+            </div>
+
+            <div class="form-group">
+                <label for="{{ form.full_name.id_for_label }}"><i class="fa-solid fa-id-card"></i> Full Name (Optional)</label>
+                {{ form.full_name }}
+            </div>
+
+            <div class="form-group">
+                <label for="{{ form.password1.id_for_label }}"><i class="fa-solid fa-lock"></i> Password</label>
+                {{ form.password1 }}
+            </div>
+
+            <div class="form-group">
+                <label for="{{ form.password2.id_for_label }}"><i class="fa-solid fa-shield-halved"></i> Confirm Password</label>
+                {{ form.password2 }}
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-block" id="registerSubmitBtn">
+                <i class="fa-solid fa-user-check"></i> Register Account
+            </button>
+        </form>
+
+        <div class="auth-footer">
+            <p>Already have an account? <a href="{% url 'login:login' %}">Sign in here</a></p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/register/register.js' %}"></script>
+{% endblock %}
+

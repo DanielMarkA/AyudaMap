@@ -1,0 +1,201 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Community Aid Directory - AyudaMap{% endblock %}
+
+{% block extra_css %}
+<!-- Leaflet CSS for Interactive Map -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+<!-- Home Feature CSS -->
+<link rel="stylesheet" href="{% static 'css/home/home.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="home-hero">
+    <div class="hero-content">
+        <h1><i class="fa-solid fa-hand-holding-heart"></i> AyudaMap Aid &amp; Relief Directory</h1>
+        <p>Find and share critical community aid centers, food stations, medical clinics, and donation spots in real-time.</p>
+    </div>
+    <div class="hero-actions">
+        <button type="button" class="btn btn-success" id="openAddModalBtn">
+            <i class="fa-solid fa-plus-circle"></i> Submit Aid Resource
+        </button>
+    </div>
+</div>
+
+<!-- Search and Filter Bar -->
+<div class="card filter-card">
+    <form method="GET" action="{% url 'home:home' %}" class="filter-form">
+        <div class="filter-input-group search-group">
+            <label><i class="fa-solid fa-magnifying-glass"></i> Search Directory</label>
+            <input type="text" name="q" value="{{ query }}" placeholder="Search by name, landmark, or description...">
+        </div>
+        <div class="filter-input-group select-group">
+            <label><i class="fa-solid fa-layer-group"></i> Filter Category</label>
+            <select name="category">
+                <option value="">All Categories ({{ total_count }})</option>
+                {% for key, val in categories %}
+                    <option value="{{ key }}" {% if selected_category == key %}selected{% endif %}>{{ val }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="filter-buttons">
+            <button type="submit" class="btn btn-primary">
+                <i class="fa-solid fa-filter"></i> Apply Filter
+            </button>
+            {% if query or selected_category %}
+                <a href="{% url 'home:home' %}" class="btn btn-secondary">
+                    <i class="fa-solid fa-rotate-left"></i> Reset
+                </a>
+            {% endif %}
+        </div>
+    </form>
+</div>
+
+<!-- 2-Column Responsive Layout: Map + Resources -->
+<div class="home-grid">
+    <!-- Left Column: Interactive Map -->
+    <div class="map-column">
+        <div class="card map-card">
+            <div class="map-header">
+                <h3><i class="fa-solid fa-map-location-dot"></i> Interactive Map</h3>
+                <span class="badge badge-live"><i class="fa-solid fa-signal"></i> Active Pins: {{ total_count }}</span>
+            </div>
+            <div id="ayudaMapViewport" class="map-viewport"></div>
+            <div class="map-legend">
+                <span class="legend-item"><span class="dot dot-medical"></span> Medical</span>
+                <span class="legend-item"><span class="dot dot-food"></span> Food</span>
+                <span class="legend-item"><span class="dot dot-shelter"></span> Shelter</span>
+                <span class="legend-item"><span class="dot dot-gov"></span> Govt</span>
+                <span class="legend-item"><span class="dot dot-donation"></span> Donation</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Column: Resource Cards List -->
+    <div class="directory-column">
+        <div class="directory-header">
+            <h3>Verified Community Resources</h3>
+            <span class="count-pill">{{ resources|length }} Results</span>
+        </div>
+
+        {% if resources %}
+            <div class="resource-list">
+                {% for resource in resources %}
+                    <div class="card resource-card" data-lat="{{ resource.latitude }}" data-lng="{{ resource.longitude }}" data-id="{{ resource.id }}">
+                        <div class="resource-card-top">
+                            <h4 class="resource-title">{{ resource.name }}</h4>
+                            <span class="category-badge cat-{{ resource.category|lower }}">
+                                {% if resource.category == 'MEDICAL' %}<i class="fa-solid fa-hospital"></i>
+                                {% elif resource.category == 'FOOD' %}<i class="fa-solid fa-bowl-food"></i>
+                                {% elif resource.category == 'SHELTER' %}<i class="fa-solid fa-tents"></i>
+                                {% elif resource.category == 'GOV' %}<i class="fa-solid fa-building-columns"></i>
+                                {% elif resource.category == 'DONATION' %}<i class="fa-solid fa-hand-holding-dollar"></i>
+                                {% endif %}
+                                {{ resource.get_category_display }}
+                            </span>
+                        </div>
+
+                        <p class="resource-desc">{{ resource.description|default:"No description provided." }}</p>
+
+                        <div class="resource-meta">
+                            <div class="meta-row">
+                                <i class="fa-solid fa-location-dot"></i>
+                                <span><strong>Location:</strong> {{ resource.location }}</span>
+                            </div>
+                            <div class="meta-row">
+                                <i class="fa-solid fa-clock"></i>
+                                <span><strong>Hours:</strong> {{ resource.operating_hours }}</span>
+                            </div>
+                            {% if resource.contact_info %}
+                                <div class="meta-row">
+                                    <i class="fa-solid fa-phone"></i>
+                                    <span><strong>Contact:</strong> {{ resource.contact_info }}</span>
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="resource-card-footer">
+                            <button type="button" class="btn btn-sm btn-outline pan-to-pin-btn" data-lat="{{ resource.latitude }}" data-lng="{{ resource.longitude }}" data-name="{{ resource.name }}">
+                                <i class="fa-solid fa-crosshairs"></i> View on Map
+                            </button>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="card empty-state-card">
+                <i class="fa-solid fa-box-open empty-icon"></i>
+                <h4>No Resources Found</h4>
+                <p>No resources matched your search query or selected category filter.</p>
+                <a href="{% url 'home:home' %}" class="btn btn-primary btn-sm">Clear Search Filter</a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Modal: Add Community Resource -->
+<div id="addResourceModal" class="modal-backdrop" style="display: none;">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-circle-plus"></i> Submit Community Aid Resource</h3>
+                <button type="button" class="modal-close" id="closeAddModalBtn">&times;</button>
+            </div>
+            <form method="POST" action="{% url 'home:add_resource' %}" class="modal-body">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label>Resource / Center Name *</label>
+                    {{ resource_form.name }}
+                </div>
+                <div class="form-group">
+                    <label>Category *</label>
+                    {{ resource_form.category }}
+                </div>
+                <div class="form-group">
+                    <label>Description &amp; Available Aid</label>
+                    {{ resource_form.description }}
+                </div>
+                <div class="form-group">
+                    <label>Location / Address *</label>
+                    {{ resource_form.location }}
+                </div>
+                <div class="form-row">
+                    <div class="form-group col">
+                        <label>Latitude</label>
+                        {{ resource_form.latitude }}
+                    </div>
+                    <div class="form-group col">
+                        <label>Longitude</label>
+                        {{ resource_form.longitude }}
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group col">
+                        <label>Operating Hours</label>
+                        {{ resource_form.operating_hours }}
+                    </div>
+                    <div class="form-group col">
+                        <label>Contact Info</label>
+                        {{ resource_form.contact_info }}
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" id="cancelAddModalBtn">Cancel</button>
+                    <button type="submit" class="btn btn-success"><i class="fa-solid fa-check"></i> Save Resource</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Leaflet JS -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<!-- Embedded Map Data -->
+<script id="mapDataJson" type="application/json">{{ map_data_json|safe }}</script>
+<!-- Home Feature JS -->
+<script src="{% static 'js/home/home.js' %}"></script>
+{% endblock %}
+

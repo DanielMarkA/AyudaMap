@@ -1,0 +1,114 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Account Settings &amp; Preferences - AyudaMap{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/user_settings/settings.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="settings-wrapper">
+    <div class="card settings-card">
+        <div class="settings-header">
+            <div class="settings-icon-circle">
+                <i class="fa-solid fa-sliders"></i>
+            </div>
+            <div>
+                <h2>Preferences &amp; Application Settings</h2>
+                <p>Customize your AyudaMap experience, appearance, and notification alerts.</p>
+            </div>
+        </div>
+
+        <form method="POST" class="settings-form" id="settingsForm">
+            {% csrf_token %}
+
+            <!-- Appearance Section -->
+            <div class="settings-section">
+                <h3 class="section-title"><i class="fa-solid fa-palette"></i> Appearance &amp; Theme</h3>
+                
+                <div class="setting-row">
+                    <div class="setting-info">
+                        <strong>Dark Mode Interface</strong>
+                        <p>Switch to a modern dark theme to reduce eye strain in low-light environments.</p>
+                    </div>
+                    <div class="setting-control">
+                        <label class="switch">
+                            {{ form.dark_mode }}
+                            <span class="slider round"></span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Notifications Section -->
+            <div class="settings-section">
+                <h3 class="section-title"><i class="fa-solid fa-bell"></i> Notifications &amp; Alerts</h3>
+                
+                <div class="setting-row">
+                    <div class="setting-info">
+                        <strong>Email Notifications</strong>
+                        <p>Receive email updates regarding important announcements and account status.</p>
+                    </div>
+                    <div class="setting-control">
+                        <label class="switch">
+                            {{ form.email_notifications }}
+                            <span class="slider round"></span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="setting-row">
+                    <div class="setting-info">
+                        <strong>New Relief Center Alerts</strong>
+                        <p>Get notified when a new verified relief or food center is added nearby.</p>
+                    </div>
+                    <div class="setting-control">
+                        <label class="switch">
+                            {{ form.notify_on_new_resources }}
+                            <span class="slider round"></span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Directory Preferences Section -->
+            <div class="settings-section">
+                <h3 class="section-title"><i class="fa-solid fa-filter"></i> Feed &amp; Directory Preferences</h3>
+                
+                <div class="setting-row">
+                    <div class="setting-info">
+                        <strong>Default Resource Focus</strong>
+                        <p>Automatically prioritize this category when opening the main directory.</p>
+                    </div>
+                    <div class="setting-control select-control">
+                        {{ form.preferred_category }}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Database Status Indicator -->
+            <div class="database-status-card">
+                <div class="db-status-icon">
+                    <i class="fa-solid fa-database"></i>
+                </div>
+                <div class="db-status-info">
+                    <strong>Connected Database Backend</strong>
+                    <span>Supabase PostgreSQL Cloud Database &bull; Status: <span class="badge badge-success">Online &amp; Active</span></span>
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary" id="saveSettingsBtn">
+                    <i class="fa-solid fa-check"></i> Save Settings
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/user_settings/settings.js' %}"></script>
+{% endblock %}
+

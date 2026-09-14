@@ -1,0 +1,129 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}User Profile - AyudaMap{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/profile/profile.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="profile-layout">
+    <!-- Profile Sidebar / Summary Card -->
+    <div class="profile-sidebar">
+        <div class="card profile-card">
+            <div class="profile-avatar-container">
+                {% if profile.profile_image %}
+                    <img src="{{ profile.profile_image.url }}" alt="Profile Photo" class="profile-avatar" id="avatarPreview">
+                {% else %}
+                    <div class="profile-avatar-placeholder" id="avatarPlaceholder">
+                        <i class="fa-solid fa-user-tie"></i>
+                    </div>
+                {% endif %}
+            </div>
+
+            <h3 class="profile-name">{{ profile.full_name|default:user.username }}</h3>
+            <p class="profile-username">@{{ user.username }}</p>
+            <span class="profile-role-badge"><i class="fa-solid fa-shield-heart"></i> Ayuda Volunteer</span>
+
+            <div class="profile-bio-box">
+                <p>{{ profile.bio|default:"No bio added yet. Tell the community how you help!" }}</p>
+            </div>
+
+            <div class="profile-quick-stats">
+                <div class="stat-item">
+                    <span class="stat-label"><i class="fa-solid fa-envelope"></i> Email</span>
+                    <span class="stat-val">{{ user.email|default:"Not specified" }}</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label"><i class="fa-solid fa-phone"></i> Contact</span>
+                    <span class="stat-val">{{ profile.phone_number|default:"Not set" }}</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label"><i class="fa-solid fa-city"></i> Location</span>
+                    <span class="stat-val">{{ profile.city|default:"Not set" }}</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label"><i class="fa-solid fa-calendar-check"></i> Member Since</span>
+                    <span class="stat-val">{{ user.date_joined|date:"M d, Y" }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Profile Edit / Details Column -->
+    <div class="profile-main">
+        <div class="card profile-edit-card">
+            <div class="section-heading">
+                <h3><i class="fa-solid fa-user-pen"></i> Edit Profile Information</h3>
+                <p>Update your personal details visible to other community coordinators.</p>
+            </div>
+
+            <form method="POST" enctype="multipart/form-data" class="profile-form" id="profileForm">
+                {% csrf_token %}
+
+                <div class="form-section-title">
+                    <i class="fa-solid fa-id-card-clip"></i> Basic Details
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group col">
+                        <label for="{{ u_form.first_name.id_for_label }}">First Name</label>
+                        {{ u_form.first_name }}
+                    </div>
+                    <div class="form-group col">
+                        <label for="{{ u_form.last_name.id_for_label }}">Last Name</label>
+                        {{ u_form.last_name }}
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="{{ p_form.full_name.id_for_label }}">Display / Full Name</label>
+                    {{ p_form.full_name }}
+                </div>
+
+                <div class="form-group">
+                    <label for="{{ u_form.email.id_for_label }}">Email Address</label>
+                    {{ u_form.email }}
+                </div>
+
+                <div class="form-section-title">
+                    <i class="fa-solid fa-address-book"></i> Contact &amp; Location
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group col">
+                        <label for="{{ p_form.phone_number.id_for_label }}">Phone Number</label>
+                        {{ p_form.phone_number }}
+                    </div>
+                    <div class="form-group col">
+                        <label for="{{ p_form.city.id_for_label }}">City / Region</label>
+                        {{ p_form.city }}
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="{{ p_form.bio.id_for_label }}">Bio / About Me</label>
+                    {{ p_form.bio }}
+                </div>
+
+                <div class="form-group">
+                    <label for="{{ p_form.profile_image.id_for_label }}">Profile Photo Upload</label>
+                    {{ p_form.profile_image }}
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary" id="saveProfileBtn">
+                        <i class="fa-solid fa-floppy-disk"></i> Save Profile Changes
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/profile/profile.js' %}"></script>
+{% endblock %}
+
