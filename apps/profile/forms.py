@@ -15,12 +15,13 @@ class UserEditForm(forms.ModelForm):
 class ProfileEditForm(forms.ModelForm):
     class Meta:
         model = Profile
-        fields = ['full_name', 'bio', 'phone_number', 'city', 'profile_image']
+        fields = ['full_name', 'organization', 'is_volunteer', 'bio', 'phone_number', 'city', 'profile_image']
         widgets = {
             'full_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Your full name / display name'}),
+            'organization': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'NGO, LGU, or Volunteer Group'}),
+            'is_volunteer': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
             'bio': forms.Textarea(attrs={'class': 'form-control', 'rows': 4, 'placeholder': 'Tell us about yourself or your organization...'}),
             'phone_number': forms.TextInput(attrs={'class': 'form-control', 'placeholder': '+63 912 345 6789'}),
             'city': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g. Quezon City, Manila'}),
             'profile_image': forms.FileInput(attrs={'class': 'form-control-file'}),
         }
-

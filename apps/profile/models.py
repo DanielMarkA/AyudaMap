@@ -9,6 +9,8 @@ class Profile(models.Model):
     bio = models.TextField(blank=True)
     phone_number = models.CharField(max_length=50, blank=True)
     city = models.CharField(max_length=100, blank=True)
+    organization = models.CharField(max_length=150, blank=True, help_text="Affiliated NGO, LGU, or Volunteer Group")
+    is_volunteer = models.BooleanField(default=False, help_text="Designates whether this user is an active relief volunteer")
     profile_image = models.ImageField(
         upload_to="profile/",
         blank=True,
@@ -16,6 +18,11 @@ class Profile(models.Model):
     )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'user_profiles'
+        verbose_name = 'User Profile'
+        verbose_name_plural = 'User Profiles'
 
     def __str__(self):
         return self.full_name or self.user.username
@@ -28,4 +35,3 @@ def create_or_update_user_profile(sender, instance, created, **kwargs):
     else:
         if hasattr(instance, 'profile'):
             instance.profile.save()
-

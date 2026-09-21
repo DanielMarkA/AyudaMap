@@ -39,11 +39,20 @@
                 {% endfor %}
             </select>
         </div>
+        <div class="filter-input-group select-group">
+            <label><i class="fa-solid fa-traffic-light"></i> Operating Status</label>
+            <select name="status">
+                <option value="">All Statuses</option>
+                {% for key, val in statuses %}
+                    <option value="{{ key }}" {% if selected_status == key %}selected{% endif %}>{{ val }}</option>
+                {% endfor %}
+            </select>
+        </div>
         <div class="filter-buttons">
             <button type="submit" class="btn btn-primary">
                 <i class="fa-solid fa-filter"></i> Apply Filter
             </button>
-            {% if query or selected_category %}
+            {% if query or selected_category or selected_status %}
                 <a href="{% url 'home:home' %}" class="btn btn-secondary">
                     <i class="fa-solid fa-rotate-left"></i> Reset
                 </a>
@@ -85,15 +94,24 @@
                     <div class="card resource-card" data-lat="{{ resource.latitude }}" data-lng="{{ resource.longitude }}" data-id="{{ resource.id }}">
                         <div class="resource-card-top">
                             <h4 class="resource-title">{{ resource.name }}</h4>
-                            <span class="category-badge cat-{{ resource.category|lower }}">
-                                {% if resource.category == 'MEDICAL' %}<i class="fa-solid fa-hospital"></i>
-                                {% elif resource.category == 'FOOD' %}<i class="fa-solid fa-bowl-food"></i>
-                                {% elif resource.category == 'SHELTER' %}<i class="fa-solid fa-tents"></i>
-                                {% elif resource.category == 'GOV' %}<i class="fa-solid fa-building-columns"></i>
-                                {% elif resource.category == 'DONATION' %}<i class="fa-solid fa-hand-holding-dollar"></i>
+                            <div style="display: flex; gap: 0.5rem; align-items: center;">
+                                <span class="category-badge cat-{{ resource.category|lower }}">
+                                    {% if resource.category == 'MEDICAL' %}<i class="fa-solid fa-hospital"></i>
+                                    {% elif resource.category == 'FOOD' %}<i class="fa-solid fa-bowl-food"></i>
+                                    {% elif resource.category == 'SHELTER' %}<i class="fa-solid fa-tents"></i>
+                                    {% elif resource.category == 'GOV' %}<i class="fa-solid fa-building-columns"></i>
+                                    {% elif resource.category == 'DONATION' %}<i class="fa-solid fa-hand-holding-dollar"></i>
+                                    {% endif %}
+                                    {{ resource.get_category_display }}
+                                </span>
+                                {% if resource.status == 'FULL_CAPACITY' %}
+                                    <span class="badge badge-warning" style="background: #e65100; color: white; font-size: 0.75rem; padding: 0.2rem 0.5rem; border-radius: 4px;">Full Capacity</span>
+                                {% elif resource.status == 'TEMPORARILY_CLOSED' %}
+                                    <span class="badge badge-danger" style="background: #c62828; color: white; font-size: 0.75rem; padding: 0.2rem 0.5rem; border-radius: 4px;">Closed</span>
+                                {% else %}
+                                    <span class="badge badge-success" style="background: #2e7d32; color: white; font-size: 0.75rem; padding: 0.2rem 0.5rem; border-radius: 4px;">Operational</span>
                                 {% endif %}
-                                {{ resource.get_category_display }}
-                            </span>
+                            </div>
                         </div>
 
                         <p class="resource-desc">{{ resource.description|default:"No description provided." }}</p>
@@ -113,6 +131,12 @@
                                     <span><strong>Contact:</strong> {{ resource.contact_info }}</span>
                                 </div>
                             {% endif %}
+                            {% if resource.created_by %}
+                                <div class="meta-row">
+                                    <i class="fa-solid fa-user-check"></i>
+                                    <span><strong>Coordinator:</strong> {{ resource.created_by.profile.full_name|default:resource.created_by.username }}</span>
+                                </div>
+                            {% endif %}
                         </div>
 
                         <div class="resource-card-footer">
@@ -127,7 +151,7 @@
             <div class="card empty-state-card">
                 <i class="fa-solid fa-box-open empty-icon"></i>
                 <h4>No Resources Found</h4>
-                <p>No resources matched your search query or selected category filter.</p>
+                <p>No resources matched your search query or selected filter.</p>
                 <a href="{% url 'home:home' %}" class="btn btn-primary btn-sm">Clear Search Filter</a>
             </div>
         {% endif %}
@@ -148,9 +172,15 @@
                     <label>Resource / Center Name *</label>
                     {{ resource_form.name }}
                 </div>
-                <div class="form-group">
-                    <label>Category *</label>
-                    {{ resource_form.category }}
+                <div class="form-row">
+                    <div class="form-group col">
+                        <label>Category *</label>
+                        {{ resource_form.category }}
+                    </div>
+                    <div class="form-group col">
+                        <label>Operating Status *</label>
+                        {{ resource_form.status }}
+                    </div>
                 </div>
                 <div class="form-group">
                     <label>Description &amp; Available Aid</label>
@@ -198,4 +228,3 @@
 <!-- Home Feature JS -->
 <script src="{% static 'js/home/home.js' %}"></script>
 {% endblock %}
-

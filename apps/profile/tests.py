@@ -25,6 +25,8 @@ class ProfileViewTests(TestCase):
             "last_name": "Santos",
             "email": "maria.santos@test.com",
             "full_name": "Maria Santos",
+            "organization": "Red Cross Volunteer Corp",
+            "is_volunteer": True,
             "bio": "Volunteering for relief packing operations.",
             "phone_number": "+63 912 345 6789",
             "city": "Cebu City"
@@ -36,4 +38,5 @@ class ProfileViewTests(TestCase):
         profile = Profile.objects.get(user=self.user)
         self.assertEqual(profile.full_name, "Maria Santos")
         self.assertEqual(profile.city, "Cebu City")
-
+        self.assertEqual(profile.organization, "Red Cross Volunteer Corp")
+        self.assertTrue(profile.is_volunteer)

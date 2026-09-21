@@ -23,6 +23,11 @@ class UserSettings(models.Model):
     )
     updated_at = models.DateTimeField(auto_now=True)
 
+    class Meta:
+        db_table = 'user_settings'
+        verbose_name = 'User Settings'
+        verbose_name_plural = 'User Settings'
+
     def __str__(self):
         return f"Settings for {self.user.username}"
 

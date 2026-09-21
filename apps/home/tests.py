@@ -9,14 +9,17 @@ class HomeViewTests(TestCase):
         self.resource1 = Resource.objects.create(
             name="Manila City Clinic",
             category="MEDICAL",
+            status="OPERATIONAL",
             location="Manila City",
             operating_hours="24/7",
             contact_info="12345",
-            is_verified=True
+            is_verified=True,
+            created_by=self.user
         )
         self.resource2 = Resource.objects.create(
             name="Pasig Food Pantry",
             category="FOOD",
+            status="FULL_CAPACITY",
             location="Pasig City",
             operating_hours="8am-5pm",
             contact_info="67890",
@@ -42,6 +45,13 @@ class HomeViewTests(TestCase):
         self.assertContains(response, "Manila City Clinic")
         self.assertNotContains(response, "Pasig Food Pantry")
 
+    def test_home_filter_by_status(self):
+        self.client.login(username="testuser", password="Password123!")
+        response = self.client.get(reverse("home:home") + "?status=FULL_CAPACITY")
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Pasig Food Pantry")
+        self.assertNotContains(response, "Manila City Clinic")
+
     def test_home_search_by_query(self):
         self.client.login(username="testuser", password="Password123!")
         response = self.client.get(reverse("home:home") + "?q=Pasig")
@@ -54,6 +64,7 @@ class HomeViewTests(TestCase):
         response = self.client.post(reverse("home:add_resource"), {
             "name": "New Shelter Center",
             "category": "SHELTER",
+            "status": "OPERATIONAL",
             "description": "Safe shelter for typhoon victims",
             "location": "Quezon City",
             "latitude": 14.65,
@@ -62,4 +73,7 @@ class HomeViewTests(TestCase):
             "contact_info": "555-1234"
         })
         self.assertRedirects(response, reverse("home:home"))
-        self.assertTrue(Resource.objects.filter(name="New Shelter Center").exists())
+        res = Resource.objects.filter(name="New Shelter Center").first()
+        self.assertIsNotNone(res)
+        self.assertEqual(res.created_by, self.user)
+        self.assertEqual(res.status, "OPERATIONAL")

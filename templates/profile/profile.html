@@ -24,7 +24,17 @@
 
             <h3 class="profile-name">{{ profile.full_name|default:user.username }}</h3>
             <p class="profile-username">@{{ user.username }}</p>
-            <span class="profile-role-badge"><i class="fa-solid fa-shield-heart"></i> Ayuda Volunteer</span>
+            {% if profile.is_volunteer %}
+                <span class="profile-role-badge" style="background: #2e7d32; color: white;"><i class="fa-solid fa-shield-heart"></i> Active Relief Volunteer</span>
+            {% else %}
+                <span class="profile-role-badge"><i class="fa-solid fa-user"></i> Community Member</span>
+            {% endif %}
+
+            {% if profile.organization %}
+                <div style="margin-top: 0.5rem; font-size: 0.85rem; color: var(--text-muted, #666);">
+                    <i class="fa-solid fa-building-ngo"></i> {{ profile.organization }}
+                </div>
+            {% endif %}
 
             <div class="profile-bio-box">
                 <p>{{ profile.bio|default:"No bio added yet. Tell the community how you help!" }}</p>
@@ -82,6 +92,19 @@
                     {{ p_form.full_name }}
                 </div>
 
+                <div class="form-row">
+                    <div class="form-group col">
+                        <label for="{{ p_form.organization.id_for_label }}">Affiliated Organization / LGU / NGO</label>
+                        {{ p_form.organization }}
+                    </div>
+                    <div class="form-group col" style="display: flex; align-items: center; gap: 0.5rem; padding-top: 1.8rem;">
+                        {{ p_form.is_volunteer }}
+                        <label for="{{ p_form.is_volunteer.id_for_label }}" style="margin-bottom: 0; cursor: pointer;">
+                            <strong>Active Relief Volunteer</strong>
+                        </label>
+                    </div>
+                </div>
+
                 <div class="form-group">
                     <label for="{{ u_form.email.id_for_label }}">Email Address</label>
                     {{ u_form.email }}
@@ -126,4 +149,3 @@
 {% block extra_js %}
 <script src="{% static 'js/profile/profile.js' %}"></script>
 {% endblock %}
-

@@ -9,13 +9,16 @@ from .forms import ResourceForm
 def home_view(request):
     query = request.GET.get('q', '').strip()
     selected_category = request.GET.get('category', '').strip()
+    selected_status = request.GET.get('status', '').strip()
 
-    resources = Resource.objects.filter(is_verified=True)
+    resources = Resource.objects.filter(is_verified=True).select_related('created_by')
 
     if query:
         resources = resources.filter(name__icontains=query) | resources.filter(description__icontains=query) | resources.filter(location__icontains=query)
     if selected_category:
         resources = resources.filter(category=selected_category)
+    if selected_status:
+        resources = resources.filter(status=selected_status)
 
     # Prepare JSON data for Leaflet Map pins
     map_data = []
@@ -25,6 +28,8 @@ def home_view(request):
             'name': r.name,
             'category': r.get_category_display(),
             'category_code': r.category,
+            'status': r.status,
+            'status_display': r.get_status_display(),
             'location': r.location,
             'description': r.description or '',
             'operating_hours': r.operating_hours,
@@ -39,7 +44,9 @@ def home_view(request):
         'resources': resources,
         'query': query,
         'selected_category': selected_category,
+        'selected_status': selected_status,
         'categories': Resource.CATEGORY_CHOICES,
+        'statuses': Resource.STATUS_CHOICES,
         'map_data_json': json.dumps(map_data),
         'resource_form': resource_form,
         'total_count': resources.count(),
@@ -52,6 +59,7 @@ def add_resource_view(request):
         form = ResourceForm(request.POST)
         if form.is_valid():
             resource = form.save(commit=False)
+            resource.created_by = request.user
             resource.is_verified = True
             resource.save()
             messages.success(request, f"Resource '{resource.name}' was successfully added to AyudaMap!")
