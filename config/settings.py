@@ -1,6 +1,6 @@
 """
 Django settings for AyudaMap project.
-Vertical Slicing + Supabase PostgreSQL Configuration
+Community Aid & Disaster Relief Platform
 """
 
 from pathlib import Path
@@ -26,7 +26,7 @@ DEBUG = True
 ALLOWED_HOSTS = ['*']
 
 
-# Application definition - Vertical Slices
+# Application definition
 INSTALLED_APPS = [
     # Django core apps
     'django.contrib.admin',
@@ -36,7 +36,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
-    # Feature apps (Vertical Slicing)
+    # Feature apps
     'apps.login',
     'apps.register',
     'apps.home',
