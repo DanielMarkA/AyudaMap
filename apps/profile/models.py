@@ -29,9 +29,6 @@ class Profile(models.Model):
 
 
 @receiver(post_save, sender=User)
-def create_or_update_user_profile(sender, instance, created, **kwargs):
+def create_user_profile(sender, instance, created, **kwargs):
     if created:
         Profile.objects.get_or_create(user=instance)
-    else:
-        if hasattr(instance, 'profile'):
-            instance.profile.save()

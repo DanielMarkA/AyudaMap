@@ -33,9 +33,6 @@ class UserSettings(models.Model):
 
 
 @receiver(post_save, sender=User)
-def create_or_update_user_settings(sender, instance, created, **kwargs):
+def create_user_settings(sender, instance, created, **kwargs):
     if created:
         UserSettings.objects.get_or_create(user=instance)
-    else:
-        if hasattr(instance, 'settings'):
-            instance.settings.save()

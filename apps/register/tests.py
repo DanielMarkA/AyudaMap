@@ -22,5 +22,10 @@ class RegisterViewTests(TestCase):
         
         user = User.objects.get(username="newvolunteer")
         self.assertIsNotNone(user)
-        self.assertTrue(Profile.objects.filter(user=user).exists())
+        self.assertEqual(user.first_name, "New")
+        self.assertEqual(user.last_name, "Volunteer")
+        
+        profile = Profile.objects.get(user=user)
+        self.assertEqual(profile.full_name, "New Volunteer")
+        
         self.assertTrue(UserSettings.objects.filter(user=user).exists())
