@@ -1,4 +1,5 @@
 from django.contrib.auth import authenticate, login, logout
+from django.contrib import messages
 from django.shortcuts import render, redirect
 from .forms import UserLoginForm
 
@@ -24,4 +25,5 @@ def login_view(request):
 
 def logout_view(request):
     logout(request)
+    messages.info(request, "You have been safely signed out.")
     return redirect("login:login")

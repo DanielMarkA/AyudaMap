@@ -8,8 +8,14 @@ from .forms import ResourceForm
 @login_required
 def home_view(request):
     query = request.GET.get('q', '').strip()
-    selected_category = request.GET.get('category', '').strip()
     selected_status = request.GET.get('status', '').strip()
+    
+    # Check if user explicitly filtered category, or apply user preference
+    if 'category' in request.GET:
+        selected_category = request.GET.get('category', '').strip()
+    else:
+        user_pref = getattr(getattr(request.user, 'settings', None), 'preferred_category', '')
+        selected_category = user_pref if user_pref and user_pref != 'ALL' else ''
 
     resources = Resource.objects.filter(is_verified=True).select_related('created_by')
 

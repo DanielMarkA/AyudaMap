@@ -11,7 +11,7 @@
     --accent: #f59e0b;
     --danger: #ef4444;
     --success: #10b981;
-    --bg-main: #f1f5f9;
+    --bg-main: #f8fafc;
     --bg-card: #ffffff;
     --text-primary: #0f172a;
     --text-muted: #64748b;
@@ -28,12 +28,12 @@
 
 /* Dark Mode Theme */
 html.dark-mode {
-    --bg-main: #0f172a;
-    --bg-card: #1e293b;
+    --bg-main: #0b1329;
+    --bg-card: #152238;
     --text-primary: #f8fafc;
     --text-muted: #94a3b8;
-    --border-color: #334155;
-    --header-bg: #0f172a;
+    --border-color: #24344d;
+    --header-bg: #0d1829;
     --header-text: #f8fafc;
     --primary-light: #134e4a;
 }
@@ -51,7 +51,7 @@ body {
     min-height: 100vh;
     display: flex;
     flex-direction: column;
-    transition: background-color 0.25s ease, color 0.25s ease;
+    transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 /* Header & Navigation */
@@ -67,7 +67,7 @@ body {
 .header-inner {
     max-width: 1200px;
     margin: 0 auto;
-    padding: 0.85rem 1.5rem;
+    padding: 0.75rem 1.5rem;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -89,10 +89,21 @@ body {
     font-size: 1.5rem;
 }
 
+/* Mobile Nav Toggle */
+.mobile-nav-toggle {
+    display: none;
+    background: none;
+    border: none;
+    color: white;
+    font-size: 1.4rem;
+    cursor: pointer;
+    padding: 0.4rem;
+}
+
 .nav-links {
     display: flex;
     align-items: center;
-    gap: 1.25rem;
+    gap: 1.15rem;
 }
 
 .nav-item {
@@ -113,15 +124,78 @@ body {
     color: #ffffff;
 }
 
+/* 1-Click Theme Toggle Button */
+.theme-toggle-btn {
+    background: rgba(255, 255, 255, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    color: #ffffff;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 1rem;
+}
+
+.theme-toggle-btn:hover {
+    background: rgba(255, 255, 255, 0.28);
+    transform: scale(1.05);
+}
+
+.theme-toggle-btn .light-icon {
+    display: none;
+    color: #fde047;
+}
+.theme-toggle-btn .dark-icon {
+    display: inline-block;
+    color: #cbd5e1;
+}
+
+html.dark-mode .theme-toggle-btn .dark-icon {
+    display: none;
+}
+html.dark-mode .theme-toggle-btn .light-icon {
+    display: inline-block;
+}
+
+/* User Pill & Avatar in Nav */
 .user-pill {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
-    background-color: rgba(0, 0, 0, 0.2);
-    padding: 0.35rem 0.85rem;
+    gap: 0.65rem;
+    background-color: rgba(0, 0, 0, 0.25);
+    padding: 0.3rem 0.85rem;
     border-radius: 9999px;
-    border: 1px solid rgba(255, 255, 255, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.18);
     font-size: 0.9rem;
+}
+
+.nav-avatar {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 1.5px solid #5eead4;
+}
+
+.nav-avatar-placeholder {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background-color: rgba(255, 255, 255, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    color: #5eead4;
+}
+
+.user-greeting {
+    font-weight: 600;
+    color: #ffffff;
 }
 
 .btn-logout {
@@ -130,8 +204,8 @@ body {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 28px;
-    height: 28px;
+    width: 26px;
+    height: 26px;
     border-radius: 50%;
     transition: all 0.2s;
 }
@@ -147,7 +221,7 @@ body {
     text-decoration: none;
     font-weight: 600;
     font-size: 0.9rem;
-    padding: 0.5rem 1.1rem;
+    padding: 0.45rem 1.1rem;
     border-radius: var(--radius-sm);
     transition: background-color 0.2s;
 }
@@ -156,10 +230,37 @@ body {
     background-color: #0d9488;
 }
 
+/* Responsive Navigation (Mobile) */
+@media (max-width: 768px) {
+    .mobile-nav-toggle {
+        display: block;
+    }
+    .nav-links {
+        display: none;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background-color: var(--header-bg);
+        flex-direction: column;
+        align-items: stretch;
+        padding: 1rem 1.5rem;
+        gap: 0.75rem;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        box-shadow: var(--shadow-lg);
+    }
+    .nav-links.open {
+        display: flex;
+    }
+    .user-pill {
+        justify-content: space-between;
+    }
+}
+
 /* Layout Container */
 .main-content {
     flex: 1;
-    padding: 2rem 1rem;
+    padding: 1.75rem 1rem;
 }
 
 .container {
@@ -174,7 +275,7 @@ body {
     border-radius: var(--radius-md);
     padding: 1.5rem;
     box-shadow: var(--shadow-sm);
-    transition: all 0.2s ease;
+    transition: background-color 0.2s ease, border-color 0.2s ease;
 }
 
 /* Alerts & Messages */
@@ -183,7 +284,7 @@ body {
 }
 
 .alert {
-    padding: 0.9rem 1.25rem;
+    padding: 0.85rem 1.25rem;
     border-radius: var(--radius-sm);
     margin-bottom: 0.75rem;
     display: flex;
@@ -198,17 +299,32 @@ body {
     color: #065f46;
     border: 1px solid #a7f3d0;
 }
+html.dark-mode .alert-success {
+    background-color: #064e3b;
+    color: #a7f3d0;
+    border-color: #059669;
+}
 
 .alert-error {
     background-color: #fee2e2;
     color: #991b1b;
     border: 1px solid #fecaca;
 }
+html.dark-mode .alert-error {
+    background-color: #7f1d1d;
+    color: #fecaca;
+    border-color: #dc2626;
+}
 
 .alert-info {
     background-color: #e0f2fe;
     color: #075985;
     border: 1px solid #bae6fd;
+}
+html.dark-mode .alert-info {
+    background-color: #0c4a6e;
+    color: #bae6fd;
+    border-color: #0284c7;
 }
 
 /* Buttons */
@@ -326,6 +442,17 @@ body {
     color: #065f46;
 }
 
+/* Leaflet Dark Mode Popups */
+html.dark-mode .leaflet-popup-content-wrapper {
+    background-color: #152238;
+    color: #f8fafc;
+    border: 1px solid #24344d;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.4);
+}
+html.dark-mode .leaflet-popup-tip {
+    background-color: #152238;
+}
+
 /* Footer */
 .app-footer {
     background-color: var(--bg-card);
@@ -336,4 +463,3 @@ body {
     font-size: 0.85rem;
     margin-top: auto;
 }
-

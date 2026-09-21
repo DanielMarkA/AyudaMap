@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Account Settings &amp; Preferences - AyudaMap{% endblock %}
+{% block title %}Account Settings &amp; Security - AyudaMap{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/user_settings/settings.css' %}">
@@ -9,103 +9,159 @@
 
 {% block content %}
 <div class="settings-wrapper">
-    <div class="card settings-card">
-        <div class="settings-header">
-            <div class="settings-icon-circle">
-                <i class="fa-solid fa-sliders"></i>
+    <div class="settings-grid">
+        <!-- Main Application Preferences Card -->
+        <div class="card settings-card">
+            <div class="settings-header">
+                <div class="settings-icon-circle">
+                    <i class="fa-solid fa-sliders"></i>
+                </div>
+                <div>
+                    <h2>Preferences &amp; Notification Settings</h2>
+                    <p>Manage your AyudaMap application theme, notifications, and alert broadcasts.</p>
+                </div>
             </div>
-            <div>
-                <h2>Preferences &amp; Application Settings</h2>
-                <p>Customize your AyudaMap experience, appearance, and notification alerts.</p>
-            </div>
+
+            <form method="POST" class="settings-form" id="settingsForm">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="save_settings">
+
+                <!-- Appearance Section -->
+                <div class="settings-section">
+                    <h3 class="section-title"><i class="fa-solid fa-palette"></i> Appearance &amp; Theme</h3>
+                    
+                    <div class="setting-row">
+                        <div class="setting-info">
+                            <strong>Dark Mode Interface</strong>
+                            <p>Switch between light and high-contrast dark theme for low-light environments.</p>
+                        </div>
+                        <div class="setting-control">
+                            <label class="switch">
+                                {{ form.dark_mode }}
+                                <span class="slider round"></span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Notifications Section -->
+                <div class="settings-section">
+                    <h3 class="section-title"><i class="fa-solid fa-bell"></i> Community Relief Alerts</h3>
+                    
+                    <div class="setting-row">
+                        <div class="setting-info">
+                            <strong>Email Notifications</strong>
+                            <p>Receive email updates regarding urgent disaster relief notices and coordinator communications.</p>
+                        </div>
+                        <div class="setting-control">
+                            <label class="switch">
+                                {{ form.email_notifications }}
+                                <span class="slider round"></span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="setting-row">
+                        <div class="setting-info">
+                            <strong>New Relief Center Alerts</strong>
+                            <p>Get notified when a new verified evacuation shelter or food relief pantry is posted in your area.</p>
+                        </div>
+                        <div class="setting-control">
+                            <label class="switch">
+                                {{ form.notify_on_new_resources }}
+                                <span class="slider round"></span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Database Status Indicator (Staff / Admin Only) -->
+                {% if user.is_staff %}
+                <div class="database-status-card">
+                    <div class="db-status-icon">
+                        <i class="fa-solid fa-server"></i>
+                    </div>
+                    <div class="db-status-info">
+                        <strong>Cloud Infrastructure (Admin View)</strong>
+                        <span>Supabase PostgreSQL Cloud Network &bull; Status: <span class="badge badge-success"><i class="fa-solid fa-circle-check"></i> Connected &amp; Active</span></span>
+                    </div>
+                </div>
+                {% endif %}
+
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary" id="saveSettingsBtn">
+                        <i class="fa-solid fa-check"></i> Save Preferences
+                    </button>
+                </div>
+            </form>
         </div>
 
-        <form method="POST" class="settings-form" id="settingsForm">
-            {% csrf_token %}
-
-            <!-- Appearance Section -->
-            <div class="settings-section">
-                <h3 class="section-title"><i class="fa-solid fa-palette"></i> Appearance &amp; Theme</h3>
-                
-                <div class="setting-row">
-                    <div class="setting-info">
-                        <strong>Dark Mode Interface</strong>
-                        <p>Switch to a modern dark theme to reduce eye strain in low-light environments.</p>
-                    </div>
-                    <div class="setting-control">
-                        <label class="switch">
-                            {{ form.dark_mode }}
-                            <span class="slider round"></span>
-                        </label>
-                    </div>
+        <!-- Account Security & Password Card -->
+        <div class="card settings-card security-card">
+            <div class="settings-header">
+                <div class="settings-icon-circle security-icon">
+                    <i class="fa-solid fa-shield-halved"></i>
+                </div>
+                <div>
+                    <h2>Account Security &amp; Password</h2>
+                    <p>Keep your account secure by updating your password regularly.</p>
                 </div>
             </div>
 
-            <!-- Notifications Section -->
-            <div class="settings-section">
-                <h3 class="section-title"><i class="fa-solid fa-bell"></i> Notifications &amp; Alerts</h3>
-                
-                <div class="setting-row">
-                    <div class="setting-info">
-                        <strong>Email Notifications</strong>
-                        <p>Receive email updates regarding important announcements and account status.</p>
-                    </div>
-                    <div class="setting-control">
-                        <label class="switch">
-                            {{ form.email_notifications }}
-                            <span class="slider round"></span>
-                        </label>
+            {% if password_form.errors %}
+                <div class="alert alert-error">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                    <div>
+                        {% for field, errors in password_form.errors.items %}
+                            {% for error in errors %}
+                                <div><strong>{{ field|title }}:</strong> {{ error }}</div>
+                            {% endfor %}
+                        {% endfor %}
                     </div>
                 </div>
-
-                <div class="setting-row">
-                    <div class="setting-info">
-                        <strong>New Relief Center Alerts</strong>
-                        <p>Get notified when a new verified relief or food center is added nearby.</p>
-                    </div>
-                    <div class="setting-control">
-                        <label class="switch">
-                            {{ form.notify_on_new_resources }}
-                            <span class="slider round"></span>
-                        </label>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Directory Preferences Section -->
-            <div class="settings-section">
-                <h3 class="section-title"><i class="fa-solid fa-filter"></i> Feed &amp; Directory Preferences</h3>
-                
-                <div class="setting-row">
-                    <div class="setting-info">
-                        <strong>Default Resource Focus</strong>
-                        <p>Automatically prioritize this category when opening the main directory.</p>
-                    </div>
-                    <div class="setting-control select-control">
-                        {{ form.preferred_category }}
-                    </div>
-                </div>
-            </div>
-
-            <!-- Database Status Indicator (Staff / Admin Only) -->
-            {% if user.is_staff %}
-            <div class="database-status-card">
-                <div class="db-status-icon">
-                    <i class="fa-solid fa-server"></i>
-                </div>
-                <div class="db-status-info">
-                    <strong>Cloud Infrastructure (Admin View)</strong>
-                    <span>Supabase PostgreSQL Cloud Network &bull; Status: <span class="badge badge-success"><i class="fa-solid fa-circle-check"></i> Connected &amp; Active</span></span>
-                </div>
-            </div>
             {% endif %}
 
-            <div class="form-actions">
-                <button type="submit" class="btn btn-primary" id="saveSettingsBtn">
-                    <i class="fa-solid fa-check"></i> Save Settings
-                </button>
-            </div>
-        </form>
+            <form method="POST" class="settings-form" id="passwordForm">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="change_password">
+
+                <div class="form-group">
+                    <label for="{{ password_form.old_password.id_for_label }}">Current Password</label>
+                    <div class="input-with-eye">
+                        {{ password_form.old_password }}
+                        <button type="button" class="eye-toggle-btn" title="Toggle password visibility">
+                            <i class="fa-solid fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="{{ password_form.new_password1.id_for_label }}">New Password</label>
+                    <div class="input-with-eye">
+                        {{ password_form.new_password1 }}
+                        <button type="button" class="eye-toggle-btn" title="Toggle password visibility">
+                            <i class="fa-solid fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="{{ password_form.new_password2.id_for_label }}">Confirm New Password</label>
+                    <div class="input-with-eye">
+                        {{ password_form.new_password2 }}
+                        <button type="button" class="eye-toggle-btn" title="Toggle password visibility">
+                            <i class="fa-solid fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-secondary">
+                        <i class="fa-solid fa-key"></i> Update Password
+                    </button>
+                </div>
+            </form>
+        </div>
     </div>
 </div>
 {% endblock %}
@@ -113,4 +169,3 @@
 {% block extra_js %}
 <script src="{% static 'js/user_settings/settings.js' %}"></script>
 {% endblock %}
-

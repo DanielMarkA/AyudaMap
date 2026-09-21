@@ -1,25 +1,20 @@
-// Profile Feature JavaScript (Vertical Slice: profile)
+// Profile Feature JavaScript
 document.addEventListener("DOMContentLoaded", () => {
-    const fileInput = document.querySelector('input[type="file"]');
-    const avatarPreview = document.getElementById("avatarPreview");
-    const avatarPlaceholder = document.getElementById("avatarPlaceholder");
-    const avatarContainer = document.querySelector(".profile-avatar-container");
+    // 1. Live Profile Photo Preview
+    const imageInput = document.querySelector("input[type='file'][name='profile_image']");
+    const previewImg = document.getElementById("avatarPreview");
+    const placeholder = document.getElementById("avatarPlaceholder");
 
-    if (fileInput) {
-        fileInput.addEventListener("change", (e) => {
-            const file = e.target.files[0];
-            if (file && file.type.startsWith("image/")) {
+    if (imageInput && previewImg) {
+        imageInput.addEventListener("change", function () {
+            const file = this.files[0];
+            if (file) {
                 const reader = new FileReader();
-                reader.onload = (event) => {
-                    if (avatarPreview) {
-                        avatarPreview.src = event.target.result;
-                    } else if (avatarPlaceholder && avatarContainer) {
-                        avatarPlaceholder.remove();
-                        const newImg = document.createElement("img");
-                        newImg.src = event.target.result;
-                        newImg.className = "profile-avatar";
-                        newImg.id = "avatarPreview";
-                        avatarContainer.appendChild(newImg);
+                reader.onload = function (e) {
+                    previewImg.src = e.target.result;
+                    previewImg.style.display = "block";
+                    if (placeholder) {
+                        placeholder.style.display = "none";
                     }
                 };
                 reader.readAsDataURL(file);
@@ -27,13 +22,13 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    const form = document.getElementById("profileForm");
+    // 2. Form submission spinner
+    const profileForm = document.getElementById("profileForm");
     const saveBtn = document.getElementById("saveProfileBtn");
-    if (form && saveBtn) {
-        form.addEventListener("submit", () => {
+    if (profileForm && saveBtn) {
+        profileForm.addEventListener("submit", () => {
             saveBtn.disabled = true;
-            saveBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving...';
+            saveBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving changes...';
         });
     }
 });
-

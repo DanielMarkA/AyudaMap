@@ -17,27 +17,31 @@
                     <img src="{{ profile.profile_image.url }}" alt="Profile Photo" class="profile-avatar" id="avatarPreview">
                 {% else %}
                     <div class="profile-avatar-placeholder" id="avatarPlaceholder">
-                        <i class="fa-solid fa-user-tie"></i>
+                        <i class="fa-solid fa-user-shield"></i>
                     </div>
+                    <img src="" alt="Profile Photo" class="profile-avatar" id="avatarPreview" style="display: none;">
                 {% endif %}
             </div>
 
             <h3 class="profile-name">{{ profile.full_name|default:user.username }}</h3>
             <p class="profile-username">@{{ user.username }}</p>
-            {% if profile.is_volunteer %}
-                <span class="profile-role-badge" style="background: #2e7d32; color: white;"><i class="fa-solid fa-shield-heart"></i> Active Relief Volunteer</span>
-            {% else %}
-                <span class="profile-role-badge"><i class="fa-solid fa-user"></i> Community Member</span>
-            {% endif %}
+            
+            <div class="role-badge-wrapper">
+                {% if profile.is_volunteer %}
+                    <span class="profile-role-badge volunteer-badge"><i class="fa-solid fa-shield-heart"></i> Active Relief Volunteer</span>
+                {% else %}
+                    <span class="profile-role-badge member-badge"><i class="fa-solid fa-user"></i> Community Member</span>
+                {% endif %}
+            </div>
 
             {% if profile.organization %}
-                <div style="margin-top: 0.5rem; font-size: 0.85rem; color: var(--text-muted, #666);">
+                <div class="profile-org-box">
                     <i class="fa-solid fa-building-ngo"></i> {{ profile.organization }}
                 </div>
             {% endif %}
 
             <div class="profile-bio-box">
-                <p>{{ profile.bio|default:"No bio added yet. Tell the community how you help!" }}</p>
+                <p>{{ profile.bio|default:"No bio added yet. Share your community relief experience or background!" }}</p>
             </div>
 
             <div class="profile-quick-stats">
@@ -50,8 +54,12 @@
                     <span class="stat-val">{{ profile.phone_number|default:"Not set" }}</span>
                 </div>
                 <div class="stat-item">
-                    <span class="stat-label"><i class="fa-solid fa-city"></i> Location</span>
+                    <span class="stat-label"><i class="fa-solid fa-city"></i> City / Region</span>
                     <span class="stat-val">{{ profile.city|default:"Not set" }}</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label"><i class="fa-solid fa-hand-holding-heart"></i> Aid Hubs Posted</span>
+                    <span class="stat-val stat-highlight">{{ my_resources_count }} Center{{ my_resources_count|pluralize }}</span>
                 </div>
                 <div class="stat-item">
                     <span class="stat-label"><i class="fa-solid fa-calendar-check"></i> Member Since</span>
@@ -63,17 +71,18 @@
 
     <!-- Profile Edit / Details Column -->
     <div class="profile-main">
+        <!-- Edit Profile Card -->
         <div class="card profile-edit-card">
             <div class="section-heading">
                 <h3><i class="fa-solid fa-user-pen"></i> Edit Profile Information</h3>
-                <p>Update your personal details visible to other community coordinators.</p>
+                <p>Update your personal details, relief coordinator badge, and organization affiliation.</p>
             </div>
 
             <form method="POST" enctype="multipart/form-data" class="profile-form" id="profileForm">
                 {% csrf_token %}
 
                 <div class="form-section-title">
-                    <i class="fa-solid fa-id-card-clip"></i> Basic Details
+                    <i class="fa-solid fa-id-card-clip"></i> Identity &amp; Affiliation
                 </div>
 
                 <div class="form-row">
@@ -97,10 +106,10 @@
                         <label for="{{ p_form.organization.id_for_label }}">Affiliated Organization / LGU / NGO</label>
                         {{ p_form.organization }}
                     </div>
-                    <div class="form-group col" style="display: flex; align-items: center; gap: 0.5rem; padding-top: 1.8rem;">
-                        {{ p_form.is_volunteer }}
-                        <label for="{{ p_form.is_volunteer.id_for_label }}" style="margin-bottom: 0; cursor: pointer;">
-                            <strong>Active Relief Volunteer</strong>
+                    <div class="form-group col volunteer-checkbox-group">
+                        <label class="checkbox-label" for="{{ p_form.is_volunteer.id_for_label }}">
+                            {{ p_form.is_volunteer }}
+                            <span><strong>Active Relief Volunteer</strong> (Enables volunteer badge)</span>
                         </label>
                     </div>
                 </div>
@@ -111,7 +120,7 @@
                 </div>
 
                 <div class="form-section-title">
-                    <i class="fa-solid fa-address-book"></i> Contact &amp; Location
+                    <i class="fa-solid fa-address-book"></i> Contact Details
                 </div>
 
                 <div class="form-row">
@@ -131,8 +140,10 @@
                 </div>
 
                 <div class="form-group">
-                    <label for="{{ p_form.profile_image.id_for_label }}">Profile Photo Upload</label>
-                    {{ p_form.profile_image }}
+                    <label for="{{ p_form.profile_image.id_for_label }}">Profile Photo</label>
+                    <div class="file-upload-wrapper">
+                        {{ p_form.profile_image }}
+                    </div>
                 </div>
 
                 <div class="form-actions">
@@ -141,6 +152,50 @@
                     </button>
                 </div>
             </form>
+        </div>
+
+        <!-- My Submitted Aid Resources Section -->
+        <div class="card my-contributions-card">
+            <div class="section-heading">
+                <h3><i class="fa-solid fa-map-location-dot"></i> My Submitted Aid Hubs ({{ my_resources_count }})</h3>
+                <p>Relief centers, evacuation shelters, or donation stations created by your account.</p>
+            </div>
+
+            {% if my_resources %}
+                <div class="contributions-list">
+                    {% for res in my_resources %}
+                        <div class="contribution-item">
+                            <div class="contribution-info">
+                                <h4>{{ res.name }}</h4>
+                                <div class="contribution-meta">
+                                    <span class="category-badge cat-{{ res.category|lower }}">{{ res.get_category_display }}</span>
+                                    {% if res.status == 'FULL_CAPACITY' %}
+                                        <span class="status-pill status-full">Full Capacity</span>
+                                    {% elif res.status == 'TEMPORARILY_CLOSED' %}
+                                        <span class="status-pill status-closed">Closed</span>
+                                    {% else %}
+                                        <span class="status-pill status-open">Operational</span>
+                                    {% endif %}
+                                    <span class="loc-text"><i class="fa-solid fa-location-dot"></i> {{ res.location }}</span>
+                                </div>
+                            </div>
+                            <div class="contribution-action">
+                                <a href="{% url 'home:home' %}?q={{ res.name }}" class="btn btn-sm btn-outline" title="View on map">
+                                    <i class="fa-solid fa-crosshairs"></i> View on Map
+                                </a>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="empty-contributions">
+                    <i class="fa-solid fa-hand-holding-medical"></i>
+                    <p>You haven't submitted any aid resources yet.</p>
+                    <a href="{% url 'home:home' %}" class="btn btn-sm btn-success">
+                        <i class="fa-solid fa-plus"></i> Submit an Aid Center
+                    </a>
+                </div>
+            {% endif %}
         </div>
     </div>
 </div>

@@ -11,54 +11,79 @@
 {% endblock %}
 
 {% block content %}
+<!-- Modern Hero Banner -->
 <div class="home-hero">
     <div class="hero-content">
-        <h1><i class="fa-solid fa-hand-holding-heart"></i> AyudaMap Aid &amp; Relief Directory</h1>
-        <p>Find and share critical community aid centers, food stations, medical clinics, and donation spots in real-time.</p>
+        <h1><i class="fa-solid fa-hand-holding-heart"></i> Disaster Relief &amp; Community Aid Directory</h1>
+        <p>Real-time geolocated aid centers, food stations, evacuation shelters, and medical hubs across the Philippines.</p>
     </div>
     <div class="hero-actions">
-        <button type="button" class="btn btn-success" id="openAddModalBtn">
+        <button type="button" class="btn btn-success btn-hero" id="openAddModalBtn">
             <i class="fa-solid fa-plus-circle"></i> Submit Aid Resource
         </button>
     </div>
 </div>
 
-<!-- Search and Filter Bar -->
-<div class="card filter-card">
-    <form method="GET" action="{% url 'home:home' %}" class="filter-form">
-        <div class="filter-input-group search-group">
-            <label><i class="fa-solid fa-magnifying-glass"></i> Search Directory</label>
-            <input type="text" name="q" value="{{ query }}" placeholder="Search by name, landmark, or description...">
-        </div>
-        <div class="filter-input-group select-group">
-            <label><i class="fa-solid fa-layer-group"></i> Filter Category</label>
-            <select name="category">
-                <option value="">All Categories ({{ total_count }})</option>
-                {% for key, val in categories %}
-                    <option value="{{ key }}" {% if selected_category == key %}selected{% endif %}>{{ val }}</option>
-                {% endfor %}
-            </select>
-        </div>
-        <div class="filter-input-group select-group">
-            <label><i class="fa-solid fa-traffic-light"></i> Operating Status</label>
-            <select name="status">
-                <option value="">All Statuses</option>
-                {% for key, val in statuses %}
-                    <option value="{{ key }}" {% if selected_status == key %}selected{% endif %}>{{ val }}</option>
-                {% endfor %}
-            </select>
-        </div>
-        <div class="filter-buttons">
-            <button type="submit" class="btn btn-primary">
-                <i class="fa-solid fa-filter"></i> Apply Filter
+<!-- Interactive Search & Category Filter Chips -->
+<div class="filter-section">
+    <!-- Category Chips Bar -->
+    <div class="category-chips-container">
+        <a href="{% url 'home:home' %}{% if query %}?q={{ query }}{% endif %}{% if selected_status %}&status={{ selected_status }}{% endif %}" 
+           class="category-chip {% if not selected_category %}active{% endif %}">
+            <i class="fa-solid fa-layer-group"></i> All Categories ({{ total_count }})
+        </a>
+        {% for key, val in categories %}
+            <a href="{% url 'home:home' %}?category={{ key }}{% if query %}&q={{ query }}{% endif %}{% if selected_status %}&status={{ selected_status }}{% endif %}" 
+               class="category-chip chip-{{ key|lower }} {% if selected_category == key %}active{% endif %}">
+                {% if key == 'MEDICAL' %}<i class="fa-solid fa-hospital"></i>
+                {% elif key == 'FOOD' %}<i class="fa-solid fa-bowl-food"></i>
+                {% elif key == 'SHELTER' %}<i class="fa-solid fa-tents"></i>
+                {% elif key == 'GOV' %}<i class="fa-solid fa-building-columns"></i>
+                {% elif key == 'DONATION' %}<i class="fa-solid fa-hand-holding-dollar"></i>
+                {% endif %}
+                {{ val }}
+            </a>
+        {% endfor %}
+    </div>
+
+    <!-- Search Bar & Status Filter Bar -->
+    <div class="card search-filter-card">
+        <form method="GET" action="{% url 'home:home' %}" class="filter-form" id="searchFilterForm">
+            {% if selected_category %}
+                <input type="hidden" name="category" value="{{ selected_category }}">
+            {% endif %}
+
+            <div class="search-box-wrapper">
+                <i class="fa-solid fa-magnifying-glass search-icon"></i>
+                <input type="text" name="q" id="searchKeywordInput" value="{{ query }}" placeholder="Search by resource name, landmark, city, or relief services..." class="search-input">
+                {% if query %}
+                    <a href="{% url 'home:home' %}{% if selected_category %}?category={{ selected_category }}{% endif %}" class="clear-search-btn" title="Clear search">
+                        <i class="fa-solid fa-xmark"></i>
+                    </a>
+                {% endif %}
+            </div>
+
+            <div class="status-select-wrapper">
+                <label for="statusSelect"><i class="fa-solid fa-traffic-light"></i> Status:</label>
+                <select name="status" id="statusSelect" onchange="this.form.submit()">
+                    <option value="">All Operating Statuses</option>
+                    {% for key, val in statuses %}
+                        <option value="{{ key }}" {% if selected_status == key %}selected{% endif %}>{{ val }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-search">
+                <i class="fa-solid fa-magnifying-glass"></i> Search
             </button>
+
             {% if query or selected_category or selected_status %}
-                <a href="{% url 'home:home' %}" class="btn btn-secondary">
+                <a href="{% url 'home:home' %}" class="btn btn-secondary btn-reset" title="Reset all filters">
                     <i class="fa-solid fa-rotate-left"></i> Reset
                 </a>
             {% endif %}
-        </div>
-    </form>
+        </form>
+    </div>
 </div>
 
 <!-- 2-Column Responsive Layout: Map + Resources -->
@@ -67,15 +92,23 @@
     <div class="map-column">
         <div class="card map-card">
             <div class="map-header">
-                <h3><i class="fa-solid fa-map-location-dot"></i> Interactive Map</h3>
-                <span class="badge badge-live"><i class="fa-solid fa-signal"></i> Active Pins: {{ total_count }}</span>
+                <div class="map-title-group">
+                    <h3><i class="fa-solid fa-map-location-dot"></i> Interactive Aid Map</h3>
+                    <span class="badge badge-live"><i class="fa-solid fa-signal"></i> Active Pins: {{ total_count }}</span>
+                </div>
+                <!-- Locate Me GPS Button -->
+                <button type="button" class="btn btn-sm btn-outline locate-me-btn" id="locateMeBtn" title="Center map on my current location">
+                    <i class="fa-solid fa-location-crosshairs"></i> Locate Me
+                </button>
             </div>
+            
             <div id="ayudaMapViewport" class="map-viewport"></div>
+            
             <div class="map-legend">
                 <span class="legend-item"><span class="dot dot-medical"></span> Medical</span>
                 <span class="legend-item"><span class="dot dot-food"></span> Food</span>
                 <span class="legend-item"><span class="dot dot-shelter"></span> Shelter</span>
-                <span class="legend-item"><span class="dot dot-gov"></span> Govt</span>
+                <span class="legend-item"><span class="dot dot-gov"></span> Govt Aid</span>
                 <span class="legend-item"><span class="dot dot-donation"></span> Donation</span>
             </div>
         </div>
@@ -84,17 +117,17 @@
     <!-- Right Column: Resource Cards List -->
     <div class="directory-column">
         <div class="directory-header">
-            <h3>Verified Community Resources</h3>
+            <h3>Verified Relief Centers</h3>
             <span class="count-pill">{{ resources|length }} Results</span>
         </div>
 
         {% if resources %}
-            <div class="resource-list">
+            <div class="resource-list" id="resourceList">
                 {% for resource in resources %}
-                    <div class="card resource-card" data-lat="{{ resource.latitude }}" data-lng="{{ resource.longitude }}" data-id="{{ resource.id }}">
+                    <div class="card resource-card" id="resource-card-{{ resource.id }}" data-lat="{{ resource.latitude }}" data-lng="{{ resource.longitude }}" data-id="{{ resource.id }}">
                         <div class="resource-card-top">
                             <h4 class="resource-title">{{ resource.name }}</h4>
-                            <div style="display: flex; gap: 0.5rem; align-items: center;">
+                            <div class="badge-group">
                                 <span class="category-badge cat-{{ resource.category|lower }}">
                                     {% if resource.category == 'MEDICAL' %}<i class="fa-solid fa-hospital"></i>
                                     {% elif resource.category == 'FOOD' %}<i class="fa-solid fa-bowl-food"></i>
@@ -105,16 +138,16 @@
                                     {{ resource.get_category_display }}
                                 </span>
                                 {% if resource.status == 'FULL_CAPACITY' %}
-                                    <span class="badge badge-warning" style="background: #e65100; color: white; font-size: 0.75rem; padding: 0.2rem 0.5rem; border-radius: 4px;">Full Capacity</span>
+                                    <span class="status-pill status-full"><i class="fa-solid fa-circle-exclamation"></i> Full Capacity</span>
                                 {% elif resource.status == 'TEMPORARILY_CLOSED' %}
-                                    <span class="badge badge-danger" style="background: #c62828; color: white; font-size: 0.75rem; padding: 0.2rem 0.5rem; border-radius: 4px;">Closed</span>
+                                    <span class="status-pill status-closed"><i class="fa-solid fa-circle-xmark"></i> Closed</span>
                                 {% else %}
-                                    <span class="badge badge-success" style="background: #2e7d32; color: white; font-size: 0.75rem; padding: 0.2rem 0.5rem; border-radius: 4px;">Operational</span>
+                                    <span class="status-pill status-open"><i class="fa-solid fa-circle-check"></i> Operational</span>
                                 {% endif %}
                             </div>
                         </div>
 
-                        <p class="resource-desc">{{ resource.description|default:"No description provided." }}</p>
+                        <p class="resource-desc">{{ resource.description|default:"No special instructions provided." }}</p>
 
                         <div class="resource-meta">
                             <div class="meta-row">
@@ -123,7 +156,7 @@
                             </div>
                             <div class="meta-row">
                                 <i class="fa-solid fa-clock"></i>
-                                <span><strong>Hours:</strong> {{ resource.operating_hours }}</span>
+                                <span><strong>Operating Hours:</strong> {{ resource.operating_hours }}</span>
                             </div>
                             {% if resource.contact_info %}
                                 <div class="meta-row">
@@ -132,16 +165,16 @@
                                 </div>
                             {% endif %}
                             {% if resource.created_by %}
-                                <div class="meta-row">
-                                    <i class="fa-solid fa-user-check"></i>
-                                    <span><strong>Coordinator:</strong> {{ resource.created_by.profile.full_name|default:resource.created_by.username }}</span>
+                                <div class="meta-row coordinator-row">
+                                    <i class="fa-solid fa-user-shield"></i>
+                                    <span><strong>Posted By:</strong> {{ resource.created_by.profile.full_name|default:resource.created_by.username }} {% if resource.created_by.profile.organization %}({{ resource.created_by.profile.organization }}){% endif %}</span>
                                 </div>
                             {% endif %}
                         </div>
 
                         <div class="resource-card-footer">
-                            <button type="button" class="btn btn-sm btn-outline pan-to-pin-btn" data-lat="{{ resource.latitude }}" data-lng="{{ resource.longitude }}" data-name="{{ resource.name }}">
-                                <i class="fa-solid fa-crosshairs"></i> View on Map
+                            <button type="button" class="btn btn-sm btn-outline pan-to-pin-btn" data-lat="{{ resource.latitude }}" data-lng="{{ resource.longitude }}" data-id="{{ resource.id }}" data-name="{{ resource.name }}">
+                                <i class="fa-solid fa-map-pin"></i> View on Map
                             </button>
                         </div>
                     </div>
@@ -151,8 +184,10 @@
             <div class="card empty-state-card">
                 <i class="fa-solid fa-box-open empty-icon"></i>
                 <h4>No Resources Found</h4>
-                <p>No resources matched your search query or selected filter.</p>
-                <a href="{% url 'home:home' %}" class="btn btn-primary btn-sm">Clear Search Filter</a>
+                <p>No active aid centers matched your search query or selected category filter.</p>
+                <a href="{% url 'home:home' %}" class="btn btn-primary btn-sm">
+                    <i class="fa-solid fa-rotate-left"></i> Clear Filters
+                </a>
             </div>
         {% endif %}
     </div>
@@ -166,12 +201,20 @@
                 <h3><i class="fa-solid fa-circle-plus"></i> Submit Community Aid Resource</h3>
                 <button type="button" class="modal-close" id="closeAddModalBtn">&times;</button>
             </div>
-            <form method="POST" action="{% url 'home:add_resource' %}" class="modal-body">
+            
+            <div class="modal-picker-notice">
+                <i class="fa-solid fa-crosshairs"></i>
+                <span>Tip: You can click anywhere on the background map to auto-fill latitude &amp; longitude!</span>
+            </div>
+
+            <form method="POST" action="{% url 'home:add_resource' %}" class="modal-body" id="addResourceForm">
                 {% csrf_token %}
+                
                 <div class="form-group">
                     <label>Resource / Center Name *</label>
                     {{ resource_form.name }}
                 </div>
+                
                 <div class="form-row">
                     <div class="form-group col">
                         <label>Category *</label>
@@ -182,15 +225,18 @@
                         {{ resource_form.status }}
                     </div>
                 </div>
+
                 <div class="form-group">
                     <label>Description &amp; Available Aid</label>
                     {{ resource_form.description }}
                 </div>
+
                 <div class="form-group">
                     <label>Location / Address *</label>
                     {{ resource_form.location }}
                 </div>
-                <div class="form-row">
+
+                <div class="form-row coords-row">
                     <div class="form-group col">
                         <label>Latitude</label>
                         {{ resource_form.latitude }}
@@ -200,6 +246,13 @@
                         {{ resource_form.longitude }}
                     </div>
                 </div>
+
+                <div class="modal-gps-btn-wrap">
+                    <button type="button" class="btn btn-sm btn-outline" id="modalGpsBtn">
+                        <i class="fa-solid fa-location-arrow"></i> Use My Current GPS Coordinates
+                    </button>
+                </div>
+
                 <div class="form-row">
                     <div class="form-group col">
                         <label>Operating Hours</label>
@@ -210,6 +263,7 @@
                         {{ resource_form.contact_info }}
                     </div>
                 </div>
+
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" id="cancelAddModalBtn">Cancel</button>
                     <button type="submit" class="btn btn-success"><i class="fa-solid fa-check"></i> Save Resource</button>

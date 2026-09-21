@@ -19,7 +19,12 @@
                 <span>Ayuda<strong>Map</strong></span>
             </a>
 
-            <nav class="nav-links">
+            <!-- Mobile Hamburger Toggle -->
+            <button type="button" class="mobile-nav-toggle" id="mobileNavToggle" aria-label="Toggle Navigation">
+                <i class="fa-solid fa-bars"></i>
+            </button>
+
+            <nav class="nav-links" id="mainNav">
                 {% if user.is_authenticated %}
                     <a href="{% url 'home:home' %}" class="nav-item {% if request.resolver_match.app_name == 'home' %}active{% endif %}">
                         <i class="fa-solid fa-house"></i> Home
@@ -30,13 +35,32 @@
                     <a href="{% url 'user_settings:settings' %}" class="nav-item {% if request.resolver_match.app_name == 'user_settings' %}active{% endif %}">
                         <i class="fa-solid fa-gear"></i> Settings
                     </a>
+
+                    <!-- 1-Click Quick Theme Toggle -->
+                    <button type="button" class="theme-toggle-btn" id="globalThemeToggle" title="Toggle Light / Dark Mode">
+                        <i class="fa-solid fa-moon dark-icon"></i>
+                        <i class="fa-solid fa-sun light-icon"></i>
+                    </button>
+
                     <div class="user-pill">
-                        <span class="user-greeting">Hi, <strong>{{ user.username }}</strong></span>
+                        {% if user.profile.profile_image %}
+                            <img src="{{ user.profile.profile_image.url }}" alt="{{ user.username }}" class="nav-avatar">
+                        {% else %}
+                            <div class="nav-avatar-placeholder">
+                                <i class="fa-solid fa-user"></i>
+                            </div>
+                        {% endif %}
+                        <span class="user-greeting">{{ user.first_name|default:user.username }}</span>
                         <a href="{% url 'login:logout' %}" class="btn-logout" title="Sign out">
                             <i class="fa-solid fa-right-from-bracket"></i>
                         </a>
                     </div>
                 {% else %}
+                    <!-- Guest Theme Toggle -->
+                    <button type="button" class="theme-toggle-btn" id="globalThemeToggle" title="Toggle Light / Dark Mode">
+                        <i class="fa-solid fa-moon dark-icon"></i>
+                        <i class="fa-solid fa-sun light-icon"></i>
+                    </button>
                     <a href="{% url 'login:login' %}" class="nav-item {% if request.resolver_match.app_name == 'login' %}active{% endif %}">
                         <i class="fa-solid fa-right-to-bracket"></i> Login
                     </a>
@@ -73,6 +97,56 @@
         </div>
     </footer>
 
+    <!-- Global Base JS (Theme & Mobile Navigation) -->
+    <script>
+    document.addEventListener("DOMContentLoaded", function() {
+        // 1. Theme Toggle
+        const themeBtn = document.getElementById("globalThemeToggle");
+        const html = document.documentElement;
+
+        // Sync localStorage preference if present
+        const savedTheme = localStorage.getItem("ayuda_theme");
+        if (savedTheme === "dark") {
+            html.classList.add("dark-mode");
+        } else if (savedTheme === "light") {
+            html.classList.remove("dark-mode");
+        }
+
+        if (themeBtn) {
+            themeBtn.addEventListener("click", function() {
+                html.classList.toggle("dark-mode");
+                const isDark = html.classList.contains("dark-mode");
+                localStorage.setItem("ayuda_theme", isDark ? "dark" : "light");
+
+                // Dispatch global event for Leaflet maps to switch tiles if on home page
+                window.dispatchEvent(new CustomEvent("themeChanged", { detail: { isDark: isDark } }));
+
+                // Optional sync to settings dark_mode toggle if on settings page
+                const settingsToggle = document.getElementById("dark_mode_toggle");
+                if (settingsToggle) {
+                    settingsToggle.checked = isDark;
+                }
+            });
+        }
+
+        // 2. Mobile Navigation Toggle
+        const navToggle = document.getElementById("mobileNavToggle");
+        const navLinks = document.getElementById("mainNav");
+        if (navToggle && navLinks) {
+            navToggle.addEventListener("click", function() {
+                navLinks.classList.toggle("open");
+                const icon = navToggle.querySelector("i");
+                if (navLinks.classList.contains("open")) {
+                    icon.classList.remove("fa-bars");
+                    icon.classList.add("fa-xmark");
+                } else {
+                    icon.classList.remove("fa-xmark");
+                    icon.classList.add("fa-bars");
+                }
+            });
+        }
+    });
+    </script>
     {% block extra_js %}{% endblock %}
 </body>
 </html>

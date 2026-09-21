@@ -8,43 +8,75 @@
 {% endblock %}
 
 {% block content %}
-<div class="auth-wrapper">
-    <div class="card auth-card">
-        <div class="auth-header">
-            <div class="auth-icon-circle">
-                <i class="fa-solid fa-right-to-bracket"></i>
+<div class="auth-page-container">
+    <div class="auth-split-wrapper">
+        <!-- Left Hero Panel -->
+        <div class="auth-hero-panel">
+            <div class="hero-brand-badge">
+                <i class="fa-solid fa-map-location-dot"></i> AyudaMap Platform
             </div>
-            <h2>Sign In to AyudaMap</h2>
-            <p>Access verified community relief centers &amp; resources.</p>
+            <h2>Connecting Communities to Vital Relief, In Real-Time.</h2>
+            <p>Access geolocated aid centers, medical supplies, food distribution networks, and evacuation hubs across the Philippines.</p>
+            
+            <div class="hero-feature-list">
+                <div class="feature-item">
+                    <i class="fa-solid fa-circle-check"></i>
+                    <span>Verified community aid pins with operating hours &amp; contacts</span>
+                </div>
+                <div class="feature-item">
+                    <i class="fa-solid fa-circle-check"></i>
+                    <span>Live shelter capacity &amp; resource operational status</span>
+                </div>
+                <div class="feature-item">
+                    <i class="fa-solid fa-circle-check"></i>
+                    <span>Fast volunteer submissions with interactive GPS mapping</span>
+                </div>
+            </div>
         </div>
 
-        {% if error %}
-            <div class="auth-error-banner">
-                <i class="fa-solid fa-triangle-exclamation"></i>
-                <span>{{ error }}</span>
-            </div>
-        {% endif %}
-
-        <form method="POST" class="auth-form" id="loginForm">
-            {% csrf_token %}
-            
-            <div class="form-group">
-                <label for="id_username"><i class="fa-solid fa-user"></i> Username</label>
-                {{ form.username }}
+        <!-- Right Auth Form Card -->
+        <div class="card auth-card">
+            <div class="auth-header">
+                <div class="auth-icon-circle">
+                    <i class="fa-solid fa-right-to-bracket"></i>
+                </div>
+                <h2>Sign In to Your Account</h2>
+                <p>Welcome back! Please enter your credentials.</p>
             </div>
 
-            <div class="form-group">
-                <label for="id_password"><i class="fa-solid fa-lock"></i> Password</label>
-                {{ form.password }}
+            {% if error %}
+                <div class="alert alert-error">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                    <span>{{ error }}</span>
+                </div>
+            {% endif %}
+
+            <form method="POST" class="auth-form" id="loginForm">
+                {% csrf_token %}
+                
+                <div class="form-group">
+                    <label for="id_username"><i class="fa-solid fa-user"></i> Username</label>
+                    {{ form.username }}
+                </div>
+
+                <div class="form-group">
+                    <label for="id_password"><i class="fa-solid fa-lock"></i> Password</label>
+                    <div class="input-with-eye">
+                        {{ form.password }}
+                        <button type="button" class="eye-toggle-btn" title="Toggle password visibility">
+                            <i class="fa-solid fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-block btn-auth-submit" id="loginSubmitBtn">
+                    <i class="fa-solid fa-arrow-right-to-bracket"></i> Log In to AyudaMap
+                </button>
+            </form>
+
+            <div class="auth-footer">
+                <p>Don't have an account yet? <a href="{% url 'register:register' %}"><strong>Create an account</strong></a></p>
             </div>
-
-            <button type="submit" class="btn btn-primary btn-block" id="loginSubmitBtn">
-                <i class="fa-solid fa-arrow-right-to-bracket"></i> Log In
-            </button>
-        </form>
-
-        <div class="auth-footer">
-            <p>Don't have an account yet? <a href="{% url 'register:register' %}">Create an account</a></p>
         </div>
     </div>
 </div>
@@ -53,4 +85,3 @@
 {% block extra_js %}
 <script src="{% static 'js/login/login.js' %}"></script>
 {% endblock %}
-

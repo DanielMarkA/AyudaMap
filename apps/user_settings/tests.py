@@ -20,10 +20,10 @@ class UserSettingsViewTests(TestCase):
     def test_settings_update(self):
         self.client.login(username="testsettingsuser", password="Password123!")
         response = self.client.post(reverse("user_settings:settings"), {
+            "action": "save_settings",
             "dark_mode": True,
             "email_notifications": True,
             "notify_on_new_resources": False,
-            "preferred_category": "DONATION"
         })
         self.assertRedirects(response, reverse("user_settings:settings"))
         
@@ -31,4 +31,15 @@ class UserSettingsViewTests(TestCase):
         self.assertTrue(settings.dark_mode)
         self.assertTrue(settings.email_notifications)
         self.assertFalse(settings.notify_on_new_resources)
-        self.assertEqual(settings.preferred_category, "DONATION")
+
+    def test_change_password(self):
+        self.client.login(username="testsettingsuser", password="Password123!")
+        response = self.client.post(reverse("user_settings:settings"), {
+            "action": "change_password",
+            "old_password": "Password123!",
+            "new_password1": "BrandNewPass2026!",
+            "new_password2": "BrandNewPass2026!",
+        })
+        self.assertRedirects(response, reverse("user_settings:settings"))
+        self.user.refresh_from_db()
+        self.assertTrue(self.user.check_password("BrandNewPass2026!"))

@@ -1,6 +1,6 @@
 """
 Seed script to populate Supabase PostgreSQL database with initial AyudaMap data:
-- Superuser / Demo accounts & Profiles with volunteer/org flags
+- Superuser / Coordinator and Volunteer accounts & Profiles
 - UserSettings
 - Verified Community Aid Resources with coordinates, operating status & volunteer ownership
 """
@@ -48,34 +48,34 @@ def run():
     admin_settings.preferred_category = 'ALL'
     admin_settings.save()
 
-    # 2. Create Regular Demo Volunteer User
-    demo_user, created = User.objects.get_or_create(
+    # 2. Create Initial Community Volunteer User
+    volunteer_user, created = User.objects.get_or_create(
         username='juan_delacruz',
         defaults={'email': 'juan.delacruz@gmail.com'}
     )
     if created:
-        demo_user.set_password('AyudaPass123!')
-        demo_user.save()
-        print("Created demo user 'juan_delacruz' with password 'AyudaPass123!'")
+        volunteer_user.set_password('AyudaPass123!')
+        volunteer_user.save()
+        print("Created volunteer user 'juan_delacruz' with password 'AyudaPass123!'")
     else:
-        demo_user.set_password('AyudaPass123!')
-        demo_user.save()
-        print("Demo user 'juan_delacruz' updated.")
+        volunteer_user.set_password('AyudaPass123!')
+        volunteer_user.save()
+        print("Volunteer user 'juan_delacruz' updated.")
 
-    demo_profile, _ = Profile.objects.get_or_create(user=demo_user)
-    demo_profile.full_name = 'Juan Dela Cruz'
-    demo_profile.bio = 'Community volunteer and relief goods coordinator in Quezon City.'
-    demo_profile.phone_number = '+63 928 555 4321'
-    demo_profile.city = 'Quezon City'
-    demo_profile.organization = 'QC Community Relief Network'
-    demo_profile.is_volunteer = True
-    demo_profile.save()
+    volunteer_profile, _ = Profile.objects.get_or_create(user=volunteer_user)
+    volunteer_profile.full_name = 'Juan Dela Cruz'
+    volunteer_profile.bio = 'Community volunteer and relief goods coordinator in Quezon City.'
+    volunteer_profile.phone_number = '+63 928 555 4321'
+    volunteer_profile.city = 'Quezon City'
+    volunteer_profile.organization = 'QC Community Relief Network'
+    volunteer_profile.is_volunteer = True
+    volunteer_profile.save()
 
-    demo_settings, _ = UserSettings.objects.get_or_create(user=demo_user)
-    demo_settings.dark_mode = True
-    demo_settings.email_notifications = True
-    demo_settings.preferred_category = 'FOOD'
-    demo_settings.save()
+    volunteer_settings, _ = UserSettings.objects.get_or_create(user=volunteer_user)
+    volunteer_settings.dark_mode = True
+    volunteer_settings.email_notifications = True
+    volunteer_settings.preferred_category = 'FOOD'
+    volunteer_settings.save()
 
     # 3. Seed Community Resources
     resources_data = [
@@ -103,7 +103,7 @@ def run():
             'operating_hours': '7:00 AM - 6:00 PM',
             'contact_info': '+63 919 123 4567',
             'is_verified': True,
-            'created_by': demo_user,
+            'created_by': volunteer_user,
         },
         {
             'name': 'Marikina Sports Center Evacuation & Relief Shelter',
@@ -142,7 +142,7 @@ def run():
             'operating_hours': '9:00 AM - 5:00 PM',
             'contact_info': '+63 915 789 0123',
             'is_verified': True,
-            'created_by': demo_user,
+            'created_by': volunteer_user,
         },
         {
             'name': 'St. Jude Community Clinic & Medical Aid',
