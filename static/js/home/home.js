@@ -24,9 +24,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
         map = L.map('ayudaMapViewport').setView(defaultCenter, 12);
 
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        const isDarkMode = document.documentElement.classList.contains("dark-mode");
+        const tileUrl = isDarkMode
+            ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
+            : 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png';
+
+        L.tileLayer(tileUrl, {
             maxZoom: 19,
-            attribution: '&copy; OpenStreetMap contributors'
+            subdomains: 'abcd',
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions" target="_blank">CARTO</a>'
         }).addTo(map);
 
         const markers = {};
