@@ -4,36 +4,51 @@
 {% block title %}Community Aid Directory - AyudaMap{% endblock %}
 
 {% block extra_css %}
-<!-- Leaflet CSS for Interactive Map -->
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
-<!-- Home Feature CSS -->
 <link rel="stylesheet" href="{% static 'css/home/home.css' %}">
+<style>
+    @keyframes pulseRing {
+        0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.75); }
+        70% { box-shadow: 0 0 0 12px rgba(239, 68, 68, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+    }
+    .pin-critical { animation: pulseRing 1.8s infinite; border-color: #fef08a !important; }
+    .urgency-badge { font-size: 0.75rem; font-weight: 700; padding: 3px 8px; border-radius: 999px; }
+    .urgency-critical { background: #fee2e2; color: #b91c1c; }
+    .urgency-medium { background: #fef3c7; color: #b45309; }
+    .urgency-low { background: #e0f2fe; color: #0369a1; }
+    .capacity-bar-wrap { margin: 10px 0; }
+    .capacity-label { display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 4px; opacity: 0.85; }
+    .capacity-track { width: 100%; height: 7px; background: rgba(148, 163, 184, 0.25); border-radius: 999px; overflow: hidden; }
+    .capacity-fill { height: 100%; background: #0d9488; border-radius: 999px; transition: width 0.3s ease; }
+    .supplies-tag { display: inline-block; background: rgba(245, 158, 11, 0.14); color: #d97706; font-size: 0.78rem; padding: 3px 8px; border-radius: 6px; margin-top: 6px; font-weight: 600; }
+    .card-actions-bar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: space-between; width: 100%; }
+    .inline-action-form { display: inline-flex; gap: 6px; align-items: center; margin: 0; }
+    .quick-status-select { padding: 4px 8px; border-radius: 6px; font-size: 0.8rem; border: 1px solid rgba(148, 163, 184, 0.4); }
+</style>
 {% endblock %}
 
 {% block content %}
-<!-- Modern Hero Banner -->
 <div class="home-hero">
     <div class="hero-content">
         <h1><i class="fa-solid fa-hand-holding-heart"></i> Disaster Relief &amp; Community Aid Directory</h1>
         <p>Real-time geolocated aid centers, food stations, evacuation shelters, and medical hubs across the Philippines.</p>
     </div>
-    <div class="hero-actions">
+    <div class="hero-actions" style="display:flex; gap:10px; flex-wrap:wrap;">
         <button type="button" class="btn btn-success btn-hero" id="openAddModalBtn">
             <i class="fa-solid fa-plus-circle"></i> Submit Aid Resource
         </button>
     </div>
 </div>
 
-<!-- Interactive Search & Category Filter Chips -->
 <div class="filter-section">
-    <!-- Category Chips Bar -->
     <div class="category-chips-container">
-        <a href="{% url 'home:home' %}{% if query %}?q={{ query }}{% endif %}{% if selected_status %}&status={{ selected_status }}{% endif %}" 
+        <a href="{% url 'home:home' %}{% if query %}?q={{ query }}{% endif %}{% if selected_status %}&status={{ selected_status }}{% endif %}{% if selected_urgency %}&urgency={{ selected_urgency }}{% endif %}" 
            class="category-chip {% if not selected_category %}active{% endif %}">
             <i class="fa-solid fa-layer-group"></i> All Categories ({{ total_count }})
         </a>
         {% for key, val in categories %}
-            <a href="{% url 'home:home' %}?category={{ key }}{% if query %}&q={{ query }}{% endif %}{% if selected_status %}&status={{ selected_status }}{% endif %}" 
+            <a href="{% url 'home:home' %}?category={{ key }}{% if query %}&q={{ query }}{% endif %}{% if selected_status %}&status={{ selected_status }}{% endif %}{% if selected_urgency %}&urgency={{ selected_urgency }}{% endif %}" 
                class="category-chip chip-{{ key|lower }} {% if selected_category == key %}active{% endif %}">
                 {% if key == 'MEDICAL' %}<i class="fa-solid fa-hospital"></i>
                 {% elif key == 'FOOD' %}<i class="fa-solid fa-bowl-food"></i>
@@ -46,7 +61,6 @@
         {% endfor %}
     </div>
 
-    <!-- Search Bar & Status Filter Bar -->
     <div class="card search-filter-card">
         <form method="GET" action="{% url 'home:home' %}" class="filter-form" id="searchFilterForm">
             {% if selected_category %}
@@ -55,7 +69,7 @@
 
             <div class="search-box-wrapper">
                 <i class="fa-solid fa-magnifying-glass search-icon"></i>
-                <input type="text" name="q" id="searchKeywordInput" value="{{ query }}" placeholder="Search by resource name, landmark, city, or relief services..." class="search-input">
+                <input type="text" name="q" id="searchKeywordInput" value="{{ query }}" placeholder="Search by name, landmark, city, or needed supplies..." class="search-input">
                 {% if query %}
                     <a href="{% url 'home:home' %}{% if selected_category %}?category={{ selected_category }}{% endif %}" class="clear-search-btn" title="Clear search">
                         <i class="fa-solid fa-xmark"></i>
@@ -66,9 +80,19 @@
             <div class="status-select-wrapper">
                 <label for="statusSelect"><i class="fa-solid fa-traffic-light"></i> Status:</label>
                 <select name="status" id="statusSelect" onchange="this.form.submit()">
-                    <option value="">All Operating Statuses</option>
+                    <option value="">All Statuses</option>
                     {% for key, val in statuses %}
                         <option value="{{ key }}" {% if selected_status == key %}selected{% endif %}>{{ val }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="status-select-wrapper">
+                <label for="urgencySelect"><i class="fa-solid fa-triangle-exclamation"></i> Urgency:</label>
+                <select name="urgency" id="urgencySelect" onchange="this.form.submit()">
+                    <option value="">All Priorities</option>
+                    {% for key, val in urgencies %}
+                        <option value="{{ key }}" {% if selected_urgency == key %}selected{% endif %}>{{ val }}</option>
                     {% endfor %}
                 </select>
             </div>
@@ -77,7 +101,7 @@
                 <i class="fa-solid fa-magnifying-glass"></i> Search
             </button>
 
-            {% if query or selected_category or selected_status %}
+            {% if query or selected_category or selected_status or selected_urgency %}
                 <a href="{% url 'home:home' %}" class="btn btn-secondary btn-reset" title="Reset all filters">
                     <i class="fa-solid fa-rotate-left"></i> Reset
                 </a>
@@ -86,17 +110,17 @@
     </div>
 </div>
 
-<!-- 2-Column Responsive Layout: Map + Resources -->
 <div class="home-grid">
-    <!-- Left Column: Interactive Map -->
     <div class="map-column">
         <div class="card map-card">
             <div class="map-header">
                 <div class="map-title-group">
                     <h3><i class="fa-solid fa-map-location-dot"></i> Interactive Aid Map</h3>
                     <span class="badge badge-live"><i class="fa-solid fa-signal"></i> Active Pins: {{ total_count }}</span>
+                    {% if critical_count > 0 %}
+                        <span class="urgency-badge urgency-critical"><i class="fa-solid fa-fire"></i> {{ critical_count }} Critical</span>
+                    {% endif %}
                 </div>
-                <!-- Locate Me GPS Button -->
                 <button type="button" class="btn btn-sm btn-outline locate-me-btn" id="locateMeBtn" title="Center map on my current location">
                     <i class="fa-solid fa-location-crosshairs"></i> Locate Me
                 </button>
@@ -114,7 +138,6 @@
         </div>
     </div>
 
-    <!-- Right Column: Resource Cards List -->
     <div class="directory-column">
         <div class="directory-header">
             <h3>Verified Relief Centers</h3>
@@ -128,13 +151,11 @@
                         <div class="resource-card-top">
                             <h4 class="resource-title">{{ resource.name }}</h4>
                             <div class="badge-group">
+                                <span class="urgency-badge urgency-{{ resource.urgency_level|lower }}">
+                                    {% if resource.urgency_level == 'CRITICAL' %}<i class="fa-solid fa-triangle-exclamation"></i>{% endif %}
+                                    {{ resource.get_urgency_level_display }}
+                                </span>
                                 <span class="category-badge cat-{{ resource.category|lower }}">
-                                    {% if resource.category == 'MEDICAL' %}<i class="fa-solid fa-hospital"></i>
-                                    {% elif resource.category == 'FOOD' %}<i class="fa-solid fa-bowl-food"></i>
-                                    {% elif resource.category == 'SHELTER' %}<i class="fa-solid fa-tents"></i>
-                                    {% elif resource.category == 'GOV' %}<i class="fa-solid fa-building-columns"></i>
-                                    {% elif resource.category == 'DONATION' %}<i class="fa-solid fa-hand-holding-dollar"></i>
-                                    {% endif %}
                                     {{ resource.get_category_display }}
                                 </span>
                                 {% if resource.status == 'FULL_CAPACITY' %}
@@ -148,6 +169,22 @@
                         </div>
 
                         <p class="resource-desc">{{ resource.description|default:"No special instructions provided." }}</p>
+
+                        {% if resource.supplies_needed %}
+                            <div>
+                                <span class="supplies-tag"><i class="fa-solid fa-boxes-stacked"></i> Needed: {{ resource.supplies_needed }}</span>
+                            </div>
+                        {% endif %}
+
+                        <div class="capacity-bar-wrap">
+                            <div class="capacity-label">
+                                <span><strong>Available Slots / Packs:</strong> {{ resource.capacity_available }} / {{ resource.capacity_total }}</span>
+                                <span>{{ resource.occupancy_percentage }}% utilized</span>
+                            </div>
+                            <div class="capacity-track">
+                                <div class="capacity-fill" style="width: {{ resource.occupancy_percentage }}%;"></div>
+                            </div>
+                        </div>
 
                         <div class="resource-meta">
                             <div class="meta-row">
@@ -167,15 +204,33 @@
                             {% if resource.created_by %}
                                 <div class="meta-row coordinator-row">
                                     <i class="fa-solid fa-user-shield"></i>
-                                    <span><strong>Posted By:</strong> {{ resource.created_by.profile.full_name|default:resource.created_by.username }} {% if resource.created_by.profile.organization %}({{ resource.created_by.profile.organization }}){% endif %}</span>
+                                    <span><strong>Posted By:</strong> {{ resource.created_by.profile.full_name|default:resource.created_by.username }}</span>
                                 </div>
                             {% endif %}
                         </div>
 
                         <div class="resource-card-footer">
-                            <button type="button" class="btn btn-sm btn-outline pan-to-pin-btn" data-lat="{{ resource.latitude }}" data-lng="{{ resource.longitude }}" data-id="{{ resource.id }}" data-name="{{ resource.name }}">
-                                <i class="fa-solid fa-map-pin"></i> View on Map
-                            </button>
+                            <div class="card-actions-bar" onclick="event.stopPropagation();">
+                                <button type="button" class="btn btn-sm btn-outline pan-to-pin-btn" data-lat="{{ resource.latitude }}" data-lng="{{ resource.longitude }}" data-id="{{ resource.id }}">
+                                    <i class="fa-solid fa-map-pin"></i> View on Map
+                                </button>
+
+                                <form method="POST" action="{% url 'home:confirm_resource' resource.id %}" class="inline-action-form">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-sm btn-outline" title="Confirm this relief center is currently active">
+                                        <i class="fa-solid fa-thumbs-up"></i> Verified ({{ resource.confirmations }})
+                                    </button>
+                                </form>
+
+                                <form method="POST" action="{% url 'home:update_status' resource.id %}" class="inline-action-form">
+                                    {% csrf_token %}
+                                    <select name="status" class="quick-status-select" onchange="this.form.submit()" title="Quickly update operating status">
+                                        {% for key, val in statuses %}
+                                            <option value="{{ key }}" {% if resource.status == key %}selected{% endif %}>{{ val }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </form>
+                            </div>
                         </div>
                     </div>
                 {% endfor %}
@@ -184,7 +239,7 @@
             <div class="card empty-state-card">
                 <i class="fa-solid fa-box-open empty-icon"></i>
                 <h4>No Resources Found</h4>
-                <p>No active aid centers matched your search query or selected category filter.</p>
+                <p>No active aid centers matched your search query or selected filters.</p>
                 <a href="{% url 'home:home' %}" class="btn btn-primary btn-sm">
                     <i class="fa-solid fa-rotate-left"></i> Clear Filters
                 </a>
@@ -204,7 +259,7 @@
             
             <div class="modal-picker-notice">
                 <i class="fa-solid fa-crosshairs"></i>
-                <span>Tip: You can click anywhere on the background map to auto-fill latitude &amp; longitude!</span>
+                <span>Tip: Click anywhere on the background map to auto-fill latitude &amp; longitude!</span>
             </div>
 
             <form method="POST" action="{% url 'home:add_resource' %}" class="modal-body" id="addResourceForm">
@@ -224,11 +279,31 @@
                         <label>Operating Status *</label>
                         {{ resource_form.status }}
                     </div>
+                    <div class="form-group col">
+                        <label>Urgency Priority *</label>
+                        {{ resource_form.urgency_level }}
+                    </div>
                 </div>
 
                 <div class="form-group">
                     <label>Description &amp; Available Aid</label>
                     {{ resource_form.description }}
+                </div>
+
+                <div class="form-group">
+                    <label>Urgent Supplies Needed</label>
+                    {{ resource_form.supplies_needed }}
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group col">
+                        <label>Total Capacity (Slots/Packs)</label>
+                        {{ resource_form.capacity_total }}
+                    </div>
+                    <div class="form-group col">
+                        <label>Available Capacity</label>
+                        {{ resource_form.capacity_available }}
+                    </div>
                 </div>
 
                 <div class="form-group">
@@ -275,10 +350,7 @@
 {% endblock %}
 
 {% block extra_js %}
-<!-- Leaflet JS -->
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-<!-- Embedded Map Data -->
 <script id="mapDataJson" type="application/json">{{ map_data_json|safe }}</script>
-<!-- Home Feature JS -->
 <script src="{% static 'js/home/home.js' %}"></script>
 {% endblock %}

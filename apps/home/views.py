@@ -1,16 +1,19 @@
 import json
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from .models import Resource
+from django.db.models import Q, F
+from django.views.decorators.http import require_POST
+from .models import Resource, ResourceStatusLog
 from .forms import ResourceForm
+
 
 @login_required
 def home_view(request):
     query = request.GET.get('q', '').strip()
     selected_status = request.GET.get('status', '').strip()
-    
-    # Check if user explicitly filtered category, or apply user preference
+    selected_urgency = request.GET.get('urgency', '').strip()
+
     if 'category' in request.GET:
         selected_category = request.GET.get('category', '').strip()
     else:
@@ -20,13 +23,19 @@ def home_view(request):
     resources = Resource.objects.filter(is_verified=True).select_related('created_by')
 
     if query:
-        resources = resources.filter(name__icontains=query) | resources.filter(description__icontains=query) | resources.filter(location__icontains=query)
+        resources = resources.filter(
+            Q(name__icontains=query) |
+            Q(description__icontains=query) |
+            Q(location__icontains=query) |
+            Q(supplies_needed__icontains=query)
+        )
     if selected_category:
         resources = resources.filter(category=selected_category)
     if selected_status:
         resources = resources.filter(status=selected_status)
+    if selected_urgency:
+        resources = resources.filter(urgency_level=selected_urgency)
 
-    # Prepare JSON data for Leaflet Map pins
     map_data = []
     for r in resources:
         map_data.append({
@@ -36,40 +45,97 @@ def home_view(request):
             'category_code': r.category,
             'status': r.status,
             'status_display': r.get_status_display(),
+            'urgency': r.urgency_level,
+            'urgency_display': r.get_urgency_level_display(),
             'location': r.location,
             'description': r.description or '',
+            'supplies_needed': r.supplies_needed or '',
+            'capacity_total': r.capacity_total,
+            'capacity_available': r.capacity_available,
+            'confirmations': r.confirmations,
             'operating_hours': r.operating_hours,
             'contact_info': r.contact_info,
-            'lat': r.latitude or 14.5995,
-            'lng': r.longitude or 120.9842,
+            'lat': r.latitude or 10.3157,
+            'lng': r.longitude or 123.8854,
         })
-
-    resource_form = ResourceForm()
 
     context = {
         'resources': resources,
         'query': query,
         'selected_category': selected_category,
         'selected_status': selected_status,
+        'selected_urgency': selected_urgency,
         'categories': Resource.CATEGORY_CHOICES,
         'statuses': Resource.STATUS_CHOICES,
+        'urgencies': Resource.URGENCY_CHOICES,
         'map_data_json': json.dumps(map_data),
-        'resource_form': resource_form,
+        'resource_form': ResourceForm(),
         'total_count': resources.count(),
+        'critical_count': resources.filter(urgency_level='CRITICAL').count(),
     }
     return render(request, 'home/home.html', context)
 
+
 @login_required
+@require_POST
 def add_resource_view(request):
-    if request.method == 'POST':
-        form = ResourceForm(request.POST)
-        if form.is_valid():
-            resource = form.save(commit=False)
-            resource.created_by = request.user
-            resource.is_verified = True
-            resource.save()
-            messages.success(request, f"Resource '{resource.name}' was successfully added to AyudaMap!")
-            return redirect('home:home')
-        else:
-            messages.error(request, "Please correct the errors in the form.")
+    form = ResourceForm(request.POST)
+    if form.is_valid():
+        resource = form.save(commit=False)
+        resource.created_by = request.user
+        resource.is_verified = True
+        resource.save()
+        ResourceStatusLog.objects.create(
+            resource=resource,
+            updated_by=request.user,
+            action_type='STATUS_UPDATE',
+            new_status=resource.status,
+            note=f"Initial submission ({resource.get_urgency_display()})",
+        )
+        messages.success(request, f"Resource '{resource.name}' was successfully added to AyudaMap!")
+    else:
+        messages.error(request, "Please correct the errors in the form.")
+    return redirect('home:home')
+
+
+@login_required
+@require_POST
+def confirm_resource_view(request, resource_id):
+    resource = get_object_or_404(Resource, id=resource_id)
+    Resource.objects.filter(id=resource.id).update(confirmations=F('confirmations') + 1)
+    ResourceStatusLog.objects.create(
+        resource=resource,
+        updated_by=request.user,
+        action_type='CONFIRM_ACTIVE',
+        previous_status=resource.status,
+        new_status=resource.status,
+        note="Verified active on site",
+    )
+    messages.success(request, f"Confirmed '{resource.name}' is active!")
+    return redirect('home:home')
+
+
+@login_required
+@require_POST
+def update_resource_status_view(request, resource_id):
+    resource = get_object_or_404(Resource, id=resource_id)
+    new_status = request.POST.get('status', '').strip()
+    valid_statuses = dict(Resource.STATUS_CHOICES)
+
+    if new_status in valid_statuses and new_status != resource.status:
+        old_status = resource.status
+        resource.status = new_status
+        if new_status == 'FULL_CAPACITY':
+            resource.capacity_available = 0
+        resource.save()
+
+        ResourceStatusLog.objects.create(
+            resource=resource,
+            updated_by=request.user,
+            action_type='STATUS_UPDATE',
+            previous_status=old_status,
+            new_status=new_status,
+            note=f"Updated status to {valid_statuses[new_status]}",
+        )
+        messages.success(request, f"Updated '{resource.name}' to {valid_statuses[new_status]}.")
     return redirect('home:home')

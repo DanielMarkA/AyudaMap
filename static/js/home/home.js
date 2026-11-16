@@ -1,6 +1,4 @@
-// Home Feature JavaScript
 document.addEventListener("DOMContentLoaded", () => {
-    // 1. Parse JSON map data
     let resources = [];
     const mapDataEl = document.getElementById("mapDataJson");
     if (mapDataEl) {
@@ -11,7 +9,6 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    // 2. Initialize Leaflet Map
     const mapContainer = document.getElementById("ayudaMapViewport");
     let map = null;
     let tileLayer = null;
@@ -28,33 +25,31 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (mapContainer && typeof L !== "undefined") {
         const isDark = document.documentElement.classList.contains("dark-mode");
-        const defaultCenter = resources.length > 0 && resources[0].lat 
-            ? [resources[0].lat, resources[0].lng] 
-            : [14.5995, 120.9842];
+        const defaultCenter = resources.length > 0 && resources[0].lat
+            ? [resources[0].lat, resources[0].lng]
+            : [10.3157, 123.8854];
 
         map = L.map('ayudaMapViewport').setView(defaultCenter, 12);
 
         tileLayer = L.tileLayer(getTileUrl(isDark), {
             maxZoom: 19,
             subdomains: 'abcd',
-            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions" target="_blank">CARTO</a>'
+            attribution: '&copy; OpenStreetMap contributors &copy; CARTO'
         }).addTo(map);
 
-        // Listen for Navbar theme changes and swap map tiles live
         window.addEventListener("themeChanged", (e) => {
             if (map && tileLayer) {
                 map.removeLayer(tileLayer);
                 tileLayer = L.tileLayer(getTileUrl(e.detail.isDark), {
                     maxZoom: 19,
                     subdomains: 'abcd',
-                    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions" target="_blank">CARTO</a>'
+                    attribution: '&copy; OpenStreetMap contributors &copy; CARTO'
                 }).addTo(map);
             }
         });
 
-        // Category color mapper
         const getCategoryColor = (cat) => {
-            switch(cat) {
+            switch (cat) {
                 case 'MEDICAL': return '#ef4444';
                 case 'FOOD': return '#f59e0b';
                 case 'SHELTER': return '#3b82f6';
@@ -64,7 +59,17 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         };
 
-        // Status badge formatter
+        const getCategoryIconClass = (cat) => {
+            switch (cat) {
+                case 'MEDICAL': return 'fa-hospital';
+                case 'FOOD': return 'fa-bowl-food';
+                case 'SHELTER': return 'fa-tents';
+                case 'GOV': return 'fa-building-columns';
+                case 'DONATION': return 'fa-hand-holding-dollar';
+                default: return 'fa-location-dot';
+            }
+        };
+
         const getStatusBadge = (status, statusDisplay) => {
             let bg = '#2e7d32';
             if (status === 'FULL_CAPACITY') bg = '#e65100';
@@ -72,28 +77,36 @@ document.addEventListener("DOMContentLoaded", () => {
             return `<span style="display:inline-block; font-size: 10px; padding: 2px 6px; border-radius: 4px; background: ${bg}; color: white; font-weight: 700; margin-left: 4px;">${statusDisplay || status}</span>`;
         };
 
-        // Add markers for all verified resources
         resources.forEach(res => {
             if (res.lat && res.lng) {
                 const color = getCategoryColor(res.category_code);
-                
+                const iconClass = getCategoryIconClass(res.category_code);
+                const criticalClass = res.urgency === 'CRITICAL' ? 'pin-critical' : '';
+
                 const customIcon = L.divIcon({
                     className: 'custom-map-pin',
-                    html: `<div style="background-color: ${color}; width: 26px; height: 26px; border-radius: 50%; border: 2.5px solid white; box-shadow: 0 3px 8px rgba(0,0,0,0.38); display: flex; align-items: center; justify-content: center; color: white; font-size: 11px; cursor: pointer;"><i class="fa-solid fa-location-dot"></i></div>`,
-                    iconSize: [26, 26],
-                    iconAnchor: [13, 13]
+                    html: `<div class="${criticalClass}" style="background-color: ${color}; width: 28px; height: 28px; border-radius: 50%; border: 2.5px solid white; box-shadow: 0 3px 8px rgba(0,0,0,0.38); display: flex; align-items: center; justify-content: center; color: white; font-size: 12px; cursor: pointer;"><i class="fa-solid ${iconClass}"></i></div>`,
+                    iconSize: [28, 28],
+                    iconAnchor: [14, 14]
                 });
 
+                const suppliesHtml = res.supplies_needed
+                    ? `<p style="margin: 4px 0; font-size: 11px; color: #b45309; font-weight: 600;"><i class="fa-solid fa-boxes-stacked"></i> Needed: ${res.supplies_needed}</p>`
+                    : '';
+
                 const popupContent = `
-                    <div style="font-family: system-ui, sans-serif; min-width: 210px; padding: 4px;">
+                    <div style="font-family: system-ui, sans-serif; min-width: 230px; padding: 4px;">
                         <h4 style="margin: 0 0 5px 0; font-size: 14px; font-weight: 700;">${res.name}</h4>
                         <div style="margin-bottom: 7px;">
                             <span style="display:inline-block; font-size: 11px; padding: 2px 6px; border-radius: 4px; background: #e0f2fe; color: #0284c7; font-weight: 600;">${res.category}</span>
                             ${getStatusBadge(res.status, res.status_display)}
                         </div>
-                        <p style="margin: 4px 0; font-size: 12px; color: #64748b;">📍 ${res.location}</p>
-                        <p style="margin: 4px 0; font-size: 12px; color: #64748b;">🕒 ${res.operating_hours}</p>
-                        ${res.contact_info ? `<p style="margin: 4px 0; font-size: 12px; color: #64748b;">📞 ${res.contact_info}</p>` : ''}
+                        <p style="margin: 4px 0; font-size: 12px; color: #334155;"><strong>Capacity:</strong> ${res.capacity_available} / ${res.capacity_total} slots</p>
+                        ${suppliesHtml}
+                        <p style="margin: 4px 0; font-size: 12px; color: #64748b;"><i class="fa-solid fa-location-dot"></i> ${res.location}</p>
+                        <p style="margin: 4px 0; font-size: 12px; color: #64748b;"><i class="fa-solid fa-clock"></i> ${res.operating_hours}</p>
+                        ${res.contact_info ? `<p style="margin: 4px 0; font-size: 12px; color: #64748b;"><i class="fa-solid fa-phone"></i> ${res.contact_info}</p>` : ''}
+                        <p style="margin: 6px 0 0 0; font-size: 11px; color: #0d9488; font-weight: 600;"><i class="fa-solid fa-thumbs-up"></i> ${res.confirmations} community confirmations</p>
                     </div>
                 `;
 
@@ -101,7 +114,6 @@ document.addEventListener("DOMContentLoaded", () => {
                     .bindPopup(popupContent)
                     .addTo(map);
 
-                // Two-way sync: Clicking marker highlights and scrolls to the card in directory
                 marker.on("click", () => {
                     const card = document.getElementById(`resource-card-${res.id}`);
                     if (card) {
@@ -116,12 +128,10 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         });
 
-        // Fit map to markers bounds if multiple exist
         if (group.length > 1) {
             map.fitBounds(group, { padding: [35, 35] });
         }
 
-        // Two-way sync: Pan to pin from directory card
         document.querySelectorAll(".pan-to-pin-btn").forEach(btn => {
             btn.addEventListener("click", (e) => {
                 e.stopPropagation();
@@ -138,7 +148,6 @@ document.addEventListener("DOMContentLoaded", () => {
             });
         });
 
-        // Clicking a resource card directly
         document.querySelectorAll(".resource-card").forEach(card => {
             card.addEventListener("click", () => {
                 const lat = parseFloat(card.dataset.lat);
@@ -157,7 +166,6 @@ document.addEventListener("DOMContentLoaded", () => {
             });
         });
 
-        // 3. Locate Me Button (Geolocation)
         const locateBtn = document.getElementById("locateMeBtn");
         if (locateBtn && navigator.geolocation) {
             locateBtn.addEventListener("click", () => {
@@ -182,7 +190,7 @@ document.addEventListener("DOMContentLoaded", () => {
                             });
 
                             userLocationMarker = L.marker([userLat, userLng], { icon: userIcon })
-                                .bindPopup("<div style='font-size: 13px; font-weight: bold;'>📍 You Are Here</div>")
+                                .bindPopup("<div style='font-size: 13px; font-weight: bold;'>You Are Here</div>")
                                 .addTo(map);
                         }
 
@@ -193,8 +201,7 @@ document.addEventListener("DOMContentLoaded", () => {
                             locateBtn.innerHTML = '<i class="fa-solid fa-location-crosshairs"></i> Locate Me';
                         }, 3000);
                     },
-                    (error) => {
-                        console.warn("Geolocation failed:", error);
+                    () => {
                         alert("Could not access your location. Please check browser permissions.");
                         locateBtn.disabled = false;
                         locateBtn.innerHTML = '<i class="fa-solid fa-location-crosshairs"></i> Locate Me';
@@ -203,7 +210,6 @@ document.addEventListener("DOMContentLoaded", () => {
             });
         }
 
-        // Map Click coordinate picker when modal is open
         map.on('click', (e) => {
             const modal = document.getElementById("addResourceModal");
             const latInput = document.querySelector("#addResourceModal input[name='latitude']");
@@ -229,7 +235,6 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    // 4. Modal Dialog Handlers & Modal GPS Button
     const modal = document.getElementById("addResourceModal");
     const openBtn = document.getElementById("openAddModalBtn");
     const closeBtn = document.getElementById("closeAddModalBtn");
@@ -281,7 +286,7 @@ document.addEventListener("DOMContentLoaded", () => {
                         modalGpsBtn.innerHTML = '<i class="fa-solid fa-location-arrow"></i> Use My Current GPS Coordinates';
                     }, 2500);
                 },
-                (err) => {
+                () => {
                     alert("Unable to get current GPS location.");
                     modalGpsBtn.disabled = false;
                     modalGpsBtn.innerHTML = '<i class="fa-solid fa-location-arrow"></i> Use My Current GPS Coordinates';
