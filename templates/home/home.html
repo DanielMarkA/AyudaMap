@@ -352,5 +352,6 @@
 {% block extra_js %}
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 <script id="mapDataJson" type="application/json">{{ map_data_json|safe }}</script>
+<script id="userMapConfigJson" type="application/json">{{ user_map_config_json|safe }}</script>
 <script src="{% static 'js/home/home.js' %}"></script>
 {% endblock %}

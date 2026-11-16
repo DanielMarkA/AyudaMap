@@ -59,6 +59,13 @@ def home_view(request):
             'lat': r.latitude or 10.3157,
             'lng': r.longitude or 123.8854,
         })
+        
+    user_settings = getattr(request.user, 'settings', None) if request.user.is_authenticated else None
+    user_map_config = {
+        'lat': getattr(user_settings, 'default_latitude', 10.3157),
+        'lng': getattr(user_settings, 'default_longitude', 123.8854),
+        'zoom': getattr(user_settings, 'default_zoom', 12),
+    }
 
     context = {
         'resources': resources,

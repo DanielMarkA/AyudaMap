@@ -3,6 +3,7 @@ from django.db import models
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
+
 class UserSettings(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='settings')
     dark_mode = models.BooleanField(default=False)
@@ -21,6 +22,9 @@ class UserSettings(models.Model):
             ('DONATION', 'Donation Center'),
         ]
     )
+    default_latitude = models.FloatField(default=10.3157, help_text="Default map latitude on login")
+    default_longitude = models.FloatField(default=123.8854, help_text="Default map longitude on login")
+    default_zoom = models.PositiveSmallIntegerField(default=12, help_text="Default map zoom level (5-18)")
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:

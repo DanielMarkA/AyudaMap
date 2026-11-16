@@ -75,6 +75,31 @@
                     </div>
                 </div>
 
+                <!-- Map & Filter Defaults Section -->
+                <div class="settings-section">
+                    <h3 class="section-title"><i class="fa-solid fa-map-pin"></i> Default Map &amp; Filter Preferences</h3>
+
+                    <div class="form-group" style="margin-bottom: 14px;">
+                        <label for="{{ form.preferred_category.id_for_label }}"><strong>Default Aid Category Filter</strong></label>
+                        {{ form.preferred_category }}
+                    </div>
+
+                    <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;">
+                        <div class="form-group">
+                            <label for="{{ form.default_latitude.id_for_label }}">Default Latitude</label>
+                            {{ form.default_latitude }}
+                        </div>
+                        <div class="form-group">
+                            <label for="{{ form.default_longitude.id_for_label }}">Default Longitude</label>
+                            {{ form.default_longitude }}
+                        </div>
+                        <div class="form-group">
+                            <label for="{{ form.default_zoom.id_for_label }}">Zoom Level (5–18)</label>
+                            {{ form.default_zoom }}
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Database Status Indicator (Staff / Admin Only) -->
                 {% if user.is_staff %}
                 <div class="database-status-card">

@@ -16,6 +16,12 @@ document.addEventListener("DOMContentLoaded", () => {
     let clickPickerMarker = null;
     const markers = {};
     const group = [];
+    let userMapConfig = { lat: 10.3157, lng: 123.8854, zoom: 12 };
+    
+    const mapCfgEl = document.getElementById("userMapConfigJson");
+    if (mapCfgEl) {
+        try { userMapConfig = JSON.parse(mapCfgEl.textContent); } catch (e) {}
+    }
 
     const getTileUrl = (isDark) => {
         return isDark
@@ -27,9 +33,9 @@ document.addEventListener("DOMContentLoaded", () => {
         const isDark = document.documentElement.classList.contains("dark-mode");
         const defaultCenter = resources.length > 0 && resources[0].lat
             ? [resources[0].lat, resources[0].lng]
-            : [10.3157, 123.8854];
+            : [userMapConfig.lat, userMapConfig.lng];
 
-        map = L.map('ayudaMapViewport').setView(defaultCenter, 12);
+        map = L.map('ayudaMapViewport').setView(defaultCenter, userMapConfig.zoom || 12);
 
         tileLayer = L.tileLayer(getTileUrl(isDark), {
             maxZoom: 19,
