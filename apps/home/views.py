@@ -1,4 +1,5 @@
 import json
+from django.db.models import Q, F, Count, Sum
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
@@ -139,3 +140,58 @@ def update_resource_status_view(request, resource_id):
         )
         messages.success(request, f"Updated '{resource.name}' to {valid_statuses[new_status]}.")
     return redirect('home:home')
+
+def reports_view(request):
+    resources = Resource.objects.filter(is_verified=True)
+
+    totals = resources.aggregate(
+        total_centers=Count('id'),
+        total_capacity=Sum('capacity_total'),
+        available_capacity=Sum('capacity_available'),
+        total_confirmations=Sum('confirmations'),
+    )
+
+    total_cap = totals['total_capacity'] or 0
+    avail_cap = totals['available_capacity'] or 0
+    utilized_cap = max(0, total_cap - avail_cap)
+    utilization_rate = round((utilized_cap / total_cap) * 100, 1) if total_cap > 0 else 0
+
+    # Breakdown by category
+    category_map = dict(Resource.CATEGORY_CHOICES)
+    category_stats = []
+    for row in resources.values('category').annotate(
+        count=Count('id'),
+        avail=Sum('capacity_available'),
+        total=Sum('capacity_total'),
+    ).order_by('-count'):
+        category_stats.append({
+            'code': row['category'],
+            'label': category_map.get(row['category'], row['category']),
+            'count': row['count'],
+            'avail': row['avail'] or 0,
+            'total': row['total'] or 0,
+        })
+
+    # Breakdown by urgency
+    urgency_map = dict(Resource.URGENCY_CHOICES)
+    urgency_stats = []
+    for row in resources.values('urgency_level').annotate(count=Count('id')).order_by('-count'):
+        urgency_stats.append({
+            'code': row['urgency_level'],
+            'label': urgency_map.get(row['urgency_level'], row['urgency_level']),
+            'count': row['count'],
+        })
+
+    critical_resources = resources.filter(urgency_level='CRITICAL').order_by('-updated_at')
+    recent_logs = ResourceStatusLog.objects.select_related('resource', 'updated_by')[:15]
+
+    context = {
+        'totals': totals,
+        'utilized_cap': utilized_cap,
+        'utilization_rate': utilization_rate,
+        'category_stats': category_stats,
+        'urgency_stats': urgency_stats,
+        'critical_resources': critical_resources,
+        'recent_logs': recent_logs,
+    }
+    return render(request, 'home/reports.html', context)
