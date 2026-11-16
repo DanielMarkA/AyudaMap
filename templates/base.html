@@ -25,15 +25,12 @@
             </button>
 
             <nav class="nav-links" id="mainNav">
-                <a href="{% url 'home:home' %}" class="nav-item {% if request.resolver_match.url_name == 'home' %}active{% endif %}">
-                    <i class="fa-solid fa-house"></i> Home
-                </a>
-                <a href="{% url 'home:reports' %}" class="nav-item {% if request.resolver_match.url_name == 'reports' %}active{% endif %}">
-                    <i class="fa-solid fa-chart-pie"></i> Reports
-                </a>
                 {% if user.is_authenticated %}
                     <a href="{% url 'home:home' %}" class="nav-item {% if request.resolver_match.app_name == 'home' %}active{% endif %}">
                         <i class="fa-solid fa-house"></i> Home
+                    </a>
+                    <a href="{% url 'home:reports' %}" class="nav-item {% if request.resolver_match.url_name == 'reports' %}active{% endif %}">
+                        <i class="fa-solid fa-chart-pie"></i> Reports
                     </a>
                     <a href="{% url 'profile:profile' %}" class="nav-item {% if request.resolver_match.app_name == 'profile' %}active{% endif %}">
                         <i class="fa-solid fa-user"></i> Profile

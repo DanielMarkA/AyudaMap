@@ -197,6 +197,36 @@
                 </div>
             {% endif %}
         </div>
+        <!-- My Recent Field Verification Activity -->
+        <div class="card my-contributions-card" style="margin-top: 20px;">
+            <div class="section-heading">
+                <h3><i class="fa-solid fa-clipboard-check"></i> Recent Field Verification Activity ({{ my_logs|length }})</h3>
+                <p>Status updates and site confirmations you recorded across AyudaMap ({{ total_confirmations }} total confirmations on your hubs).</p>
+            </div>
+
+            {% if my_logs %}
+                <div class="contributions-list">
+                    {% for log in my_logs %}
+                        <div class="contribution-item">
+                            <div class="contribution-info">
+                                <h4>{{ log.resource.name }}</h4>
+                                <div class="contribution-meta">
+                                    <span class="status-pill status-open">{{ log.get_action_type_display }}</span>
+                                    {% if log.note %}<span class="loc-text">{{ log.note }}</span>{% endif %}
+                                    <span class="loc-text"><i class="fa-solid fa-clock"></i> {{ log.created_at|timesince }} ago</span>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="empty-contributions">
+                    <i class="fa-solid fa-clipboard-list"></i>
+                    <p>No status updates or verifications logged yet.</p>
+                </div>
+            {% endif %}
+        </div>
+
     </div>
 </div>
 {% endblock %}

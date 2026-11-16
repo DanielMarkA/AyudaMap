@@ -1,14 +1,18 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from django.db.models import Sum
 from .models import Profile
 from .forms import UserEditForm, ProfileEditForm
-from apps.home.models import Resource
+from apps.home.models import Resource, ResourceStatusLog
+
 
 @login_required
 def profile_view(request):
     profile, _ = Profile.objects.get_or_create(user=request.user)
     my_resources = Resource.objects.filter(created_by=request.user).order_by('-created_at')
+    my_logs = ResourceStatusLog.objects.filter(updated_by=request.user).select_related('resource')[:10]
+    total_confirmations = my_resources.aggregate(total=Sum('confirmations'))['total'] or 0
 
     if request.method == 'POST':
         u_form = UserEditForm(request.POST, instance=request.user)
@@ -35,5 +39,7 @@ def profile_view(request):
         'p_form': p_form,
         'my_resources': my_resources,
         'my_resources_count': my_resources.count(),
+        'my_logs': my_logs,
+        'total_confirmations': total_confirmations,
     }
     return render(request, 'profile/profile.html', context)
