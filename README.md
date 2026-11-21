@@ -4,7 +4,7 @@
 
 AyudaMap is a Django web application for mapping and coordinating community aid resources during disasters and relief operations. Volunteers and coordinators can publish verified aid locations (medical facilities, food distribution, shelters, government services, donation drop-offs), see them on an interactive map, confirm that a site is still active, update its operating status, and review relief-operations analytics.
 
-This repository is an individual final project for a Python Django + Supabase course. The SQL JOIN / SUBQUERY requirement is documented in [`docs/DATABASE_OPERATIONS.md`](docs/DATABASE_OPERATIONS.md).
+This repository is an individual final project for a Python Django + Supabase course. The SQL JOIN / SUBQUERY requirement is implemented in the app at `/queries/`.
 
 ---
 
@@ -31,6 +31,7 @@ This repository is an individual final project for a Python Django + Supabase co
 - **Capacity tracking** — `capacity_total` / `capacity_available` with a computed `occupancy_percentage`.
 - **Reports dashboard** (`/reports/`) with totals, utilisation rate, category and urgency breakdowns, critical resources, and a recent field-audit log.
 - **Accounts** — registration, login/logout, profile editing (including profile image upload), password change, and user preferences (theme, notifications, preferred category, default map centre/zoom).
+- **JOIN / SUBQUERY demo page** (`/queries/`) — resource rows joined with their submitter and profile, plus a volunteer-filtered subquery; generated SQL is shown on the page.
 - **Django admin** registrations for `Resource` and `ResourceStatusLog`.
 
 ## Tech stack
@@ -63,7 +64,6 @@ AyudaMap/
 ├── seed_data.py            # Demo data seeder
 ├── requirements.txt
 ├── .env.example            # Template for required environment variables
-├── pdf_text.txt            # Course assignment brief (JOIN + SUBQUERY)
 └── docs/                   # This documentation set
 ```
 
@@ -137,7 +137,6 @@ There are 19 tests across five apps covering the auth flow, home map filters, re
 | Document | Contents |
 | --- | --- |
 | [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | Vertical-slice architecture, request flow, ERD, model and field reference |
-| [`docs/DATABASE_OPERATIONS.md`](docs/DATABASE_OPERATIONS.md) | JOIN and SUBQUERY implementations, relationships, generated SQL, verification steps |
 | [`docs/USER_GUIDE.md`](docs/USER_GUIDE.md) | End-user walkthrough of every screen |
 | [`docs/TESTING.md`](docs/TESTING.md) | Test inventory and how to run/extend it |
 | [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md) | Production configuration checklist |

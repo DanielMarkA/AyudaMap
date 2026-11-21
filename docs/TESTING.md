@@ -35,7 +35,7 @@ Be aware of these gaps when evaluating coverage:
 - `confirm_resource_view` and `update_resource_status_view` (including the `F('confirmations') + 1` atomic increment and the `FULL_CAPACITY` side effect) have no direct tests.
 - `reports_view` has no tests, including its aggregates and category/urgency breakdowns.
 - The `ResourceStatusLog` audit entries written by home mutations are not asserted.
-- No tests exercise the generated SQL for the JOIN, or the proposed SUBQUERY in [`DATABASE_OPERATIONS.md`](DATABASE_OPERATIONS.md).
+- No tests exercise the generated SQL or result sets of the JOIN / SUBQUERY demo page (`/queries/`).
 - No coverage tooling or CI configuration is present.
 
 ## Adding a test — conventions
@@ -70,4 +70,4 @@ class ResourceStatusTests(TestCase):
 
 ## Manual verification
 
-The course activity requires demonstrating JOIN and SUBQUERY behaviour in the running app and in the database. Those steps (including the SQL-inspection commands and demo-video outline) are in [`DATABASE_OPERATIONS.md`](DATABASE_OPERATIONS.md#part-c--verification).
+The course activity requires demonstrating JOIN and SUBQUERY behaviour in the running app and in the database. Open `/queries/` to show both result sets and their generated SQL, then verify the underlying `aid_resources`, `auth_user`, and `user_profiles` rows in the Supabase table editor.

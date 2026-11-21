@@ -48,6 +48,7 @@ config/urls.py ──► apps.<feature>.urls ──► view
 | --- | --- | --- | --- |
 | `/` | `home:home` | Login required | GET — map, search, filters |
 | `/reports/` | `home:reports` | Public (by current configuration) | GET — analytics dashboard |
+| `/queries/` | `home:query_demo` | Login required | GET — JOIN / SUBQUERY demo with generated SQL |
 | `/add/` | `home:add_resource` | Login required | POST — create a resource |
 | `/<id>/confirm/` | `home:confirm_resource` | Login required | POST — increment confirmation count |
 | `/<id>/status/` | `home:update_status` | Login required | POST — change operating status |
