@@ -97,11 +97,19 @@
                 </select>
             </div>
 
+            <div class="status-select-wrapper">
+                <label for="localVolunteersSelect" title="Show only sites reported by volunteers in your city">
+                    <input type="checkbox" name="local_volunteers" id="localVolunteersSelect" value="1"
+                           {% if local_volunteers %}checked{% endif %} onchange="this.form.submit()">
+                    <i class="fa-solid fa-users"></i> My local volunteers
+                </label>
+            </div>
+
             <button type="submit" class="btn btn-primary btn-search">
                 <i class="fa-solid fa-magnifying-glass"></i> Search
             </button>
 
-            {% if query or selected_category or selected_status or selected_urgency %}
+            {% if query or selected_category or selected_status or selected_urgency or local_volunteers %}
                 <a href="{% url 'home:home' %}" class="btn btn-secondary btn-reset" title="Reset all filters">
                     <i class="fa-solid fa-rotate-left"></i> Reset
                 </a>

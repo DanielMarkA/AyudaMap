@@ -4,7 +4,7 @@
 
 AyudaMap is a Django web application for mapping and coordinating community aid resources during disasters and relief operations. Volunteers and coordinators can publish verified aid locations (medical facilities, food distribution, shelters, government services, donation drop-offs), see them on an interactive map, confirm that a site is still active, update its operating status, and review relief-operations analytics.
 
-This repository is an individual final project for a Python Django + Supabase course. The SQL JOIN / SUBQUERY requirement is implemented in the app at `/queries/`.
+This repository is an individual final project for a Python Django + Supabase course. The SQL JOIN / SUBQUERY requirement is demonstrated through the app's existing resource views and map filters.
 
 ---
 
@@ -31,7 +31,7 @@ This repository is an individual final project for a Python Django + Supabase co
 - **Capacity tracking** — `capacity_total` / `capacity_available` with a computed `occupancy_percentage`.
 - **Reports dashboard** (`/reports/`) with totals, utilisation rate, category and urgency breakdowns, critical resources, and a recent field-audit log.
 - **Accounts** — registration, login/logout, profile editing (including profile image upload), password change, and user preferences (theme, notifications, preferred category, default map centre/zoom).
-- **JOIN / SUBQUERY demo page** (`/queries/`) — resource rows joined with their submitter and profile, plus a volunteer-filtered subquery; generated SQL is shown on the page.
+- **Volunteer-network filter** — on the map, show only aid sites submitted by volunteers in your city (Django `Subquery`).
 - **Django admin** registrations for `Resource` and `ResourceStatusLog`.
 
 ## Tech stack

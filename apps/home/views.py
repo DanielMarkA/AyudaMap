@@ -1,5 +1,5 @@
 import json
-from django.db.models import Q, F, Count, Sum
+from django.db.models import Q, F, Count, Sum, Subquery
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
@@ -7,6 +7,7 @@ from django.db.models import Q, F
 from django.views.decorators.http import require_POST
 from .models import Resource, ResourceStatusLog
 from .forms import ResourceForm
+from apps.profile.models import Profile
 
 
 @login_required
@@ -14,6 +15,7 @@ def home_view(request):
     query = request.GET.get('q', '').strip()
     selected_status = request.GET.get('status', '').strip()
     selected_urgency = request.GET.get('urgency', '').strip()
+    local_volunteers = request.GET.get('local_volunteers', '').strip()
 
     if 'category' in request.GET:
         selected_category = request.GET.get('category', '').strip()
@@ -36,6 +38,12 @@ def home_view(request):
         resources = resources.filter(status=selected_status)
     if selected_urgency:
         resources = resources.filter(urgency_level=selected_urgency)
+    if local_volunteers:
+        local_volunteer_ids = Profile.objects.filter(
+            is_volunteer=True,
+            city=request.user.profile.city,
+        ).values('user')
+        resources = resources.filter(created_by__in=Subquery(local_volunteer_ids))
 
     map_data = []
     for r in resources:
@@ -73,6 +81,7 @@ def home_view(request):
         'selected_category': selected_category,
         'selected_status': selected_status,
         'selected_urgency': selected_urgency,
+        'local_volunteers': local_volunteers,
         'categories': Resource.CATEGORY_CHOICES,
         'statuses': Resource.STATUS_CHOICES,
         'urgencies': Resource.URGENCY_CHOICES,
