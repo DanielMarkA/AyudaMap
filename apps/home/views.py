@@ -7,6 +7,29 @@ from django.db.models import Q, F
 from django.views.decorators.http import require_POST
 from .models import Resource, ResourceStatusLog
 from .forms import ResourceForm
+from django.db.models import Subquery
+from apps.profile.models import Profile
+
+@login_required
+def query_demo_view(request):
+    join_resources = Resource.objects.select_related(
+        'created_by', 'created_by__profile'
+    )
+
+    qc_volunteer_ids = Profile.objects.filter(
+        is_volunteer=True, city='Quezon City'
+    ).values('user')
+    subquery_resources = Resource.objects.filter(
+        created_by__in=Subquery(qc_volunteer_ids)
+    )
+
+    return render(request, 'home/query_demo.html', {
+        'join_resources': join_resources,
+        'subquery_resources': subquery_resources,
+        'join_sql': str(join_resources.query),
+        'inner_sql': str(qc_volunteer_ids.query),
+        'subquery_sql': str(subquery_resources.query),
+    })
 
 
 @login_required
