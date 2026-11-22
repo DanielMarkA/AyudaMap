@@ -1,0 +1,626 @@
+/* ==========================================================================
+   AyudaMap Guest Landing Page ("The Field Beacon" — Persuade Mode)
+   ========================================================================== */
+
+html:has(body.landing-page) {
+    scroll-snap-type: y proximity;
+    scroll-behavior: smooth;
+    scroll-padding-top: 64px;
+}
+
+body.landing-page .main-content {
+    padding: 0;
+}
+
+body.landing-page .container {
+    max-width: none;
+    padding: 0;
+}
+
+.landing-chapters {
+    display: flex;
+    flex-direction: column;
+}
+
+.landing-chapter {
+    min-height: calc(100svh - 64px);
+    scroll-snap-align: start;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 3rem 1.5rem;
+    position: relative;
+}
+
+.chapter-inner {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+/* Chapter 1: Hero + Static Map Preview */
+.chapter-hero {
+    background-color: var(--bg-main);
+}
+
+.hero-grid {
+    display: grid;
+    grid-template-columns: 1.05fr 1fr;
+    gap: 2.5rem;
+    align-items: center;
+}
+
+.hero-copy h1 {
+    font-size: 2rem;
+    font-weight: 800;
+    line-height: 1.3;
+    letter-spacing: -0.5px;
+    color: var(--text-primary);
+    margin-bottom: 1rem;
+    text-wrap: balance;
+}
+
+.hero-lead {
+    font-size: 1rem;
+    line-height: 1.5;
+    color: var(--text-muted);
+    max-width: 58ch;
+    margin-bottom: 1.75rem;
+    text-wrap: pretty;
+}
+
+.hero-cta-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+}
+
+.btn-landing-primary,
+.btn-landing-secondary {
+    padding: 0.75rem 1.35rem;
+    font-size: 1rem;
+}
+
+.hero-live-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    font-variant-numeric: tabular-nums;
+}
+
+.hero-live-status strong {
+    color: var(--text-primary);
+}
+
+.beacon-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background-color: var(--success-dark);
+    box-shadow: 0 0 0 4px rgba(4, 120, 87, 0.2);
+    flex-shrink: 0;
+}
+
+html.dark-mode .beacon-dot {
+    background-color: #5eead4;
+    box-shadow: 0 0 0 4px rgba(94, 234, 212, 0.2);
+}
+
+/* Static Illustrated Map Preview */
+.map-preview-frame {
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-lg);
+    overflow: hidden;
+}
+
+.map-preview-topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.85rem 1.15rem;
+    border-bottom: 1px solid var(--border-color);
+    background-color: var(--bg-card);
+}
+
+.map-preview-title {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.map-preview-title i {
+    color: var(--primary-text);
+}
+
+.map-preview-canvas {
+    position: relative;
+    aspect-ratio: 3 / 2;
+    background-color: #f8fafc;
+    overflow: hidden;
+}
+
+html.dark-mode .map-preview-canvas {
+    background-color: #0b1329;
+}
+
+.map-preview-svg {
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+
+.map-water {
+    fill: #e0f2fe;
+}
+
+html.dark-mode .map-water {
+    fill: #0c4a6e;
+}
+
+.map-road-major {
+    fill: none;
+    stroke: #cbd5e1;
+    stroke-width: 4;
+    stroke-linecap: round;
+}
+
+.map-road-minor {
+    fill: none;
+    stroke: #e2e8f0;
+    stroke-width: 2;
+    stroke-linecap: round;
+}
+
+html.dark-mode .map-road-major {
+    stroke: #24344d;
+}
+
+html.dark-mode .map-road-minor {
+    stroke: #152238;
+}
+
+@keyframes landingPinPulse {
+    0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+    70% { box-shadow: 0 0 0 12px rgba(239, 68, 68, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+}
+
+.preview-pin {
+    position: absolute;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    border: 2.5px solid #ffffff;
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.85rem;
+    box-shadow: var(--shadow-md);
+}
+
+.pin-medical {
+    background-color: #ef4444;
+    animation: landingPinPulse 2s infinite;
+}
+.pin-food { background-color: #f59e0b; color: #0f172a; }
+.pin-shelter { background-color: #3b82f6; }
+.pin-gov { background-color: #8b5cf6; }
+.pin-donation { background-color: #047857; }
+
+.pin-pos-1 { top: 20%; left: 24%; }
+.pin-pos-2 { top: 44%; left: 52%; }
+.pin-pos-3 { top: 18%; left: 68%; }
+.pin-pos-4 { top: 58%; left: 20%; }
+.pin-pos-5 { top: 34%; left: 82%; }
+
+.preview-hub-card {
+    position: absolute;
+    left: 1rem;
+    right: 1rem;
+    bottom: 1rem;
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 0.85rem 1rem;
+    box-shadow: var(--shadow-md);
+}
+
+.preview-hub-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.85rem;
+    color: var(--text-primary);
+    margin-bottom: 0.25rem;
+}
+
+.preview-hub-meta {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    margin-bottom: 0.5rem;
+}
+
+.preview-capacity-track {
+    width: 100%;
+    height: 6px;
+    background-color: var(--border-color);
+    border-radius: 9999px;
+    overflow: hidden;
+}
+
+.preview-capacity-fill {
+    width: 68%;
+    height: 100%;
+    background-color: var(--primary-dark);
+    border-radius: 9999px;
+}
+
+html.dark-mode .preview-capacity-fill {
+    background-color: #5eead4;
+}
+
+.map-preview-legend {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 0.65rem;
+    padding: 0.75rem 1.15rem;
+    border-top: 1px solid var(--border-color);
+    font-size: 0.8rem;
+    color: var(--text-muted);
+}
+
+.map-preview-legend span {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+}
+
+.legend-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    display: inline-block;
+}
+
+.dot-medical { background-color: #ef4444; }
+.dot-food { background-color: #f59e0b; }
+.dot-shelter { background-color: #3b82f6; }
+.dot-gov { background-color: #8b5cf6; }
+.dot-donation { background-color: #047857; }
+
+.scroll-cue {
+    position: absolute;
+    bottom: 1.25rem;
+    left: 50%;
+    transform: translateX(-50%);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--primary-text);
+    text-decoration: none;
+    padding: 0.4rem 0.85rem;
+    border-radius: 9999px;
+    transition: background-color 0.16s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.scroll-cue:hover {
+    background-color: var(--primary-light);
+}
+
+/* Chapter 2: Live Relief Impact */
+.chapter-impact {
+    background-color: var(--header-bg);
+    color: #ffffff;
+}
+
+html.dark-mode .chapter-impact {
+    border-top: 1px solid var(--border-color);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.chapter-header {
+    margin-bottom: 2rem;
+    max-width: 65ch;
+}
+
+.chapter-header h2 {
+    font-size: 1.55rem;
+    font-weight: 700;
+    line-height: 1.3;
+    letter-spacing: -0.3px;
+    margin-bottom: 0.5rem;
+    text-wrap: balance;
+}
+
+.chapter-header p {
+    font-size: 0.95rem;
+    line-height: 1.5;
+    color: var(--text-muted);
+    text-wrap: pretty;
+}
+
+.chapter-header-light h2 {
+    color: #ffffff;
+}
+
+.chapter-header-light p {
+    color: #e2e8f0;
+}
+
+.impact-metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1.25rem;
+    margin-bottom: 2rem;
+}
+
+.impact-metric {
+    padding: 1.25rem 1.35rem;
+    background-color: rgba(0, 0, 0, 0.22);
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    border-radius: var(--radius-md);
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+
+.impact-label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: #e2e8f0;
+}
+
+.impact-value {
+    font-size: 2rem;
+    font-weight: 800;
+    color: #5eead4;
+    font-variant-numeric: tabular-nums;
+    line-height: 1.2;
+}
+
+.impact-sub {
+    font-size: 0.85rem;
+    color: #e2e8f0;
+}
+
+.impact-categories-panel {
+    background-color: var(--bg-card);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 1.5rem;
+    box-shadow: var(--shadow-md);
+}
+
+.impact-categories-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-bottom: 1.15rem;
+}
+
+.impact-categories-head h3 {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.impact-category-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 1rem 1.5rem;
+}
+
+.impact-category-row {
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+}
+
+.impact-category-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.impact-category-count {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    font-variant-numeric: tabular-nums;
+}
+
+.impact-category-bar-wrap {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.impact-bar-track {
+    flex: 1;
+    height: 7px;
+    background-color: var(--border-color);
+    border-radius: 9999px;
+    overflow: hidden;
+}
+
+.impact-bar-fill {
+    height: 100%;
+    background-color: var(--primary-dark);
+    border-radius: 9999px;
+}
+
+html.dark-mode .impact-bar-fill {
+    background-color: #5eead4;
+}
+
+.impact-category-cap {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+}
+
+.impact-empty {
+    font-size: 0.95rem;
+    color: var(--text-muted);
+}
+
+/* Chapter 3: How Field Verification Works + Final CTA */
+.chapter-workflow {
+    background-color: var(--bg-main);
+}
+
+.workflow-steps {
+    list-style: none;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2rem;
+    margin-bottom: 2.5rem;
+    position: relative;
+}
+
+.workflow-step {
+    display: flex;
+    flex-direction: column;
+    gap: 0.65rem;
+    border-top: 2px solid var(--border-color);
+    padding-top: 1.25rem;
+}
+
+.step-marker {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background-color: var(--primary-light);
+    color: var(--primary-text);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.15rem;
+    margin-bottom: 0.25rem;
+}
+
+.workflow-step h3 {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.workflow-step p {
+    font-size: 0.95rem;
+    line-height: 1.5;
+    color: var(--text-muted);
+    text-wrap: pretty;
+}
+
+.closing-cta-panel {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1.25rem;
+    padding: 1.75rem 2rem;
+    border-radius: var(--radius-lg);
+}
+
+.closing-cta-copy {
+    max-width: 56ch;
+}
+
+.closing-cta-copy h3 {
+    font-size: 1.35rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 0.35rem;
+    text-wrap: balance;
+}
+
+.closing-cta-copy p {
+    font-size: 0.95rem;
+    color: var(--text-muted);
+    line-height: 1.45;
+}
+
+.closing-cta-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+}
+
+/* Responsive Breakpoints */
+@media (max-width: 950px) {
+    .hero-grid {
+        grid-template-columns: 1fr;
+        gap: 2rem;
+    }
+    .impact-metrics-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    .workflow-steps {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+    }
+    .scroll-cue {
+        position: static;
+        transform: none;
+        margin: 1.5rem auto 0;
+    }
+}
+
+@media (max-width: 640px) {
+    html:has(body.landing-page) {
+        scroll-snap-type: none;
+    }
+    .landing-chapter {
+        min-height: auto;
+        padding: 2.25rem 1rem;
+    }
+    .hero-copy h1 {
+        font-size: 1.55rem;
+    }
+    .hero-cta-row .btn,
+    .closing-cta-actions .btn {
+        width: 100%;
+    }
+    .impact-metrics-grid {
+        grid-template-columns: 1fr;
+        gap: 0.85rem;
+    }
+    .closing-cta-panel {
+        padding: 1.35rem 1.25rem;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    html:has(body.landing-page) {
+        scroll-snap-type: none;
+        scroll-behavior: auto;
+    }
+    .pin-medical {
+        animation: none;
+        box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.45);
+    }
+    .scroll-cue {
+        transition: none;
+    }
+}

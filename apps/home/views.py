@@ -10,8 +10,52 @@ from .forms import ResourceForm
 from apps.profile.models import Profile
 
 
-@login_required
+def _get_impact_summary(resources):
+    totals = resources.aggregate(
+        total_centers=Count('id'),
+        total_capacity=Sum('capacity_total'),
+        available_capacity=Sum('capacity_available'),
+        total_confirmations=Sum('confirmations'),
+    )
+    total_cap = totals['total_capacity'] or 0
+    avail_cap = totals['available_capacity'] or 0
+    utilized_cap = max(0, total_cap - avail_cap)
+    utilization_rate = round((utilized_cap / total_cap) * 100, 1) if total_cap > 0 else 0
+
+    category_map = dict(Resource.CATEGORY_CHOICES)
+    category_stats = []
+    for row in resources.values('category').annotate(
+        count=Count('id'),
+        avail=Sum('capacity_available'),
+        total=Sum('capacity_total'),
+    ).order_by('-count'):
+        row_total = row['total'] or 0
+        row_avail = row['avail'] or 0
+        row_pct = round(((row_total - row_avail) / row_total) * 100) if row_total > 0 else 0
+        category_stats.append({
+            'code': row['category'],
+            'label': category_map.get(row['category'], row['category']),
+            'count': row['count'],
+            'avail': row_avail,
+            'total': row_total,
+            'utilized_pct': max(0, min(100, row_pct)),
+        })
+
+    return {
+        'totals': totals,
+        'utilized_cap': utilized_cap,
+        'utilization_rate': utilization_rate,
+        'category_stats': category_stats,
+    }
+
+
 def home_view(request):
+    if not request.user.is_authenticated:
+        verified_resources = Resource.objects.filter(is_verified=True)
+        summary = _get_impact_summary(verified_resources)
+        summary['critical_count'] = verified_resources.filter(urgency_level='CRITICAL').count()
+        return render(request, 'home/landing.html', summary)
+
     query = request.GET.get('q', '').strip()
     selected_status = request.GET.get('status', '').strip()
     selected_urgency = request.GET.get('urgency', '').strip()
@@ -157,36 +201,10 @@ def update_resource_status_view(request, resource_id):
         messages.success(request, f"Updated '{resource.name}' to {valid_statuses[new_status]}.")
     return redirect('home:home')
 
+@login_required
 def reports_view(request):
     resources = Resource.objects.filter(is_verified=True)
-
-    totals = resources.aggregate(
-        total_centers=Count('id'),
-        total_capacity=Sum('capacity_total'),
-        available_capacity=Sum('capacity_available'),
-        total_confirmations=Sum('confirmations'),
-    )
-
-    total_cap = totals['total_capacity'] or 0
-    avail_cap = totals['available_capacity'] or 0
-    utilized_cap = max(0, total_cap - avail_cap)
-    utilization_rate = round((utilized_cap / total_cap) * 100, 1) if total_cap > 0 else 0
-
-    # Breakdown by category
-    category_map = dict(Resource.CATEGORY_CHOICES)
-    category_stats = []
-    for row in resources.values('category').annotate(
-        count=Count('id'),
-        avail=Sum('capacity_available'),
-        total=Sum('capacity_total'),
-    ).order_by('-count'):
-        category_stats.append({
-            'code': row['category'],
-            'label': category_map.get(row['category'], row['category']),
-            'count': row['count'],
-            'avail': row['avail'] or 0,
-            'total': row['total'] or 0,
-        })
+    summary = _get_impact_summary(resources)
 
     # Breakdown by urgency
     urgency_map = dict(Resource.URGENCY_CHOICES)
@@ -202,10 +220,7 @@ def reports_view(request):
     recent_logs = ResourceStatusLog.objects.select_related('resource', 'updated_by')[:15]
 
     context = {
-        'totals': totals,
-        'utilized_cap': utilized_cap,
-        'utilization_rate': utilization_rate,
-        'category_stats': category_stats,
+        **summary,
         'urgency_stats': urgency_stats,
         'critical_resources': critical_resources,
         'recent_logs': recent_logs,

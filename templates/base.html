@@ -34,7 +34,7 @@
     </noscript>
     {% block extra_css %}{% endblock %}
 </head>
-<body>
+<body class="{% block body_class %}{% endblock %}">
     <a href="#main-content" class="skip-link">Skip to main content</a>
     <header class="app-header">
         <div class="header-inner">
@@ -83,9 +83,6 @@
                         </a>
                     </div>
                 {% else %}
-                    <a href="{% url 'home:reports' %}" class="nav-item {% if request.resolver_match.url_name == 'reports' %}active{% endif %}" {% if request.resolver_match.url_name == 'reports' %}aria-current="page"{% endif %}>
-                        <i class="fa-solid fa-chart-pie" aria-hidden="true"></i> Reports
-                    </a>
                     <!-- Guest Theme Toggle -->
                     <button type="button" class="theme-toggle-btn" id="globalThemeToggle" title="Switch to dark mode" aria-label="Switch to dark mode" aria-pressed="false">
                         <i class="fa-solid fa-moon dark-icon" aria-hidden="true"></i>

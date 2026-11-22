@@ -26,9 +26,21 @@ class HomeViewTests(TestCase):
             is_verified=True
         )
 
-    def test_home_requires_login(self):
+    def test_home_guest_renders_landing(self):
         response = self.client.get(reverse("home:home"))
-        self.assertRedirects(response, f"{reverse('login:login')}?next={reverse('home:home')}")
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "home/landing.html")
+        self.assertContains(response, "Verified Aid Hubs")
+
+    def test_reports_requires_login(self):
+        response = self.client.get(reverse("home:reports"))
+        self.assertRedirects(response, f"{reverse('login:login')}?next={reverse('home:reports')}")
+
+    def test_reports_view_authenticated(self):
+        self.client.login(username="testuser", password="Password123!")
+        response = self.client.get(reverse("home:reports"))
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "home/reports.html")
 
     def test_home_view_authenticated(self):
         self.client.login(username="testuser", password="Password123!")
