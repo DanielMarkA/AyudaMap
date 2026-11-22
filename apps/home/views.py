@@ -21,6 +21,7 @@ def _get_impact_summary(resources):
     avail_cap = totals['available_capacity'] or 0
     utilized_cap = max(0, total_cap - avail_cap)
     utilization_rate = round((utilized_cap / total_cap) * 100, 1) if total_cap > 0 else 0
+    availability_rate = round((avail_cap / total_cap) * 100, 1) if total_cap > 0 else 0
 
     category_map = dict(Resource.CATEGORY_CHOICES)
     category_stats = []
@@ -32,6 +33,7 @@ def _get_impact_summary(resources):
         row_total = row['total'] or 0
         row_avail = row['avail'] or 0
         row_pct = round(((row_total - row_avail) / row_total) * 100) if row_total > 0 else 0
+        avail_pct = round((row_avail / row_total) * 100) if row_total > 0 else 0
         category_stats.append({
             'code': row['category'],
             'label': category_map.get(row['category'], row['category']),
@@ -39,12 +41,14 @@ def _get_impact_summary(resources):
             'avail': row_avail,
             'total': row_total,
             'utilized_pct': max(0, min(100, row_pct)),
+            'available_pct': max(0, min(100, avail_pct)),
         })
 
     return {
         'totals': totals,
         'utilized_cap': utilized_cap,
         'utilization_rate': utilization_rate,
+        'availability_rate': availability_rate,
         'category_stats': category_stats,
     }
 
@@ -54,6 +58,36 @@ def home_view(request):
         verified_resources = Resource.objects.filter(is_verified=True)
         summary = _get_impact_summary(verified_resources)
         summary['critical_count'] = verified_resources.filter(urgency_level='CRITICAL').count()
+        summary['last_updated'] = (
+            verified_resources.order_by('-updated_at').values_list('updated_at', flat=True).first()
+        )
+        featured = (
+            verified_resources.filter(category='SHELTER', status='OPERATIONAL').order_by('-confirmations', '-capacity_available').first()
+            or verified_resources.filter(status='OPERATIONAL').order_by('-confirmations', '-capacity_available').first()
+            or verified_resources.order_by('-confirmations').first()
+        )
+        status_class_map = {
+            'OPERATIONAL': 'open',
+            'FULL_CAPACITY': 'full',
+            'TEMPORARILY_CLOSED': 'closed',
+        }
+        if featured:
+            feat_total = featured.capacity_total or 0
+            feat_avail = featured.capacity_available or 0
+            feat_pct = round((feat_avail / feat_total) * 100) if feat_total > 0 else 0
+            summary['featured_hub'] = {
+                'name': featured.name,
+                'location': featured.location,
+                'category_code': featured.category,
+                'category_label': featured.get_category_display(),
+                'status_display': featured.get_status_display(),
+                'status_class': status_class_map.get(featured.status, 'open'),
+                'capacity_available': feat_avail,
+                'capacity_total': feat_total,
+                'available_pct': max(0, min(100, feat_pct)),
+            }
+        else:
+            summary['featured_hub'] = None
         return render(request, 'home/landing.html', summary)
 
     query = request.GET.get('q', '').strip()
