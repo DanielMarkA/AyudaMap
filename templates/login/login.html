@@ -41,7 +41,7 @@
                 <div class="auth-icon-circle">
                     <i class="fa-solid fa-right-to-bracket"></i>
                 </div>
-                <h2>Sign In to Your Account</h2>
+                <h1>Sign In to Your Account</h1>
                 <p>Welcome back! Please enter your credentials.</p>
             </div>
 
@@ -64,8 +64,8 @@
                     <label for="id_password"><i class="fa-solid fa-lock"></i> Password</label>
                     <div class="input-with-eye">
                         {{ form.password }}
-                        <button type="button" class="eye-toggle-btn" title="Toggle password visibility" aria-label="Toggle password visibility">
-                            <i class="fa-solid fa-eye"></i>
+                        <button type="button" class="eye-toggle-btn" title="Toggle password visibility" aria-label="Toggle password visibility" aria-pressed="false">
+                            <i class="fa-solid fa-eye" aria-hidden="true"></i>
                         </button>
                     </div>
                 </div>
