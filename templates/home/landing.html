@@ -9,6 +9,18 @@
 {% endblock %}
 
 {% block content %}
+<nav class="chapter-dots" aria-label="Page sections">
+    <button type="button" class="chapter-dot-btn active" aria-label="Jump to overview" aria-current="true">
+        <span class="chapter-dot" aria-hidden="true"></span>
+    </button>
+    <button type="button" class="chapter-dot-btn" aria-label="Jump to live relief impact" aria-current="false">
+        <span class="chapter-dot" aria-hidden="true"></span>
+    </button>
+    <button type="button" class="chapter-dot-btn" aria-label="Jump to how it works" aria-current="false">
+        <span class="chapter-dot" aria-hidden="true"></span>
+    </button>
+</nav>
+
 <div class="landing-chapters">
     <!-- Chapter 1: Hero + Static Map Preview Hook -->
     <section class="landing-chapter chapter-hero" id="overview" aria-labelledby="landing-hero-title">
@@ -219,4 +231,8 @@
         </div>
     </section>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/home/landing.js' %}"></script>
 {% endblock %}

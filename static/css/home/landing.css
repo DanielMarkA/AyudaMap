@@ -3,9 +3,15 @@
    ========================================================================== */
 
 html:has(body.landing-page) {
-    scroll-snap-type: y proximity;
+    scroll-snap-type: y mandatory;
     scroll-behavior: smooth;
     scroll-padding-top: 64px;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+html:has(body.landing-page)::-webkit-scrollbar {
+    display: none;
 }
 
 body.landing-page .main-content {
@@ -17,6 +23,59 @@ body.landing-page .container {
     padding: 0;
 }
 
+/* Chapter Progress Rail */
+.chapter-dots {
+    position: fixed;
+    right: 1.25rem;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 900;
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+    padding: 0.4rem;
+    border-radius: 9999px;
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-color);
+    box-shadow: var(--shadow-md);
+}
+
+.chapter-dot-btn {
+    width: 28px;
+    height: 28px;
+    border: none;
+    background: transparent;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    padding: 0;
+}
+
+.chapter-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 9999px;
+    background-color: var(--text-muted);
+    opacity: 0.45;
+    transition: height 0.18s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.18s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.chapter-dot-btn:hover .chapter-dot {
+    opacity: 0.85;
+}
+
+.chapter-dot-btn.active .chapter-dot {
+    height: 20px;
+    background-color: var(--primary-dark);
+    opacity: 1;
+}
+
+html.dark-mode .chapter-dot-btn.active .chapter-dot {
+    background-color: #5eead4;
+}
+
 .landing-chapters {
     display: flex;
     flex-direction: column;
@@ -25,6 +84,7 @@ body.landing-page .container {
 .landing-chapter {
     min-height: calc(100svh - 64px);
     scroll-snap-align: start;
+    scroll-snap-stop: always;
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -485,9 +545,15 @@ html.dark-mode .impact-bar-fill {
     color: var(--text-muted);
 }
 
-/* Chapter 3: How Field Verification Works + Final CTA */
+/* Chapter 3: How Field Verification Works + Final CTA (pairs with footer in final viewport) */
 .chapter-workflow {
     background-color: var(--bg-main);
+    min-height: calc(100svh - 134px);
+    scroll-snap-align: end;
+}
+
+body.landing-page .app-footer {
+    scroll-snap-align: end;
 }
 
 .workflow-steps {
@@ -569,6 +635,9 @@ html.dark-mode .impact-bar-fill {
 
 /* Responsive Breakpoints */
 @media (max-width: 950px) {
+    .chapter-dots {
+        display: none;
+    }
     .hero-grid {
         grid-template-columns: 1fr;
         gap: 2rem;
@@ -620,7 +689,8 @@ html.dark-mode .impact-bar-fill {
         animation: none;
         box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.45);
     }
-    .scroll-cue {
+    .scroll-cue,
+    .chapter-dot {
         transition: none;
     }
 }
