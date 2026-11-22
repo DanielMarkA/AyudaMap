@@ -17,9 +17,31 @@
     align-items: start;
 }
 
+.map-defaults-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.75rem;
+}
+
 @media (max-width: 900px) {
     .settings-grid {
         grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 640px) {
+    .settings-card {
+        padding: 1.35rem 1.15rem;
+    }
+    .map-defaults-grid {
+        grid-template-columns: 1fr;
+        gap: 0;
+    }
+    .setting-row {
+        align-items: flex-start;
+    }
+    .form-actions .btn {
+        width: 100%;
     }
 }
 
@@ -49,6 +71,10 @@
     flex-shrink: 0;
 }
 
+html.dark-mode .settings-icon-circle {
+    color: #5eead4;
+}
+
 .security-icon {
     background-color: #fef3c7;
     color: #b45309;
@@ -58,6 +84,7 @@ html.dark-mode .security-icon {
     color: #fcd34d;
 }
 
+.settings-header h1,
 .settings-header h2 {
     font-size: 1.25rem;
     font-weight: 700;
@@ -76,7 +103,7 @@ html.dark-mode .security-icon {
 .section-title {
     font-size: 1rem;
     font-weight: 700;
-    color: var(--primary);
+    color: var(--primary-text);
     margin-bottom: 0.85rem;
     display: flex;
     align-items: center;
@@ -92,11 +119,18 @@ html.dark-mode .security-icon {
     gap: 1.25rem;
 }
 
-.setting-info strong {
+.setting-info {
+    min-width: 0;
+}
+
+.setting-info strong,
+.setting-info .setting-title-label {
     display: block;
     font-size: 0.92rem;
+    font-weight: 700;
     color: var(--text-primary);
     margin-bottom: 0.2rem;
+    cursor: pointer;
 }
 
 .setting-info p {
@@ -128,7 +162,11 @@ html.dark-mode .security-icon {
     right: 0;
     bottom: 0;
     background-color: #cbd5e1;
-    transition: .25s;
+    transition: background-color 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+html.dark-mode .slider {
+    background-color: #334155;
 }
 
 .slider:before {
@@ -139,15 +177,28 @@ html.dark-mode .security-icon {
     left: 3px;
     bottom: 3px;
     background-color: white;
-    transition: .25s;
+    transition: transform 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .slider,
+    .slider:before {
+        transition: none;
+    }
 }
 
 input:checked + .slider {
-    background-color: var(--primary);
+    background-color: var(--primary-dark);
 }
 
-input:focus + .slider {
-    box-shadow: 0 0 1px var(--primary);
+html.dark-mode input:checked + .slider {
+    background-color: #0d9488;
+}
+
+input:focus-visible + .slider {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+    box-shadow: 0 0 0 4px rgba(13, 148, 136, 0.25);
 }
 
 input:checked + .slider:before {
@@ -155,41 +206,16 @@ input:checked + .slider:before {
 }
 
 .slider.round {
-    border-radius: 34px;
+    border-radius: 9999px;
 }
 
 .slider.round:before {
     border-radius: 50%;
 }
 
-/* Input with Eye toggle */
-.input-with-eye {
-    position: relative;
-    display: flex;
-    align-items: center;
-}
-
-.input-with-eye input {
-    padding-right: 2.5rem !important;
-}
-
-.eye-toggle-btn {
-    position: absolute;
-    right: 10px;
-    background: none;
-    border: none;
-    color: var(--text-muted);
-    cursor: pointer;
-    font-size: 0.95rem;
-    padding: 0.3rem;
-}
-.eye-toggle-btn:hover {
-    color: var(--primary);
-}
-
 /* Database Card Status */
 .database-status-card {
-    background: linear-gradient(135deg, #0f766e 0%, #115e59 100%);
+    background-color: var(--header-bg);
     color: #ffffff;
     padding: 1.15rem 1.35rem;
     border-radius: var(--radius-md);
@@ -198,7 +224,7 @@ input:checked + .slider:before {
     gap: 1.15rem;
     margin-top: 1.5rem;
     margin-bottom: 1.5rem;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    box-shadow: var(--shadow-md);
 }
 
 .db-status-icon {
@@ -216,7 +242,7 @@ input:checked + .slider:before {
 
 .db-status-info span {
     font-size: 0.88rem;
-    color: #ccfbf1;
+    color: #e2e8f0;
     display: inline-flex;
     align-items: center;
     flex-wrap: wrap;
@@ -224,22 +250,21 @@ input:checked + .slider:before {
 }
 
 .database-status-card .badge-success {
-    background-color: #10b981;
+    background-color: var(--success-dark);
     color: #ffffff !important;
     font-weight: 700;
     font-size: 0.8rem;
     padding: 0.25rem 0.65rem;
     border-radius: 9999px;
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.28);
     display: inline-flex;
     align-items: center;
     gap: 0.35rem;
 }
 
 html.dark-mode .database-status-card {
-    background: linear-gradient(135deg, #134e4a 0%, #042f2e 100%);
-    border: 1px solid #14b8a6;
+    background-color: #0d1829;
+    border: 1px solid var(--border-color);
 }
 
 .form-actions {

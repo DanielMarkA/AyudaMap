@@ -27,10 +27,12 @@ document.addEventListener("DOMContentLoaded", () => {
             if (input) {
                 if (input.type === "password") {
                     input.type = "text";
+                    btn.setAttribute("aria-pressed", "true");
                     icon.classList.remove("fa-eye");
                     icon.classList.add("fa-eye-slash");
                 } else {
                     input.type = "password";
+                    btn.setAttribute("aria-pressed", "false");
                     icon.classList.remove("fa-eye-slash");
                     icon.classList.add("fa-eye");
                 }

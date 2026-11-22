@@ -14,16 +14,15 @@
         <div class="card profile-card">
             <div class="profile-avatar-container">
                 {% if profile.profile_image %}
-                    <img src="{{ profile.profile_image.url }}" alt="Profile Photo" class="profile-avatar" id="avatarPreview">
+                    <img src="{{ profile.profile_image.url }}" alt="Profile photo of {{ profile.full_name|default:user.username }}" class="profile-avatar" id="avatarPreview">
                 {% else %}
-                    <div class="profile-avatar-placeholder" id="avatarPlaceholder">
+                    <div class="profile-avatar-placeholder" id="avatarPlaceholder" aria-hidden="true">
                         <i class="fa-solid fa-user-shield"></i>
                     </div>
-                    <img src="" alt="Profile Photo" class="profile-avatar" id="avatarPreview" style="display: none;">
                 {% endif %}
             </div>
 
-            <h3 class="profile-name">{{ profile.full_name|default:user.username }}</h3>
+            <h1 class="profile-name">{{ profile.full_name|default:user.username }}</h1>
             <p class="profile-username">@{{ user.username }}</p>
             
             <div class="role-badge-wrapper">
@@ -74,7 +73,7 @@
         <!-- Edit Profile Card -->
         <div class="card profile-edit-card">
             <div class="section-heading">
-                <h3><i class="fa-solid fa-user-pen"></i> Edit Profile Information</h3>
+                <h2><i class="fa-solid fa-user-pen" aria-hidden="true"></i> Edit Profile Information</h2>
                 <p>Update your personal details, relief coordinator badge, and organization affiliation.</p>
             </div>
 
@@ -157,7 +156,7 @@
         <!-- My Submitted Aid Resources Section -->
         <div class="card my-contributions-card">
             <div class="section-heading">
-                <h3><i class="fa-solid fa-map-location-dot"></i> My Submitted Aid Hubs ({{ my_resources_count }})</h3>
+                <h2><i class="fa-solid fa-map-location-dot" aria-hidden="true"></i> My Submitted Aid Hubs ({{ my_resources_count }})</h2>
                 <p>Relief centers, evacuation shelters, or donation stations created by your account.</p>
             </div>
 
@@ -166,7 +165,7 @@
                     {% for res in my_resources %}
                         <div class="contribution-item">
                             <div class="contribution-info">
-                                <h4>{{ res.name }}</h4>
+                                <h3>{{ res.name }}</h3>
                                 <div class="contribution-meta">
                                     <span class="category-badge cat-{{ res.category|lower }}">{{ res.get_category_display }}</span>
                                     {% if res.status == 'FULL_CAPACITY' %}
@@ -198,9 +197,9 @@
             {% endif %}
         </div>
         <!-- My Recent Field Verification Activity -->
-        <div class="card my-contributions-card" style="margin-top: 20px;">
+        <div class="card my-contributions-card">
             <div class="section-heading">
-                <h3><i class="fa-solid fa-clipboard-check"></i> Recent Field Verification Activity ({{ my_logs|length }})</h3>
+                <h2><i class="fa-solid fa-clipboard-check" aria-hidden="true"></i> Recent Field Verification Activity ({{ my_logs|length }})</h2>
                 <p>Status updates and site confirmations you recorded across AyudaMap ({{ total_confirmations }} total confirmations on your hubs).</p>
             </div>
 
@@ -209,7 +208,7 @@
                     {% for log in my_logs %}
                         <div class="contribution-item">
                             <div class="contribution-info">
-                                <h4>{{ log.resource.name }}</h4>
+                                <h3>{{ log.resource.name }}</h3>
                                 <div class="contribution-meta">
                                     <span class="status-pill status-open">{{ log.get_action_type_display }}</span>
                                     {% if log.note %}<span class="loc-text">{{ log.note }}</span>{% endif %}

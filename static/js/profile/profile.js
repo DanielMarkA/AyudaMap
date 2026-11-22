@@ -2,15 +2,23 @@
 document.addEventListener("DOMContentLoaded", () => {
     // 1. Live Profile Photo Preview
     const imageInput = document.querySelector("input[type='file'][name='profile_image']");
-    const previewImg = document.getElementById("avatarPreview");
+    const avatarContainer = document.querySelector(".profile-avatar-container");
     const placeholder = document.getElementById("avatarPlaceholder");
 
-    if (imageInput && previewImg) {
+    if (imageInput && avatarContainer) {
         imageInput.addEventListener("change", function () {
             const file = this.files[0];
-            if (file) {
+            if (file && file.type && file.type.startsWith("image/")) {
                 const reader = new FileReader();
                 reader.onload = function (e) {
+                    let previewImg = document.getElementById("avatarPreview");
+                    if (!previewImg) {
+                        previewImg = document.createElement("img");
+                        previewImg.id = "avatarPreview";
+                        previewImg.className = "profile-avatar";
+                        previewImg.alt = "Profile photo preview";
+                        avatarContainer.appendChild(previewImg);
+                    }
                     previewImg.src = e.target.result;
                     previewImg.style.display = "block";
                     if (placeholder) {

@@ -17,7 +17,7 @@
                     <i class="fa-solid fa-sliders"></i>
                 </div>
                 <div>
-                    <h2>Preferences &amp; Notification Settings</h2>
+                    <h1>Preferences &amp; Notification Settings</h1>
                     <p>Manage your AyudaMap application theme, notifications, and alert broadcasts.</p>
                 </div>
             </div>
@@ -28,15 +28,15 @@
 
                 <!-- Appearance Section -->
                 <div class="settings-section">
-                    <h3 class="section-title"><i class="fa-solid fa-palette"></i> Appearance &amp; Theme</h3>
+                    <h2 class="section-title"><i class="fa-solid fa-palette" aria-hidden="true"></i> Appearance &amp; Theme</h2>
                     
                     <div class="setting-row">
                         <div class="setting-info">
-                            <strong>Dark Mode Interface</strong>
+                            <label class="setting-title-label" for="{{ form.dark_mode.id_for_label }}">Dark Mode Interface</label>
                             <p>Switch between light and high-contrast dark theme for low-light environments.</p>
                         </div>
                         <div class="setting-control">
-                            <label class="switch">
+                            <label class="switch" for="{{ form.dark_mode.id_for_label }}">
                                 {{ form.dark_mode }}
                                 <span class="slider round"></span>
                             </label>
@@ -46,15 +46,15 @@
 
                 <!-- Notifications Section -->
                 <div class="settings-section">
-                    <h3 class="section-title"><i class="fa-solid fa-bell"></i> Community Relief Alerts</h3>
+                    <h2 class="section-title"><i class="fa-solid fa-bell" aria-hidden="true"></i> Community Relief Alerts</h2>
                     
                     <div class="setting-row">
                         <div class="setting-info">
-                            <strong>Email Notifications</strong>
+                            <label class="setting-title-label" for="{{ form.email_notifications.id_for_label }}">Email Notifications</label>
                             <p>Receive email updates regarding urgent disaster relief notices and coordinator communications.</p>
                         </div>
                         <div class="setting-control">
-                            <label class="switch">
+                            <label class="switch" for="{{ form.email_notifications.id_for_label }}">
                                 {{ form.email_notifications }}
                                 <span class="slider round"></span>
                             </label>
@@ -63,11 +63,11 @@
 
                     <div class="setting-row">
                         <div class="setting-info">
-                            <strong>New Relief Center Alerts</strong>
+                            <label class="setting-title-label" for="{{ form.notify_on_new_resources.id_for_label }}">New Relief Center Alerts</label>
                             <p>Get notified when a new verified evacuation shelter or food relief pantry is posted in your area.</p>
                         </div>
                         <div class="setting-control">
-                            <label class="switch">
+                            <label class="switch" for="{{ form.notify_on_new_resources.id_for_label }}">
                                 {{ form.notify_on_new_resources }}
                                 <span class="slider round"></span>
                             </label>
@@ -77,14 +77,14 @@
 
                 <!-- Map & Filter Defaults Section -->
                 <div class="settings-section">
-                    <h3 class="section-title"><i class="fa-solid fa-map-pin"></i> Default Map &amp; Filter Preferences</h3>
+                    <h2 class="section-title"><i class="fa-solid fa-map-pin" aria-hidden="true"></i> Default Map &amp; Filter Preferences</h2>
 
-                    <div class="form-group" style="margin-bottom: 14px;">
+                    <div class="form-group">
                         <label for="{{ form.preferred_category.id_for_label }}"><strong>Default Aid Category Filter</strong></label>
                         {{ form.preferred_category }}
                     </div>
 
-                    <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;">
+                    <div class="map-defaults-grid">
                         <div class="form-group">
                             <label for="{{ form.default_latitude.id_for_label }}">Default Latitude</label>
                             {{ form.default_latitude }}
@@ -154,7 +154,7 @@
                     <label for="{{ password_form.old_password.id_for_label }}">Current Password</label>
                     <div class="input-with-eye">
                         {{ password_form.old_password }}
-                        <button type="button" class="eye-toggle-btn" title="Toggle password visibility">
+                        <button type="button" class="eye-toggle-btn" title="Toggle password visibility" aria-label="Toggle password visibility" aria-pressed="false">
                             <i class="fa-solid fa-eye"></i>
                         </button>
                     </div>
@@ -164,7 +164,7 @@
                     <label for="{{ password_form.new_password1.id_for_label }}">New Password</label>
                     <div class="input-with-eye">
                         {{ password_form.new_password1 }}
-                        <button type="button" class="eye-toggle-btn" title="Toggle password visibility">
+                        <button type="button" class="eye-toggle-btn" title="Toggle password visibility" aria-label="Toggle password visibility" aria-pressed="false">
                             <i class="fa-solid fa-eye"></i>
                         </button>
                     </div>
@@ -174,7 +174,7 @@
                     <label for="{{ password_form.new_password2.id_for_label }}">Confirm New Password</label>
                     <div class="input-with-eye">
                         {{ password_form.new_password2 }}
-                        <button type="button" class="eye-toggle-btn" title="Toggle password visibility">
+                        <button type="button" class="eye-toggle-btn" title="Toggle password visibility" aria-label="Toggle password visibility" aria-pressed="false">
                             <i class="fa-solid fa-eye"></i>
                         </button>
                     </div>
