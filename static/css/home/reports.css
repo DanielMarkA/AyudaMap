@@ -59,7 +59,7 @@
         padding: 1rem;
     }
     .kpi-value {
-        font-size: 1.6rem;
+        font-size: 1.55rem;
     }
     .reports-panel {
         padding: 1rem;
@@ -121,7 +121,7 @@ html.dark-mode .critical-heading {
 
 .critical-list {
     margin: 0.5rem 0 0 1.25rem;
-    font-size: 0.9rem;
+    font-size: 0.95rem;
     line-height: 1.5;
 }
 
@@ -142,7 +142,7 @@ html.dark-mode .critical-heading {
     align-items: center;
     flex-wrap: wrap;
     gap: 0.5rem 0.75rem;
-    font-size: 0.9rem;
+    font-size: 0.95rem;
 }
 
 .log-note {
@@ -157,5 +157,5 @@ html.dark-mode .critical-heading {
 .reports-empty-note {
     margin-top: 0.75rem;
     color: var(--text-muted);
-    font-size: 0.9rem;
+    font-size: 0.95rem;
 }
