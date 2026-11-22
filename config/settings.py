@@ -3,10 +3,11 @@ Django settings for AyudaMap project.
 Community Aid & Disaster Relief Platform
 """
 
-from pathlib import Path
 import os
-from dotenv import load_dotenv
 import dj_database_url
+from pathlib import Path
+from dotenv import load_dotenv
+from django.core.exceptions import ImproperlyConfigured
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -14,14 +15,17 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Load environment variables from .env
 load_dotenv(BASE_DIR / ".env")
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.environ.get(
-    'SECRET_KEY',
-    'django-insecure-0v!d1%e2pt_a@02lin$t4dob-btp-t=8o2os68q&&q+r@f+=d-'
-)
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.environ.get('DJANGO_DEBUG', 'False').lower() == 'true'
+
+# SECURITY WARNING: keep the secret key used in production secret!
+SECRET_KEY = os.environ.get('SECRET_KEY')
+if not SECRET_KEY:
+    if DEBUG:
+        SECRET_KEY = 'django-insecure-local-dev-only-key'
+    else:
+        raise ImproperlyConfigured("The SECRET_KEY environment variable must be set when DEBUG is False.")
 
 ALLOWED_HOSTS = ['*']
 

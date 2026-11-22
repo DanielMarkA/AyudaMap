@@ -6,17 +6,23 @@ Seed script to populate Supabase PostgreSQL database with initial AyudaMap data:
 """
 
 import os
+import sys
 import django
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings')
 django.setup()
 
+from django.conf import settings
 from django.contrib.auth.models import User
 from apps.profile.models import Profile
 from apps.user_settings.models import UserSettings
 from apps.home.models import Resource
 
 def run():
+    if not settings.DEBUG:
+        print("ERROR: Refusing to run seed_data.py when DEBUG is False.")
+        sys.exit(1)
+    
     print("Seeding Supabase database...")
 
     # 1. Create Admin User
