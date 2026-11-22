@@ -4,6 +4,7 @@
 {% block title %}Create Account - AyudaMap{% endblock %}
 
 {% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/auth.css' %}">
 <link rel="stylesheet" href="{% static 'css/register/register.css' %}">
 {% endblock %}
 
@@ -40,7 +41,7 @@
                 <div class="auth-icon-circle register-icon">
                     <i class="fa-solid fa-user-plus"></i>
                 </div>
-                <h2>Create Your AyudaMap Account</h2>
+                <h1>Create Your AyudaMap Account</h1>
                 <p>Fill out the details below to join the community.</p>
             </div>
 
@@ -80,7 +81,7 @@
                         <label for="{{ form.password1.id_for_label }}"><i class="fa-solid fa-lock"></i> Password *</label>
                         <div class="input-with-eye">
                             {{ form.password1 }}
-                            <button type="button" class="eye-toggle-btn" title="Toggle password visibility">
+                            <button type="button" class="eye-toggle-btn" title="Toggle password visibility" aria-label="Toggle password visibility" aria-pressed="false">
                                 <i class="fa-solid fa-eye"></i>
                             </button>
                         </div>
@@ -90,7 +91,7 @@
                         <label for="{{ form.password2.id_for_label }}"><i class="fa-solid fa-shield-halved"></i> Confirm Password *</label>
                         <div class="input-with-eye">
                             {{ form.password2 }}
-                            <button type="button" class="eye-toggle-btn" title="Toggle password visibility">
+                            <button type="button" class="eye-toggle-btn" title="Toggle password visibility" aria-label="Toggle password visibility" aria-pressed="false">
                                 <i class="fa-solid fa-eye"></i>
                             </button>
                         </div>

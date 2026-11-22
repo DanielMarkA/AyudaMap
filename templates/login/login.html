@@ -4,6 +4,7 @@
 {% block title %}Login - AyudaMap{% endblock %}
 
 {% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/auth.css' %}">
 <link rel="stylesheet" href="{% static 'css/login/login.css' %}">
 {% endblock %}
 
@@ -63,7 +64,7 @@
                     <label for="id_password"><i class="fa-solid fa-lock"></i> Password</label>
                     <div class="input-with-eye">
                         {{ form.password }}
-                        <button type="button" class="eye-toggle-btn" title="Toggle password visibility">
+                        <button type="button" class="eye-toggle-btn" title="Toggle password visibility" aria-label="Toggle password visibility">
                             <i class="fa-solid fa-eye"></i>
                         </button>
                     </div>
