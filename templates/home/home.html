@@ -6,26 +6,6 @@
 {% block extra_css %}
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
 <link rel="stylesheet" href="{% static 'css/home/home.css' %}">
-<style>
-    @keyframes pulseRing {
-        0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.75); }
-        70% { box-shadow: 0 0 0 12px rgba(239, 68, 68, 0); }
-        100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
-    }
-    .pin-critical { animation: pulseRing 1.8s infinite; border-color: #fef08a !important; }
-    .urgency-badge { font-size: 0.75rem; font-weight: 700; padding: 3px 8px; border-radius: 999px; }
-    .urgency-critical { background: #fee2e2; color: #b91c1c; }
-    .urgency-medium { background: #fef3c7; color: #b45309; }
-    .urgency-low { background: #e0f2fe; color: #0369a1; }
-    .capacity-bar-wrap { margin: 10px 0; }
-    .capacity-label { display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 4px; opacity: 0.85; }
-    .capacity-track { width: 100%; height: 7px; background: rgba(148, 163, 184, 0.25); border-radius: 999px; overflow: hidden; }
-    .capacity-fill { height: 100%; background: #0d9488; border-radius: 999px; transition: width 0.3s ease; }
-    .supplies-tag { display: inline-block; background: rgba(245, 158, 11, 0.14); color: #d97706; font-size: 0.78rem; padding: 3px 8px; border-radius: 6px; margin-top: 6px; font-weight: 600; }
-    .card-actions-bar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: space-between; width: 100%; }
-    .inline-action-form { display: inline-flex; gap: 6px; align-items: center; margin: 0; }
-    .quick-status-select { padding: 4px 8px; border-radius: 6px; font-size: 0.8rem; border: 1px solid rgba(148, 163, 184, 0.4); }
-</style>
 {% endblock %}
 
 {% block content %}
@@ -34,7 +14,7 @@
         <h1><i class="fa-solid fa-hand-holding-heart"></i> Disaster Relief &amp; Community Aid Directory</h1>
         <p>Real-time geolocated aid centers, food stations, evacuation shelters, and medical hubs across the Philippines.</p>
     </div>
-    <div class="hero-actions" style="display:flex; gap:10px; flex-wrap:wrap;">
+    <div class="hero-actions">
         <button type="button" class="btn btn-success btn-hero" id="openAddModalBtn">
             <i class="fa-solid fa-plus-circle"></i> Submit Aid Resource
         </button>
@@ -68,11 +48,11 @@
             {% endif %}
 
             <div class="search-box-wrapper">
-                <i class="fa-solid fa-magnifying-glass search-icon"></i>
-                <input type="text" name="q" id="searchKeywordInput" value="{{ query }}" placeholder="Search by name, landmark, city, or needed supplies..." class="search-input">
+                <i class="fa-solid fa-magnifying-glass search-icon" aria-hidden="true"></i>
+                <input type="text" name="q" id="searchKeywordInput" value="{{ query }}" placeholder="Search by name, landmark, city, or needed supplies..." aria-label="Search aid resources by name, landmark, city, or needed supplies" class="search-input">
                 {% if query %}
-                    <a href="{% url 'home:home' %}{% if selected_category %}?category={{ selected_category }}{% endif %}" class="clear-search-btn" title="Clear search">
-                        <i class="fa-solid fa-xmark"></i>
+                    <a href="{% url 'home:home' %}{% if selected_category %}?category={{ selected_category }}{% endif %}" class="clear-search-btn" title="Clear search" aria-label="Clear search">
+                        <i class="fa-solid fa-xmark" aria-hidden="true"></i>
                     </a>
                 {% endif %}
             </div>
@@ -123,18 +103,19 @@
         <div class="card map-card">
             <div class="map-header">
                 <div class="map-title-group">
-                    <h3><i class="fa-solid fa-map-location-dot"></i> Interactive Aid Map</h3>
-                    <span class="badge badge-live"><i class="fa-solid fa-signal"></i> Active Pins: {{ total_count }}</span>
+                    <h2><i class="fa-solid fa-map-location-dot" aria-hidden="true"></i> Interactive Aid Map</h2>
+                    <span class="badge badge-live"><i class="fa-solid fa-signal" aria-hidden="true"></i> Active Pins: {{ total_count }}</span>
                     {% if critical_count > 0 %}
-                        <span class="urgency-badge urgency-critical"><i class="fa-solid fa-fire"></i> {{ critical_count }} Critical</span>
+                        <span class="urgency-badge urgency-critical"><i class="fa-solid fa-fire" aria-hidden="true"></i> {{ critical_count }} Critical</span>
                     {% endif %}
                 </div>
                 <button type="button" class="btn btn-sm btn-outline locate-me-btn" id="locateMeBtn" title="Center map on my current location">
-                    <i class="fa-solid fa-location-crosshairs"></i> Locate Me
+                    <i class="fa-solid fa-location-crosshairs" aria-hidden="true"></i> Locate Me
                 </button>
             </div>
             
-            <div id="ayudaMapViewport" class="map-viewport"></div>
+            <div id="mapStatusLive" class="sr-only" role="status" aria-live="polite"></div>
+            <div id="ayudaMapViewport" class="map-viewport" role="region" aria-label="Interactive community aid map"></div>
             
             <div class="map-legend">
                 <span class="legend-item"><span class="dot dot-medical"></span> Medical</span>
@@ -148,7 +129,7 @@
 
     <div class="directory-column">
         <div class="directory-header">
-            <h3>Verified Relief Centers</h3>
+            <h2>Verified Relief Centers</h2>
             <span class="count-pill">{{ resources|length }} Results</span>
         </div>
 
@@ -157,7 +138,7 @@
                 {% for resource in resources %}
                     <div class="card resource-card" id="resource-card-{{ resource.id }}" data-lat="{{ resource.latitude }}" data-lng="{{ resource.longitude }}" data-id="{{ resource.id }}">
                         <div class="resource-card-top">
-                            <h4 class="resource-title">{{ resource.name }}</h4>
+                            <h3 class="resource-title">{{ resource.name }}</h3>
                             <div class="badge-group">
                                 <span class="urgency-badge urgency-{{ resource.urgency_level|lower }}">
                                     {% if resource.urgency_level == 'CRITICAL' %}<i class="fa-solid fa-triangle-exclamation"></i>{% endif %}
@@ -218,21 +199,21 @@
                         </div>
 
                         <div class="resource-card-footer">
-                            <div class="card-actions-bar" onclick="event.stopPropagation();">
+                            <div class="card-actions-bar">
                                 <button type="button" class="btn btn-sm btn-outline pan-to-pin-btn" data-lat="{{ resource.latitude }}" data-lng="{{ resource.longitude }}" data-id="{{ resource.id }}">
-                                    <i class="fa-solid fa-map-pin"></i> View on Map
+                                    <i class="fa-solid fa-map-pin" aria-hidden="true"></i> View on Map
                                 </button>
 
                                 <form method="POST" action="{% url 'home:confirm_resource' resource.id %}" class="inline-action-form">
                                     {% csrf_token %}
                                     <button type="submit" class="btn btn-sm btn-outline" title="Confirm this relief center is currently active">
-                                        <i class="fa-solid fa-thumbs-up"></i> Verified ({{ resource.confirmations }})
+                                        <i class="fa-solid fa-thumbs-up" aria-hidden="true"></i> Verified ({{ resource.confirmations }})
                                     </button>
                                 </form>
 
                                 <form method="POST" action="{% url 'home:update_status' resource.id %}" class="inline-action-form">
                                     {% csrf_token %}
-                                    <select name="status" class="quick-status-select" onchange="this.form.submit()" title="Quickly update operating status">
+                                    <select name="status" class="quick-status-select" onchange="this.form.submit()" title="Quickly update operating status" aria-label="Operating status for {{ resource.name }}">
                                         {% for key, val in statuses %}
                                             <option value="{{ key }}" {% if resource.status == key %}selected{% endif %}>{{ val }}</option>
                                         {% endfor %}
@@ -245,11 +226,11 @@
             </div>
         {% else %}
             <div class="card empty-state-card">
-                <i class="fa-solid fa-box-open empty-icon"></i>
-                <h4>No Resources Found</h4>
+                <i class="fa-solid fa-box-open empty-icon" aria-hidden="true"></i>
+                <h3>No Resources Found</h3>
                 <p>No active aid centers matched your search query or selected filters.</p>
                 <a href="{% url 'home:home' %}" class="btn btn-primary btn-sm">
-                    <i class="fa-solid fa-rotate-left"></i> Clear Filters
+                    <i class="fa-solid fa-rotate-left" aria-hidden="true"></i> Clear Filters
                 </a>
             </div>
         {% endif %}
@@ -257,16 +238,16 @@
 </div>
 
 <!-- Modal: Add Community Resource -->
-<div id="addResourceModal" class="modal-backdrop" style="display: none;">
-    <div class="modal-dialog">
+<div id="addResourceModal" class="modal-backdrop" style="display: none;" aria-hidden="true">
+    <div class="modal-dialog" role="dialog" aria-modal="true" aria-labelledby="addResourceModalTitle">
         <div class="modal-content">
             <div class="modal-header">
-                <h3><i class="fa-solid fa-circle-plus"></i> Submit Community Aid Resource</h3>
-                <button type="button" class="modal-close" id="closeAddModalBtn">&times;</button>
+                <h2 id="addResourceModalTitle"><i class="fa-solid fa-circle-plus" aria-hidden="true"></i> Submit Community Aid Resource</h2>
+                <button type="button" class="modal-close" id="closeAddModalBtn" aria-label="Close modal">&times;</button>
             </div>
             
             <div class="modal-picker-notice">
-                <i class="fa-solid fa-crosshairs"></i>
+                <i class="fa-solid fa-crosshairs" aria-hidden="true"></i>
                 <span>Tip: Click anywhere on the background map to auto-fill latitude &amp; longitude!</span>
             </div>
 
@@ -274,82 +255,82 @@
                 {% csrf_token %}
                 
                 <div class="form-group">
-                    <label>Resource / Center Name *</label>
+                    <label for="{{ resource_form.name.id_for_label }}">Resource / Center Name *</label>
                     {{ resource_form.name }}
                 </div>
                 
                 <div class="form-row">
                     <div class="form-group col">
-                        <label>Category *</label>
+                        <label for="{{ resource_form.category.id_for_label }}">Category *</label>
                         {{ resource_form.category }}
                     </div>
                     <div class="form-group col">
-                        <label>Operating Status *</label>
+                        <label for="{{ resource_form.status.id_for_label }}">Operating Status *</label>
                         {{ resource_form.status }}
                     </div>
                     <div class="form-group col">
-                        <label>Urgency Priority *</label>
+                        <label for="{{ resource_form.urgency_level.id_for_label }}">Urgency Priority *</label>
                         {{ resource_form.urgency_level }}
                     </div>
                 </div>
 
                 <div class="form-group">
-                    <label>Description &amp; Available Aid</label>
+                    <label for="{{ resource_form.description.id_for_label }}">Description &amp; Available Aid</label>
                     {{ resource_form.description }}
                 </div>
 
                 <div class="form-group">
-                    <label>Urgent Supplies Needed</label>
+                    <label for="{{ resource_form.supplies_needed.id_for_label }}">Urgent Supplies Needed</label>
                     {{ resource_form.supplies_needed }}
                 </div>
 
                 <div class="form-row">
                     <div class="form-group col">
-                        <label>Total Capacity (Slots/Packs)</label>
+                        <label for="{{ resource_form.capacity_total.id_for_label }}">Total Capacity (Slots/Packs)</label>
                         {{ resource_form.capacity_total }}
                     </div>
                     <div class="form-group col">
-                        <label>Available Capacity</label>
+                        <label for="{{ resource_form.capacity_available.id_for_label }}">Available Capacity</label>
                         {{ resource_form.capacity_available }}
                     </div>
                 </div>
 
                 <div class="form-group">
-                    <label>Location / Address *</label>
+                    <label for="{{ resource_form.location.id_for_label }}">Location / Address *</label>
                     {{ resource_form.location }}
                 </div>
 
                 <div class="form-row coords-row">
                     <div class="form-group col">
-                        <label>Latitude</label>
+                        <label for="{{ resource_form.latitude.id_for_label }}">Latitude</label>
                         {{ resource_form.latitude }}
                     </div>
                     <div class="form-group col">
-                        <label>Longitude</label>
+                        <label for="{{ resource_form.longitude.id_for_label }}">Longitude</label>
                         {{ resource_form.longitude }}
                     </div>
                 </div>
 
                 <div class="modal-gps-btn-wrap">
                     <button type="button" class="btn btn-sm btn-outline" id="modalGpsBtn">
-                        <i class="fa-solid fa-location-arrow"></i> Use My Current GPS Coordinates
+                        <i class="fa-solid fa-location-arrow" aria-hidden="true"></i> Use My Current GPS Coordinates
                     </button>
                 </div>
 
                 <div class="form-row">
                     <div class="form-group col">
-                        <label>Operating Hours</label>
+                        <label for="{{ resource_form.operating_hours.id_for_label }}">Operating Hours</label>
                         {{ resource_form.operating_hours }}
                     </div>
                     <div class="form-group col">
-                        <label>Contact Info</label>
+                        <label for="{{ resource_form.contact_info.id_for_label }}">Contact Info</label>
                         {{ resource_form.contact_info }}
                     </div>
                 </div>
 
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" id="cancelAddModalBtn">Cancel</button>
-                    <button type="submit" class="btn btn-success"><i class="fa-solid fa-check"></i> Save Resource</button>
+                    <button type="submit" class="btn btn-success" id="saveResourceBtn"><i class="fa-solid fa-check" aria-hidden="true"></i> Save Resource</button>
                 </div>
             </form>
         </div>

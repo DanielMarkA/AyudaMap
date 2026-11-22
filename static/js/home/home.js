@@ -23,11 +23,36 @@ document.addEventListener("DOMContentLoaded", () => {
         try { userMapConfig = JSON.parse(mapCfgEl.textContent); } catch (e) {}
     }
 
+    const escapeHtml = (value) => {
+        if (value === null || value === undefined) return "";
+        return String(value)
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#39;");
+    };
+
+    const prefersReducedMotion = () =>
+        window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    const statusLiveEl = document.getElementById("mapStatusLive");
+    const announceMapStatus = (msg) => {
+        if (statusLiveEl) {
+            statusLiveEl.textContent = "";
+            setTimeout(() => { statusLiveEl.textContent = msg; }, 50);
+        }
+    };
+
     const getTileUrl = (isDark) => {
         return isDark
             ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
             : 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png';
     };
+
+    if (mapContainer && typeof L === "undefined") {
+        mapContainer.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;padding:1.5rem;text-align:center;color:var(--text-muted);font-size:0.95rem;">Map tiles could not load (offline or CDN unavailable). You can still browse and update aid centers in the directory.</div>';
+    }
 
     if (mapContainer && typeof L !== "undefined") {
         const isDark = document.documentElement.classList.contains("dark-mode");
@@ -78,9 +103,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const getStatusBadge = (status, statusDisplay) => {
             let bg = '#2e7d32';
-            if (status === 'FULL_CAPACITY') bg = '#e65100';
+            if (status === 'FULL_CAPACITY') bg = '#c2410c';
             else if (status === 'TEMPORARILY_CLOSED') bg = '#c62828';
-            return `<span style="display:inline-block; font-size: 10px; padding: 2px 6px; border-radius: 4px; background: ${bg}; color: white; font-weight: 700; margin-left: 4px;">${statusDisplay || status}</span>`;
+            return `<span style="display:inline-block; font-size: 10px; padding: 2px 6px; border-radius: 9999px; background: ${bg}; color: white; font-weight: 700; margin-left: 4px;">${escapeHtml(statusDisplay || status)}</span>`;
         };
 
         resources.forEach(res => {
@@ -97,22 +122,22 @@ document.addEventListener("DOMContentLoaded", () => {
                 });
 
                 const suppliesHtml = res.supplies_needed
-                    ? `<p style="margin: 4px 0; font-size: 11px; color: #b45309; font-weight: 600;"><i class="fa-solid fa-boxes-stacked"></i> Needed: ${res.supplies_needed}</p>`
+                    ? `<p style="margin: 4px 0; font-size: 0.8rem; color: var(--accent); font-weight: 600;"><i class="fa-solid fa-boxes-stacked"></i> Needed: ${escapeHtml(res.supplies_needed)}</p>`
                     : '';
 
                 const popupContent = `
-                    <div style="font-family: system-ui, sans-serif; min-width: 230px; padding: 4px;">
-                        <h4 style="margin: 0 0 5px 0; font-size: 14px; font-weight: 700;">${res.name}</h4>
+                    <div style="font-family: system-ui, sans-serif; min-width: 230px; padding: 4px; color: var(--text-primary);">
+                        <h4 style="margin: 0 0 5px 0; font-size: 0.95rem; font-weight: 700; color: var(--text-primary);">${escapeHtml(res.name)}</h4>
                         <div style="margin-bottom: 7px;">
-                            <span style="display:inline-block; font-size: 11px; padding: 2px 6px; border-radius: 4px; background: #e0f2fe; color: #0284c7; font-weight: 600;">${res.category}</span>
+                            <span class="urgency-badge urgency-low">${escapeHtml(res.category)}</span>
                             ${getStatusBadge(res.status, res.status_display)}
                         </div>
-                        <p style="margin: 4px 0; font-size: 12px; color: #334155;"><strong>Capacity:</strong> ${res.capacity_available} / ${res.capacity_total} slots</p>
+                        <p style="margin: 4px 0; font-size: 0.85rem; color: var(--text-primary);"><strong>Capacity:</strong> ${escapeHtml(res.capacity_available)} / ${escapeHtml(res.capacity_total)} slots</p>
                         ${suppliesHtml}
-                        <p style="margin: 4px 0; font-size: 12px; color: #64748b;"><i class="fa-solid fa-location-dot"></i> ${res.location}</p>
-                        <p style="margin: 4px 0; font-size: 12px; color: #64748b;"><i class="fa-solid fa-clock"></i> ${res.operating_hours}</p>
-                        ${res.contact_info ? `<p style="margin: 4px 0; font-size: 12px; color: #64748b;"><i class="fa-solid fa-phone"></i> ${res.contact_info}</p>` : ''}
-                        <p style="margin: 6px 0 0 0; font-size: 11px; color: #0d9488; font-weight: 600;"><i class="fa-solid fa-thumbs-up"></i> ${res.confirmations} community confirmations</p>
+                        <p style="margin: 4px 0; font-size: 0.85rem; color: var(--text-muted);"><i class="fa-solid fa-location-dot"></i> ${escapeHtml(res.location)}</p>
+                        <p style="margin: 4px 0; font-size: 0.85rem; color: var(--text-muted);"><i class="fa-solid fa-clock"></i> ${escapeHtml(res.operating_hours)}</p>
+                        ${res.contact_info ? `<p style="margin: 4px 0; font-size: 0.85rem; color: var(--text-muted);"><i class="fa-solid fa-phone"></i> ${escapeHtml(res.contact_info)}</p>` : ''}
+                        <p style="margin: 6px 0 0 0; font-size: 0.8rem; color: var(--primary-text); font-weight: 600;"><i class="fa-solid fa-thumbs-up"></i> ${escapeHtml(res.confirmations)} community confirmations</p>
                     </div>
                 `;
 
@@ -125,7 +150,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     if (card) {
                         document.querySelectorAll(".resource-card").forEach(c => c.classList.remove("card-highlighted"));
                         card.classList.add("card-highlighted");
-                        card.scrollIntoView({ behavior: "smooth", block: "center" });
+                        card.scrollIntoView({ behavior: prefersReducedMotion() ? "auto" : "smooth", block: "center" });
                     }
                 });
 
@@ -146,16 +171,20 @@ document.addEventListener("DOMContentLoaded", () => {
                 const id = btn.dataset.id;
 
                 if (!isNaN(lat) && !isNaN(lng)) {
-                    map.flyTo([lat, lng], 15, { animate: true, duration: 1 });
+                    const animate = !prefersReducedMotion();
+                    map.flyTo([lat, lng], 15, { animate, duration: animate ? 0.8 : 0 });
                     if (id && markers[id]) {
-                        setTimeout(() => markers[id].openPopup(), 1000);
+                        setTimeout(() => markers[id].openPopup(), animate ? 820 : 50);
                     }
                 }
             });
         });
 
         document.querySelectorAll(".resource-card").forEach(card => {
-            card.addEventListener("click", () => {
+            card.addEventListener("click", (e) => {
+                if (e.target.closest("button, a, select, input, form, label")) {
+                    return;
+                }
                 const lat = parseFloat(card.dataset.lat);
                 const lng = parseFloat(card.dataset.lng);
                 const id = card.dataset.id;
@@ -164,9 +193,10 @@ document.addEventListener("DOMContentLoaded", () => {
                 card.classList.add("card-highlighted");
 
                 if (!isNaN(lat) && !isNaN(lng)) {
-                    map.flyTo([lat, lng], 14, { animate: true, duration: 0.8 });
+                    const animate = !prefersReducedMotion();
+                    map.flyTo([lat, lng], 14, { animate, duration: animate ? 0.7 : 0 });
                     if (id && markers[id]) {
-                        setTimeout(() => markers[id].openPopup(), 850);
+                        setTimeout(() => markers[id].openPopup(), animate ? 720 : 50);
                     }
                 }
             });
@@ -176,14 +206,15 @@ document.addEventListener("DOMContentLoaded", () => {
         if (locateBtn && navigator.geolocation) {
             locateBtn.addEventListener("click", () => {
                 locateBtn.disabled = true;
-                locateBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Locating...';
+                locateBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin" aria-hidden="true"></i> Locating...';
 
                 navigator.geolocation.getCurrentPosition(
                     (position) => {
                         const userLat = position.coords.latitude;
                         const userLng = position.coords.longitude;
 
-                        map.flyTo([userLat, userLng], 14, { animate: true, duration: 1.2 });
+                        const animate = !prefersReducedMotion();
+                        map.flyTo([userLat, userLng], 14, { animate, duration: animate ? 1.0 : 0 });
 
                         if (userLocationMarker) {
                             userLocationMarker.setLatLng([userLat, userLng]);
@@ -201,17 +232,22 @@ document.addEventListener("DOMContentLoaded", () => {
                         }
 
                         setTimeout(() => userLocationMarker.openPopup(), 1200);
+                        announceMapStatus("Map centered on your current location.");
                         locateBtn.disabled = false;
-                        locateBtn.innerHTML = '<i class="fa-solid fa-location-crosshairs"></i> Located!';
+                        locateBtn.innerHTML = '<i class="fa-solid fa-location-crosshairs" aria-hidden="true"></i> Located!';
                         setTimeout(() => {
-                            locateBtn.innerHTML = '<i class="fa-solid fa-location-crosshairs"></i> Locate Me';
+                            locateBtn.innerHTML = '<i class="fa-solid fa-location-crosshairs" aria-hidden="true"></i> Locate Me';
                         }, 3000);
                     },
                     () => {
-                        alert("Could not access your location. Please check browser permissions.");
+                        announceMapStatus("Could not access your location. Please check browser permissions.");
                         locateBtn.disabled = false;
-                        locateBtn.innerHTML = '<i class="fa-solid fa-location-crosshairs"></i> Locate Me';
-                    }
+                        locateBtn.innerHTML = '<i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i> Location Denied';
+                        setTimeout(() => {
+                            locateBtn.innerHTML = '<i class="fa-solid fa-location-crosshairs" aria-hidden="true"></i> Locate Me';
+                        }, 3500);
+                    },
+                    { timeout: 10000 }
                 );
             });
         }
@@ -246,23 +282,40 @@ document.addEventListener("DOMContentLoaded", () => {
     const closeBtn = document.getElementById("closeAddModalBtn");
     const cancelBtn = document.getElementById("cancelAddModalBtn");
     const modalGpsBtn = document.getElementById("modalGpsBtn");
+    const addResourceForm = document.getElementById("addResourceForm");
+    const saveResourceBtn = document.getElementById("saveResourceBtn");
 
     if (modal && openBtn) {
-        openBtn.addEventListener("click", () => {
+        let lastFocusedEl = null;
+
+        const getFocusable = () => Array.from(
+            modal.querySelectorAll('button:not([disabled]), [href], input:not([disabled]):not([type="hidden"]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])')
+        );
+
+        const openModal = () => {
+            lastFocusedEl = document.activeElement;
             modal.style.display = "flex";
+            modal.setAttribute("aria-hidden", "false");
             if (map) {
                 setTimeout(() => map.invalidateSize(), 200);
             }
-        });
+            const firstInput = modal.querySelector("input:not([type='hidden']), select, textarea");
+            if (firstInput) firstInput.focus();
+        };
 
         const closeModal = () => {
             modal.style.display = "none";
+            modal.setAttribute("aria-hidden", "true");
             if (clickPickerMarker && map) {
                 map.removeLayer(clickPickerMarker);
                 clickPickerMarker = null;
             }
+            if (lastFocusedEl && typeof lastFocusedEl.focus === "function") {
+                lastFocusedEl.focus();
+            }
         };
 
+        openBtn.addEventListener("click", openModal);
         if (closeBtn) closeBtn.addEventListener("click", closeModal);
         if (cancelBtn) cancelBtn.addEventListener("click", closeModal);
 
@@ -271,12 +324,41 @@ document.addEventListener("DOMContentLoaded", () => {
                 closeModal();
             }
         });
+
+        document.addEventListener("keydown", (e) => {
+            if (modal.style.display !== "flex") return;
+            if (e.key === "Escape") {
+                e.preventDefault();
+                closeModal();
+                return;
+            }
+            if (e.key === "Tab") {
+                const focusable = getFocusable();
+                if (!focusable.length) return;
+                const first = focusable[0];
+                const last = focusable[focusable.length - 1];
+                if (e.shiftKey && document.activeElement === first) {
+                    e.preventDefault();
+                    last.focus();
+                } else if (!e.shiftKey && document.activeElement === last) {
+                    e.preventDefault();
+                    first.focus();
+                }
+            }
+        });
+    }
+
+    if (addResourceForm && saveResourceBtn) {
+        addResourceForm.addEventListener("submit", () => {
+            saveResourceBtn.disabled = true;
+            saveResourceBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin" aria-hidden="true"></i> Saving...';
+        });
     }
 
     if (modalGpsBtn && navigator.geolocation) {
         modalGpsBtn.addEventListener("click", () => {
             modalGpsBtn.disabled = true;
-            modalGpsBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Getting GPS coordinates...';
+            modalGpsBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin" aria-hidden="true"></i> Getting GPS coordinates...';
 
             navigator.geolocation.getCurrentPosition(
                 (pos) => {
@@ -286,17 +368,22 @@ document.addEventListener("DOMContentLoaded", () => {
                         latInput.value = pos.coords.latitude.toFixed(6);
                         lngInput.value = pos.coords.longitude.toFixed(6);
                     }
+                    announceMapStatus("GPS coordinates filled into form.");
                     modalGpsBtn.disabled = false;
-                    modalGpsBtn.innerHTML = '<i class="fa-solid fa-check"></i> GPS Coordinates Applied!';
+                    modalGpsBtn.innerHTML = '<i class="fa-solid fa-check" aria-hidden="true"></i> GPS Coordinates Applied!';
                     setTimeout(() => {
-                        modalGpsBtn.innerHTML = '<i class="fa-solid fa-location-arrow"></i> Use My Current GPS Coordinates';
+                        modalGpsBtn.innerHTML = '<i class="fa-solid fa-location-arrow" aria-hidden="true"></i> Use My Current GPS Coordinates';
                     }, 2500);
                 },
                 () => {
-                    alert("Unable to get current GPS location.");
+                    announceMapStatus("Unable to get current GPS location.");
                     modalGpsBtn.disabled = false;
-                    modalGpsBtn.innerHTML = '<i class="fa-solid fa-location-arrow"></i> Use My Current GPS Coordinates';
-                }
+                    modalGpsBtn.innerHTML = '<i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i> GPS Unavailable';
+                    setTimeout(() => {
+                        modalGpsBtn.innerHTML = '<i class="fa-solid fa-location-arrow" aria-hidden="true"></i> Use My Current GPS Coordinates';
+                    }, 3500);
+                },
+                { timeout: 10000 }
             );
         });
     }
