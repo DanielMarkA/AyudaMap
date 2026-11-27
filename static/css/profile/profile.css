@@ -2,88 +2,84 @@
    Profile Feature Stylesheet
    ========================================================================== */
 
-.profile-layout {
-    display: grid;
-    grid-template-columns: 330px 1fr;
+.profile-shell {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+/* Horizontal Identity Hero Banner */
+.profile-banner {
+    border-radius: var(--radius-md);
+    padding: 1.5rem 1.75rem;
+    background-color: var(--header-bg);
+    color: #ffffff;
+    box-shadow: var(--shadow-md);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
     gap: 1.5rem;
-    align-items: start;
+    flex-wrap: wrap;
 }
 
-@media (max-width: 900px) {
-    .profile-layout {
-        grid-template-columns: 1fr;
-    }
+html.dark-mode .profile-banner {
+    border: 1px solid var(--border-color);
 }
 
-@media (max-width: 640px) {
-    .profile-card,
-    .profile-edit-card,
-    .my-contributions-card {
-        padding: 1.35rem 1.15rem;
-    }
-    .form-actions .btn {
-        width: 100%;
-    }
-    .contribution-action {
-        width: 100%;
-    }
-    .contribution-action .btn {
-        width: 100%;
-    }
-}
-
-.profile-card {
-    text-align: center;
-    padding: 2.25rem 1.75rem;
+.profile-identity {
+    display: flex;
+    align-items: center;
+    gap: 1.15rem;
+    min-width: 0;
+    flex: 1 1 360px;
 }
 
 .profile-avatar-container {
-    margin-bottom: 1.25rem;
     display: flex;
+    align-items: center;
     justify-content: center;
+    flex-shrink: 0;
 }
 
 .profile-avatar {
-    width: 110px;
-    height: 110px;
+    width: 78px;
+    height: 78px;
     border-radius: 50%;
     object-fit: cover;
-    border: 3.5px solid var(--primary);
+    border: 3px solid #5eead4;
     box-shadow: var(--shadow-md);
 }
 
 .profile-avatar-placeholder {
-    width: 110px;
-    height: 110px;
+    width: 78px;
+    height: 78px;
     border-radius: 50%;
-    background-color: var(--primary-light);
-    color: var(--primary-dark);
+    background-color: rgba(255, 255, 255, 0.16);
+    color: #5eead4;
+    border: 2px solid rgba(94, 234, 212, 0.45);
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 2rem;
-    border: 3.5px solid var(--border-color);
-}
-html.dark-mode .profile-avatar-placeholder {
-    background-color: #134e4a;
-    color: #5eead4;
+    font-size: 1.75rem;
 }
 
-.profile-name {
-    font-size: 1.35rem;
+.profile-id-text {
+    min-width: 0;
+}
+
+.profile-name-row {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+}
+
+.profile-name-row h1 {
+    font-size: 1.4rem;
     font-weight: 700;
-    margin-bottom: 0.2rem;
-    color: var(--text-primary);
-}
-
-.profile-username {
-    color: var(--text-muted);
-    font-size: 0.85rem;
-    margin-bottom: 0.6rem;
-}
-
-.role-badge-wrapper {
-    margin-bottom: 0.85rem;
+    margin: 0;
+    color: #ffffff;
+    text-wrap: balance;
 }
 
 .profile-role-badge {
@@ -92,7 +88,7 @@ html.dark-mode .profile-avatar-placeholder {
     gap: 0.4rem;
     font-size: 0.78rem;
     font-weight: 700;
-    padding: 0.3rem 0.8rem;
+    padding: 0.28rem 0.78rem;
     border-radius: 9999px;
 }
 
@@ -103,113 +99,140 @@ html.dark-mode .profile-avatar-placeholder {
 }
 
 .member-badge {
+    background-color: rgba(255, 255, 255, 0.18);
+    color: #ffffff;
+}
+
+.profile-subline {
+    font-size: 0.85rem;
+    color: #e2e8f0;
+    margin-top: 0.25rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem 0.9rem;
+}
+
+.profile-bio {
+    font-size: 0.88rem;
+    color: #f1f5f9;
+    margin: 0.45rem 0 0;
+    max-width: 56ch;
+    line-height: 1.45;
+    text-wrap: pretty;
+}
+
+.profile-kpis {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.profile-kpi {
+    background-color: rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: var(--radius-sm);
+    padding: 0.55rem 0.95rem;
+    min-width: 108px;
+}
+
+.profile-kpi-num {
+    display: block;
+    font-size: 1.15rem;
+    font-weight: 700;
+    line-height: 1.2;
+    color: #ffffff;
+}
+
+.profile-kpi-lbl {
+    display: block;
+    font-size: 0.78rem;
+    color: #ccfbf1;
+    margin-top: 0.1rem;
+}
+
+/* Tabbed Workspace Card */
+.profile-tabs-card {
+    padding: 0;
+    overflow: hidden;
+    position: relative;
+}
+
+.profile-tab-radio {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.profile-tab-bar {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0 1.25rem;
+    border-bottom: 1px solid var(--border-color);
+    background-color: var(--bg-main);
+    overflow-x: auto;
+}
+
+.profile-tab-lbl {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.85rem 1rem;
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    cursor: pointer;
+    border-bottom: 2.5px solid transparent;
+    white-space: nowrap;
+    transition: color 0.14s ease, border-color 0.14s ease;
+}
+
+.profile-tab-lbl:hover {
+    color: var(--text-primary);
+}
+
+.profile-tab-count {
+    font-size: 0.78rem;
+    padding: 0.1rem 0.45rem;
+    border-radius: 9999px;
     background-color: var(--border-color);
     color: var(--text-primary);
 }
 
-.profile-org-box {
-    font-size: 0.85rem;
+#profileTabEdit:checked ~ .profile-tab-bar label[for="profileTabEdit"],
+#profileTabHubs:checked ~ .profile-tab-bar label[for="profileTabHubs"],
+#profileTabLogs:checked ~ .profile-tab-bar label[for="profileTabLogs"] {
     color: var(--primary-text);
-    font-weight: 600;
-    margin-bottom: 1rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.4rem;
+    border-bottom-color: var(--primary);
 }
 
-.profile-bio-box {
-    background-color: var(--bg-main);
-    padding: 1rem;
-    border-radius: var(--radius-sm);
-    font-size: 0.88rem;
-    color: var(--text-muted);
-    line-height: 1.45;
-    margin-bottom: 1.5rem;
-    text-align: left;
-    border: 1px solid var(--border-color);
+#profileTabEdit:focus-visible ~ .profile-tab-bar label[for="profileTabEdit"],
+#profileTabHubs:focus-visible ~ .profile-tab-bar label[for="profileTabHubs"],
+#profileTabLogs:focus-visible ~ .profile-tab-bar label[for="profileTabLogs"] {
+    outline: 2px solid var(--primary);
+    outline-offset: -2px;
 }
 
-.profile-quick-stats {
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-    border-top: 1px solid var(--border-color);
-    padding-top: 1.25rem;
-    text-align: left;
+.profile-panel {
+    display: none;
+    padding: 1.5rem 1.75rem;
 }
 
-.stat-item {
-    display: flex;
-    justify-content: space-between;
-    font-size: 0.85rem;
+#profileTabEdit:checked ~ .profile-panel-edit,
+#profileTabHubs:checked ~ .profile-panel-hubs,
+#profileTabLogs:checked ~ .profile-panel-logs {
+    display: block;
 }
 
-.stat-label {
-    color: var(--text-muted);
-    display: flex;
-    align-items: center;
-    gap: 0.4rem;
+/* Edit Profile Form */
+.profile-form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem 1.25rem;
 }
 
-.profile-sidebar,
-.profile-main {
-    min-width: 0;
-}
-
-.stat-val {
-    font-weight: 600;
-    color: var(--text-primary);
-    overflow-wrap: anywhere;
-    text-align: right;
-}
-
-.stat-highlight {
-    color: var(--primary-text) !important;
-    font-weight: 700;
-}
-
-/* Edit Card */
-.profile-main {
-    display: flex;
-    flex-direction: column;
-    gap: 1.5rem;
-}
-
-.profile-edit-card, .my-contributions-card {
-    padding: 2rem;
-}
-
-.section-heading {
-    margin-bottom: 1.5rem;
-    border-bottom: 1px solid var(--border-color);
-    padding-bottom: 1rem;
-}
-
-.section-heading h2,
-.section-heading h3 {
-    font-size: 1.15rem;
-    font-weight: 700;
-    color: var(--text-primary);
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    margin-bottom: 0.25rem;
-}
-
-.section-heading p {
-    color: var(--text-muted);
-    font-size: 0.88rem;
-}
-
-.form-section-title {
-    font-size: 0.95rem;
-    font-weight: 700;
-    color: var(--primary-text);
-    margin: 1.25rem 0 0.75rem 0;
-    display: flex;
-    align-items: center;
-    gap: 0.4rem;
+.profile-form-span {
+    grid-column: 1 / -1;
 }
 
 .volunteer-checkbox-group {
@@ -223,7 +246,7 @@ html.dark-mode .profile-avatar-placeholder {
     align-items: center;
     gap: 0.65rem;
     cursor: pointer;
-    font-size: 0.95rem;
+    font-size: 0.92rem;
     min-height: 44px;
     margin-bottom: 0 !important;
 }
@@ -236,64 +259,45 @@ html.dark-mode .profile-avatar-placeholder {
 }
 
 .form-actions {
-    margin-top: 1.75rem;
+    margin-top: 1.5rem;
     display: flex;
     justify-content: flex-end;
 }
 
-/* My Contributions List */
-.contributions-list {
+/* Aid Hubs & Field Activity Lists */
+.profile-ledger-row {
     display: flex;
-    flex-direction: column;
-    gap: 0.85rem;
-}
-
-.contribution-item {
-    display: flex;
-    justify-content: space-between;
     align-items: center;
-    padding: 1rem 1.25rem;
-    background-color: var(--bg-main);
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-sm);
+    justify-content: space-between;
     gap: 1rem;
+    padding: 0.85rem 0;
+    border-bottom: 1px solid var(--border-color);
     flex-wrap: wrap;
-    transition: border-color 0.16s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.16s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.contribution-item:hover {
-    border-color: var(--primary);
+.profile-ledger-row:first-child {
+    padding-top: 0;
 }
 
-@media (prefers-reduced-motion: reduce) {
-    .contribution-item {
-        transition: none;
-    }
+.profile-ledger-row:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
 }
 
-.contribution-info {
-    min-width: 0;
-    flex: 1;
-}
-
-.contribution-info h3,
-.contribution-info h4 {
-    font-size: 1rem;
+.profile-row-title {
+    font-size: 0.95rem;
     font-weight: 700;
+    margin: 0 0 0.25rem;
     color: var(--text-primary);
-    margin-bottom: 0.35rem;
     overflow-wrap: break-word;
 }
 
-.contribution-meta {
+.profile-row-meta {
     display: flex;
     align-items: center;
-    gap: 0.65rem;
+    gap: 0.55rem;
     flex-wrap: wrap;
-    font-size: 0.8rem;
-}
-
-.loc-text {
+    font-size: 0.82rem;
     color: var(--text-muted);
 }
 
@@ -313,4 +317,26 @@ html.dark-mode .profile-avatar-placeholder {
 .empty-contributions p {
     margin-bottom: 1rem;
     font-size: 0.92rem;
+}
+
+@media (max-width: 720px) {
+    .profile-banner {
+        padding: 1.25rem;
+    }
+    .profile-form-grid {
+        grid-template-columns: 1fr;
+    }
+    .profile-panel {
+        padding: 1.15rem;
+    }
+    .form-actions .btn,
+    .profile-ledger-row .btn {
+        width: 100%;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .profile-tab-lbl {
+        transition: none;
+    }
 }

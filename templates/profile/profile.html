@@ -8,10 +8,10 @@
 {% endblock %}
 
 {% block content %}
-<div class="profile-layout">
-    <!-- Profile Sidebar / Summary Card -->
-    <div class="profile-sidebar">
-        <div class="card profile-card">
+<div class="profile-shell">
+    <!-- Horizontal Identity Hero Banner -->
+    <section class="profile-banner">
+        <div class="profile-identity">
             <div class="profile-avatar-container">
                 {% if profile.profile_image %}
                     <img src="{{ profile.profile_image.url }}" alt="Profile photo of {{ profile.full_name|default:user.username }}" class="profile-avatar" id="avatarPreview">
@@ -21,130 +21,110 @@
                     </div>
                 {% endif %}
             </div>
-
-            <h1 class="profile-name">{{ profile.full_name|default:user.username }}</h1>
-            <p class="profile-username">@{{ user.username }}</p>
-            
-            <div class="role-badge-wrapper">
-                {% if profile.is_volunteer %}
-                    <span class="profile-role-badge volunteer-badge"><i class="fa-solid fa-shield-heart" aria-hidden="true"></i> Active Relief Volunteer</span>
-                {% else %}
-                    <span class="profile-role-badge member-badge"><i class="fa-solid fa-user" aria-hidden="true"></i> Community Member</span>
-                {% endif %}
-            </div>
-
-            {% if profile.organization %}
-                <div class="profile-org-box">
-                    <i class="fa-solid fa-building-ngo" aria-hidden="true"></i> {{ profile.organization }}
+            <div class="profile-id-text">
+                <div class="profile-name-row">
+                    <h1>{{ profile.full_name|default:user.username }}</h1>
+                    {% if profile.is_volunteer %}
+                        <span class="profile-role-badge volunteer-badge"><i class="fa-solid fa-shield-heart" aria-hidden="true"></i> Active Relief Volunteer</span>
+                    {% else %}
+                        <span class="profile-role-badge member-badge"><i class="fa-solid fa-user" aria-hidden="true"></i> Community Member</span>
+                    {% endif %}
                 </div>
-            {% endif %}
-
-            <div class="profile-bio-box">
-                <p>{{ profile.bio|default:"No bio added yet. Share your community relief experience or background!" }}</p>
-            </div>
-
-            <div class="profile-quick-stats">
-                <div class="stat-item">
-                    <span class="stat-label"><i class="fa-solid fa-envelope" aria-hidden="true"></i> Email</span>
-                    <span class="stat-val">{{ user.email|default:"Not specified" }}</span>
+                <div class="profile-subline">
+                    <span>@{{ user.username }}</span>
+                    {% if profile.organization %}<span><i class="fa-solid fa-building-ngo" aria-hidden="true"></i> {{ profile.organization }}</span>{% endif %}
+                    {% if profile.city %}<span><i class="fa-solid fa-city" aria-hidden="true"></i> {{ profile.city }}</span>{% endif %}
                 </div>
-                <div class="stat-item">
-                    <span class="stat-label"><i class="fa-solid fa-phone" aria-hidden="true"></i> Contact</span>
-                    <span class="stat-val">{{ profile.phone_number|default:"Not set" }}</span>
-                </div>
-                <div class="stat-item">
-                    <span class="stat-label"><i class="fa-solid fa-city" aria-hidden="true"></i> City / Region</span>
-                    <span class="stat-val">{{ profile.city|default:"Not set" }}</span>
-                </div>
-                <div class="stat-item">
-                    <span class="stat-label"><i class="fa-solid fa-hand-holding-heart" aria-hidden="true"></i> Aid Hubs Posted</span>
-                    <span class="stat-val stat-highlight">{{ my_resources_count }} Center{{ my_resources_count|pluralize }}</span>
-                </div>
-                <div class="stat-item">
-                    <span class="stat-label"><i class="fa-solid fa-calendar-check" aria-hidden="true"></i> Member Since</span>
-                    <span class="stat-val">{{ user.date_joined|date:"M d, Y" }}</span>
-                </div>
+                <p class="profile-bio">{{ profile.bio|default:"No bio added yet. Share your community relief experience or background!" }}</p>
             </div>
         </div>
-    </div>
 
-    <!-- Profile Edit / Details Column -->
-    <div class="profile-main">
-        <!-- Edit Profile Card -->
-        <div class="card profile-edit-card">
-            <div class="section-heading">
-                <h2><i class="fa-solid fa-user-pen" aria-hidden="true"></i> Edit Profile Information</h2>
-                <p>Update your personal details, relief coordinator badge, and organization affiliation.</p>
+        <div class="profile-kpis">
+            <div class="profile-kpi">
+                <span class="profile-kpi-num">{{ my_resources_count }}</span>
+                <span class="profile-kpi-lbl">Aid Hubs</span>
             </div>
+            <div class="profile-kpi">
+                <span class="profile-kpi-num">{{ total_confirmations }}</span>
+                <span class="profile-kpi-lbl">Confirmations</span>
+            </div>
+            <div class="profile-kpi">
+                <span class="profile-kpi-num">{{ user.date_joined|date:"M Y" }}</span>
+                <span class="profile-kpi-lbl">Joined</span>
+            </div>
+        </div>
+    </section>
 
+    <!-- Focused Tabbed Workspace -->
+    <div class="card profile-tabs-card">
+        <input type="radio" name="profileTab" id="profileTabEdit" class="profile-tab-radio" checked>
+        <input type="radio" name="profileTab" id="profileTabHubs" class="profile-tab-radio">
+        <input type="radio" name="profileTab" id="profileTabLogs" class="profile-tab-radio">
+
+        <div class="profile-tab-bar" role="tablist" aria-label="Profile sections">
+            <label for="profileTabEdit" class="profile-tab-lbl">
+                <i class="fa-solid fa-user-pen" aria-hidden="true"></i> Edit Profile
+            </label>
+            <label for="profileTabHubs" class="profile-tab-lbl">
+                <i class="fa-solid fa-map-location-dot" aria-hidden="true"></i> My Aid Hubs
+                <span class="profile-tab-count">{{ my_resources_count }}</span>
+            </label>
+            <label for="profileTabLogs" class="profile-tab-lbl">
+                <i class="fa-solid fa-clipboard-check" aria-hidden="true"></i> Field Activity
+                <span class="profile-tab-count">{{ my_logs|length }}</span>
+            </label>
+        </div>
+
+        <!-- Tab 1: Edit Profile -->
+        <div class="profile-panel profile-panel-edit">
             <form method="POST" enctype="multipart/form-data" class="profile-form" id="profileForm">
                 {% csrf_token %}
-
-                <div class="form-section-title">
-                    <i class="fa-solid fa-id-card-clip" aria-hidden="true"></i> Identity &amp; Affiliation
-                </div>
-
-                <div class="form-row">
-                    <div class="form-group col">
+                <div class="profile-form-grid">
+                    <div class="form-group">
                         <label for="{{ u_form.first_name.id_for_label }}">First Name</label>
                         {{ u_form.first_name }}
                     </div>
-                    <div class="form-group col">
+                    <div class="form-group">
                         <label for="{{ u_form.last_name.id_for_label }}">Last Name</label>
                         {{ u_form.last_name }}
                     </div>
-                </div>
-
-                <div class="form-group">
-                    <label for="{{ p_form.full_name.id_for_label }}">Display / Full Name</label>
-                    {{ p_form.full_name }}
-                </div>
-
-                <div class="form-row">
-                    <div class="form-group col">
+                    <div class="form-group">
+                        <label for="{{ p_form.full_name.id_for_label }}">Display / Full Name</label>
+                        {{ p_form.full_name }}
+                    </div>
+                    <div class="form-group">
+                        <label for="{{ u_form.email.id_for_label }}">Email Address</label>
+                        {{ u_form.email }}
+                    </div>
+                    <div class="form-group">
                         <label for="{{ p_form.organization.id_for_label }}">Affiliated Organization / LGU / NGO</label>
                         {{ p_form.organization }}
                     </div>
-                    <div class="form-group col volunteer-checkbox-group">
+                    <div class="form-group volunteer-checkbox-group">
                         <label class="checkbox-label" for="{{ p_form.is_volunteer.id_for_label }}">
                             {{ p_form.is_volunteer }}
                             <span><strong>Active Relief Volunteer</strong> (Enables volunteer badge)</span>
                         </label>
                     </div>
-                </div>
-
-                <div class="form-group">
-                    <label for="{{ u_form.email.id_for_label }}">Email Address</label>
-                    {{ u_form.email }}
-                </div>
-
-                <div class="form-section-title">
-                    <i class="fa-solid fa-address-book" aria-hidden="true"></i> Contact Details
-                </div>
-
-                <div class="form-row">
-                    <div class="form-group col">
+                    <div class="form-group">
                         <label for="{{ p_form.phone_number.id_for_label }}">Phone Number</label>
                         {{ p_form.phone_number }}
                     </div>
-                    <div class="form-group col">
+                    <div class="form-group">
                         <label for="{{ p_form.city.id_for_label }}">City / Region</label>
                         {{ p_form.city }}
                     </div>
-                </div>
-
-                <div class="form-group">
-                    <label for="{{ p_form.bio.id_for_label }}">Bio / About Me</label>
-                    {{ p_form.bio }}
-                </div>
-
-                <div class="form-group">
-                    <label for="{{ p_form.profile_image.id_for_label }}">Profile Photo</label>
-                    <div class="file-upload-wrapper">
-                        {{ p_form.profile_image }}
+                    <div class="form-group profile-form-span">
+                        <label for="{{ p_form.bio.id_for_label }}">Bio / About Me</label>
+                        {{ p_form.bio }}
+                    </div>
+                    <div class="form-group profile-form-span">
+                        <label for="{{ p_form.profile_image.id_for_label }}">Profile Photo</label>
+                        <div class="file-upload-wrapper">
+                            {{ p_form.profile_image }}
+                        </div>
                     </div>
                 </div>
-
                 <div class="form-actions">
                     <button type="submit" class="btn btn-primary" id="saveProfileBtn">
                         <i class="fa-solid fa-floppy-disk" aria-hidden="true"></i> Save Profile Changes
@@ -153,39 +133,30 @@
             </form>
         </div>
 
-        <!-- My Submitted Aid Resources Section -->
-        <div class="card my-contributions-card">
-            <div class="section-heading">
-                <h2><i class="fa-solid fa-map-location-dot" aria-hidden="true"></i> My Submitted Aid Hubs ({{ my_resources_count }})</h2>
-                <p>Relief centers, evacuation shelters, or donation stations created by your account.</p>
-            </div>
-
+        <!-- Tab 2: My Submitted Aid Hubs -->
+        <div class="profile-panel profile-panel-hubs">
             {% if my_resources %}
-                <div class="contributions-list">
-                    {% for res in my_resources %}
-                        <div class="contribution-item">
-                            <div class="contribution-info">
-                                <h3>{{ res.name }}</h3>
-                                <div class="contribution-meta">
-                                    <span class="category-badge cat-{{ res.category|lower }}">{{ res.get_category_display }}</span>
-                                    {% if res.status == 'FULL_CAPACITY' %}
-                                        <span class="status-pill status-full">Full Capacity</span>
-                                    {% elif res.status == 'TEMPORARILY_CLOSED' %}
-                                        <span class="status-pill status-closed">Closed</span>
-                                    {% else %}
-                                        <span class="status-pill status-open">Operational</span>
-                                    {% endif %}
-                                    <span class="loc-text"><i class="fa-solid fa-location-dot" aria-hidden="true"></i> {{ res.location }}</span>
-                                </div>
-                            </div>
-                            <div class="contribution-action">
-                                <a href="{% url 'home:map' %}?q={{ res.name|urlencode }}" class="btn btn-sm btn-outline" title="View on public map">
-                                    <i class="fa-solid fa-crosshairs" aria-hidden="true"></i> View on Map
-                                </a>
+                {% for res in my_resources %}
+                    <div class="profile-ledger-row">
+                        <div>
+                            <h2 class="profile-row-title">{{ res.name }}</h2>
+                            <div class="profile-row-meta">
+                                <span class="category-badge cat-{{ res.category|lower }}">{{ res.get_category_display }}</span>
+                                {% if res.status == 'FULL_CAPACITY' %}
+                                    <span class="status-pill status-full">Full Capacity</span>
+                                {% elif res.status == 'TEMPORARILY_CLOSED' %}
+                                    <span class="status-pill status-closed">Closed</span>
+                                {% else %}
+                                    <span class="status-pill status-open">Operational</span>
+                                {% endif %}
+                                <span><i class="fa-solid fa-location-dot" aria-hidden="true"></i> {{ res.location }}</span>
                             </div>
                         </div>
-                    {% endfor %}
-                </div>
+                        <a href="{% url 'home:map' %}?q={{ res.name|urlencode }}" class="btn btn-sm btn-outline" title="View on public map">
+                            <i class="fa-solid fa-crosshairs" aria-hidden="true"></i> View on Map
+                        </a>
+                    </div>
+                {% endfor %}
             {% else %}
                 <div class="empty-contributions">
                     <i class="fa-solid fa-hand-holding-medical" aria-hidden="true"></i>
@@ -196,28 +167,22 @@
                 </div>
             {% endif %}
         </div>
-        <!-- My Recent Field Verification Activity -->
-        <div class="card my-contributions-card">
-            <div class="section-heading">
-                <h2><i class="fa-solid fa-clipboard-check" aria-hidden="true"></i> Recent Field Verification Activity ({{ my_logs|length }})</h2>
-                <p>Status updates and site confirmations you recorded across AyudaMap ({{ total_confirmations }} total confirmations on your hubs).</p>
-            </div>
 
+        <!-- Tab 3: Field Verification Activity -->
+        <div class="profile-panel profile-panel-logs">
             {% if my_logs %}
-                <div class="contributions-list">
-                    {% for log in my_logs %}
-                        <div class="contribution-item">
-                            <div class="contribution-info">
-                                <h3>{{ log.resource.name }}</h3>
-                                <div class="contribution-meta">
-                                    <span class="status-pill status-open">{{ log.get_action_type_display }}</span>
-                                    {% if log.note %}<span class="loc-text">{{ log.note }}</span>{% endif %}
-                                    <span class="loc-text"><i class="fa-solid fa-clock" aria-hidden="true"></i> {{ log.created_at|timesince }} ago</span>
-                                </div>
+                {% for log in my_logs %}
+                    <div class="profile-ledger-row">
+                        <div>
+                            <h2 class="profile-row-title">{{ log.resource.name }}</h2>
+                            <div class="profile-row-meta">
+                                <span class="status-pill status-open">{{ log.get_action_type_display }}</span>
+                                {% if log.note %}<span>{{ log.note }}</span>{% endif %}
+                                <span><i class="fa-solid fa-clock" aria-hidden="true"></i> {{ log.created_at|timesince }} ago</span>
                             </div>
                         </div>
-                    {% endfor %}
-                </div>
+                    </div>
+                {% endfor %}
             {% else %}
                 <div class="empty-contributions">
                     <i class="fa-solid fa-clipboard-list" aria-hidden="true"></i>
@@ -225,7 +190,6 @@
                 </div>
             {% endif %}
         </div>
-
     </div>
 </div>
 {% endblock %}
