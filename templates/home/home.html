@@ -1,4 +1,4 @@
-﻿{% extends 'base.html' %}
+{% extends 'base.html' %}
 {% load static %}
 
 {% block title %}Community Aid Directory - AyudaMap{% endblock %}
@@ -12,7 +12,6 @@
 <div class="home-hero">
     <div class="hero-content">
         <h1><i class="fa-solid fa-hand-holding-heart" aria-hidden="true"></i> Disaster Relief &amp; Community Aid Directory</h1>
-        <p>Real-time geolocated aid centers, food stations, evacuation shelters, and medical hubs across the Philippines.</p>
     </div>
     <div class="hero-actions">
         <button type="button" class="btn btn-success btn-hero" id="openAddModalBtn">
@@ -21,219 +20,173 @@
     </div>
 </div>
 
-<div class="filter-section">
-    <div class="category-chips-container">
-        <a href="{% url 'home:dashboard' %}{% if query %}?q={{ query }}{% endif %}{% if selected_status %}&status={{ selected_status }}{% endif %}{% if selected_urgency %}&urgency={{ selected_urgency }}{% endif %}" 
-           class="category-chip {% if not selected_category %}active{% endif %}">
-            <i class="fa-solid fa-layer-group" aria-hidden="true"></i> All Categories ({{ total_count }})
-        </a>
-        {% for key, val in categories %}
-            <a href="{% url 'home:dashboard' %}?category={{ key }}{% if query %}&q={{ query }}{% endif %}{% if selected_status %}&status={{ selected_status }}{% endif %}{% if selected_urgency %}&urgency={{ selected_urgency }}{% endif %}" 
-               class="category-chip chip-{{ key|lower }} {% if selected_category == key %}active{% endif %}">
-                {% if key == 'MEDICAL' %}<i class="fa-solid fa-hospital" aria-hidden="true"></i>
-                {% elif key == 'FOOD' %}<i class="fa-solid fa-bowl-food" aria-hidden="true"></i>
-                {% elif key == 'SHELTER' %}<i class="fa-solid fa-tents" aria-hidden="true"></i>
-                {% elif key == 'GOV' %}<i class="fa-solid fa-building-columns" aria-hidden="true"></i>
-                {% elif key == 'DONATION' %}<i class="fa-solid fa-hand-holding-dollar" aria-hidden="true"></i>
-                {% endif %}
-                {{ val }}
-            </a>
-        {% endfor %}
-    </div>
-
-    <div class="card search-filter-card">
-        <form method="GET" action="{% url 'home:dashboard' %}" class="filter-form" id="searchFilterForm">
-            {% if selected_category %}
-                <input type="hidden" name="category" value="{{ selected_category }}">
-            {% endif %}
-
-            <div class="search-box-wrapper">
-                <i class="fa-solid fa-magnifying-glass search-icon" aria-hidden="true"></i>
-                <input type="text" name="q" id="searchKeywordInput" value="{{ query }}" placeholder="Search by name, landmark, city, or needed supplies..." aria-label="Search aid resources by name, landmark, city, or needed supplies" class="search-input">
-                {% if query %}
-                    <a href="{% url 'home:dashboard' %}{% if selected_category %}?category={{ selected_category }}{% endif %}" class="clear-search-btn" title="Clear search" aria-label="Clear search">
-                        <i class="fa-solid fa-xmark" aria-hidden="true"></i>
-                    </a>
+<div class="dashboard-split">
+    <div class="card map-workbench">
+        <div class="map-header">
+            <div class="map-title-group">
+                <h2><i class="fa-solid fa-map-location-dot" aria-hidden="true"></i> Interactive Aid Map</h2>
+                <span class="badge badge-live"><i class="fa-solid fa-signal" aria-hidden="true"></i> {{ total_count }} Active</span>
+                {% if critical_count > 0 %}
+                    <span class="urgency-badge urgency-critical"><i class="fa-solid fa-fire" aria-hidden="true"></i> {{ critical_count }} Critical</span>
                 {% endif %}
             </div>
-
-            <div class="status-select-wrapper">
-                <label for="statusSelect"><i class="fa-solid fa-traffic-light" aria-hidden="true"></i> Status:</label>
-                <select name="status" id="statusSelect" onchange="this.form.submit()">
-                    <option value="">All Statuses</option>
-                    {% for key, val in statuses %}
-                        <option value="{{ key }}" {% if selected_status == key %}selected{% endif %}>{{ val }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-
-            <div class="status-select-wrapper">
-                <label for="urgencySelect"><i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i> Urgency:</label>
-                <select name="urgency" id="urgencySelect" onchange="this.form.submit()">
-                    <option value="">All Priorities</option>
-                    {% for key, val in urgencies %}
-                        <option value="{{ key }}" {% if selected_urgency == key %}selected{% endif %}>{{ val }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-
-            <div class="status-select-wrapper">
-                <label for="localVolunteersSelect" title="Show only sites reported by volunteers in your city">
-                    <input type="checkbox" name="local_volunteers" id="localVolunteersSelect" value="1"
-                           {% if local_volunteers %}checked{% endif %} onchange="this.form.submit()">
-                    <i class="fa-solid fa-users" aria-hidden="true"></i> My local volunteers
-                </label>
-            </div>
-
-            <button type="submit" class="btn btn-primary btn-search">
-                <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i> Search
+            <button type="button" class="btn btn-sm btn-outline locate-me-btn" id="locateMeBtn" title="Center map on my current location">
+                <i class="fa-solid fa-location-crosshairs" aria-hidden="true"></i> Locate Me
             </button>
-
-            {% if query or selected_category or selected_status or selected_urgency or local_volunteers %}
-                <a href="{% url 'home:dashboard' %}" class="btn btn-secondary btn-reset" title="Reset all filters">
-                    <i class="fa-solid fa-rotate-left" aria-hidden="true"></i> Reset
-                </a>
-            {% endif %}
-        </form>
-    </div>
-</div>
-
-<div class="home-grid">
-    <div class="map-column">
-        <div class="card map-card">
-            <div class="map-header">
-                <div class="map-title-group">
-                    <h2><i class="fa-solid fa-map-location-dot" aria-hidden="true"></i> Interactive Aid Map</h2>
-                    <span class="badge badge-live"><i class="fa-solid fa-signal" aria-hidden="true"></i> Active Pins: {{ total_count }}</span>
-                    {% if critical_count > 0 %}
-                        <span class="urgency-badge urgency-critical"><i class="fa-solid fa-fire" aria-hidden="true"></i> {{ critical_count }} Critical</span>
-                    {% endif %}
-                </div>
-                <button type="button" class="btn btn-sm btn-outline locate-me-btn" id="locateMeBtn" title="Center map on my current location">
-                    <i class="fa-solid fa-location-crosshairs" aria-hidden="true"></i> Locate Me
-                </button>
-            </div>
-            
-            <div id="mapStatusLive" class="sr-only" role="status" aria-live="polite"></div>
-            <div id="ayudaMapViewport" class="map-viewport" role="region" aria-label="Interactive community aid map"></div>
-            
-            <div class="map-legend">
-                <span class="legend-item"><span class="dot dot-medical"></span> Medical</span>
-                <span class="legend-item"><span class="dot dot-food"></span> Food</span>
-                <span class="legend-item"><span class="dot dot-shelter"></span> Shelter</span>
-                <span class="legend-item"><span class="dot dot-gov"></span> Govt Aid</span>
-                <span class="legend-item"><span class="dot dot-donation"></span> Donation</span>
-            </div>
-        </div>
-    </div>
-
-    <div class="directory-column">
-        <div class="directory-header">
-            <h2>Verified Relief Centers</h2>
-            <span class="count-pill">{{ resources|length }} Results</span>
         </div>
 
-        {% if resources %}
-            <div class="resource-list" id="resourceList">
-                {% for resource in resources %}
-                    <div class="card resource-card" id="resource-card-{{ resource.id }}" data-lat="{{ resource.latitude }}" data-lng="{{ resource.longitude }}" data-id="{{ resource.id }}">
-                        <div class="resource-card-top">
-                            <h3 class="resource-title">{{ resource.name }}</h3>
-                            <div class="badge-group">
-                                <span class="urgency-badge urgency-{{ resource.urgency_level|lower }}">
-                                    {% if resource.urgency_level == 'CRITICAL' %}<i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>{% endif %}
-                                    {{ resource.get_urgency_level_display }}
-                                </span>
-                                <span class="category-badge cat-{{ resource.category|lower }}">
-                                    {{ resource.get_category_display }}
-                                </span>
-                                {% if resource.status == 'FULL_CAPACITY' %}
-                                    <span class="status-pill status-full"><i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i> Full Capacity</span>
-                                {% elif resource.status == 'TEMPORARILY_CLOSED' %}
-                                    <span class="status-pill status-closed"><i class="fa-solid fa-circle-xmark" aria-hidden="true"></i> Closed</span>
-                                {% else %}
-                                    <span class="status-pill status-open"><i class="fa-solid fa-circle-check" aria-hidden="true"></i> Operational</span>
-                                {% endif %}
-                            </div>
+        <div class="map-search-toolbar">
+            <form method="GET" action="{% url 'home:dashboard' %}" id="searchFilterForm">
+                {% if selected_category %}
+                    <input type="hidden" name="category" value="{{ selected_category }}">
+                {% endif %}
+
+                <details class="map-filter-details" id="mapFilterMenu">
+                    <summary>
+                        <span class="map-filter-summary-label">
+                            <i class="fa-solid fa-filter" aria-hidden="true"></i>
+                            Filter
+                        </span>
+                        <i class="fa-solid fa-chevron-down map-filter-caret" aria-hidden="true"></i>
+                    </summary>
+                    <div class="map-filter-popover">
+                        <div class="map-filter-top-row">
+                            <select name="status" id="statusSelect" onchange="this.form.submit()" aria-label="Filter by operating status">
+                                <option value="">All Statuses</option>
+                                {% for key, val in statuses %}
+                                    <option value="{{ key }}" {% if selected_status == key %}selected{% endif %}>{{ val }}</option>
+                                {% endfor %}
+                            </select>
+                            <select name="urgency" id="urgencySelect" onchange="this.form.submit()" aria-label="Filter by urgency priority">
+                                <option value="">All Priorities</option>
+                                {% for key, val in urgencies %}
+                                    <option value="{{ key }}" {% if selected_urgency == key %}selected{% endif %}>{{ val }}</option>
+                                {% endfor %}
+                            </select>
+                            <label class="map-filter-local-pill" for="localVolunteersSelect" title="Show only sites reported by volunteers in your city">
+                                <input type="checkbox" name="local_volunteers" id="localVolunteersSelect" value="1" {% if local_volunteers %}checked{% endif %} onchange="this.form.submit()">
+                                Local only
+                            </label>
                         </div>
-
-                        <p class="resource-desc">{{ resource.description|default:"No special instructions provided." }}</p>
-
-                        {% if resource.supplies_needed %}
-                            <div>
-                                <span class="supplies-tag"><i class="fa-solid fa-boxes-stacked" aria-hidden="true"></i> Needed: {{ resource.supplies_needed }}</span>
-                            </div>
-                        {% endif %}
-
-                        <div class="capacity-bar-wrap">
-                            <div class="capacity-label">
-                                <span><strong>Available Slots / Packs:</strong> {{ resource.capacity_available }} / {{ resource.capacity_total }}</span>
-                                <span>{{ resource.occupancy_percentage }}% utilized</span>
-                            </div>
-                            <div class="capacity-track">
-                                <div class="capacity-fill" style="width: {{ resource.occupancy_percentage }}%;"></div>
-                            </div>
-                        </div>
-
-                        <div class="resource-meta">
-                            <div class="meta-row">
-                                <i class="fa-solid fa-location-dot" aria-hidden="true"></i>
-                                <span><strong>Location:</strong> {{ resource.location }}</span>
-                            </div>
-                            <div class="meta-row">
-                                <i class="fa-solid fa-clock" aria-hidden="true"></i>
-                                <span><strong>Operating Hours:</strong> {{ resource.operating_hours }}</span>
-                            </div>
-                            {% if resource.contact_info %}
-                                <div class="meta-row">
-                                    <i class="fa-solid fa-phone" aria-hidden="true"></i>
-                                    <span><strong>Contact:</strong> {{ resource.contact_info }}</span>
-                                </div>
+                        <div class="map-filter-chips">
+                            <a href="{% url 'home:dashboard' %}{% if query %}?q={{ query }}{% endif %}{% if selected_status %}&status={{ selected_status }}{% endif %}{% if selected_urgency %}&urgency={{ selected_urgency }}{% endif %}" class="map-filter-chip {% if not selected_category %}active{% endif %}">All ({{ total_count }})</a>
+                            {% for key, val in categories %}
+                                <a href="{% url 'home:dashboard' %}?category={{ key }}{% if query %}&q={{ query }}{% endif %}{% if selected_status %}&status={{ selected_status }}{% endif %}{% if selected_urgency %}&urgency={{ selected_urgency }}{% endif %}" class="map-filter-chip {% if selected_category == key %}active{% endif %}">{{ val }}</a>
+                            {% endfor %}
+                            {% if query or selected_category or selected_status or selected_urgency or local_volunteers %}
+                                <a href="{% url 'home:dashboard' %}" class="map-filter-reset-inline" title="Reset all filters">
+                                    <i class="fa-solid fa-rotate-left" aria-hidden="true"></i> Reset
+                                </a>
                             {% endif %}
-                            {% if resource.created_by %}
-                                <div class="meta-row coordinator-row">
-                                    <i class="fa-solid fa-user-shield" aria-hidden="true"></i>
-                                    <span><strong>Posted By:</strong> {{ resource.created_by.profile.full_name|default:resource.created_by.username }}</span>
-                                </div>
-                            {% endif %}
-                        </div>
-
-                        <div class="resource-card-footer">
-                            <div class="card-actions-bar">
-                                <button type="button" class="btn btn-sm btn-outline pan-to-pin-btn" data-lat="{{ resource.latitude }}" data-lng="{{ resource.longitude }}" data-id="{{ resource.id }}">
-                                    <i class="fa-solid fa-map-pin" aria-hidden="true"></i> View on Map
-                                </button>
-
-                                <form method="POST" action="{% url 'home:confirm_resource' resource.id %}" class="inline-action-form">
-                                    {% csrf_token %}
-                                    <button type="submit" class="btn btn-sm btn-outline" title="Confirm this relief center is currently active">
-                                        <i class="fa-solid fa-thumbs-up" aria-hidden="true"></i> Verified ({{ resource.confirmations }})
-                                    </button>
-                                </form>
-
-                                <form method="POST" action="{% url 'home:update_status' resource.id %}" class="inline-action-form">
-                                    {% csrf_token %}
-                                    <select name="status" class="quick-status-select" onchange="this.form.submit()" title="Quickly update operating status" aria-label="Operating status for {{ resource.name }}">
-                                        {% for key, val in statuses %}
-                                            <option value="{{ key }}" {% if resource.status == key %}selected{% endif %}>{{ val }}</option>
-                                        {% endfor %}
-                                    </select>
-                                </form>
-                            </div>
                         </div>
                     </div>
-                {% endfor %}
+                </details>
+            </form>
+        </div>
+
+        <div id="mapStatusLive" class="sr-only" role="status" aria-live="polite"></div>
+        <div id="ayudaMapViewport" class="map-viewport" role="region" aria-label="Interactive community aid map"></div>
+
+        <div class="map-legend">
+            <span class="legend-item"><span class="dot dot-medical"></span> Medical</span>
+            <span class="legend-item"><span class="dot dot-food"></span> Food</span>
+            <span class="legend-item"><span class="dot dot-shelter"></span> Shelter</span>
+            <span class="legend-item"><span class="dot dot-gov"></span> Govt Aid</span>
+            <span class="legend-item"><span class="dot dot-donation"></span> Donation</span>
+        </div>
+    </div>
+
+    <div class="ledger-column">
+        <div class="card ledger-card">
+            <div class="ledger-header">
+                <div>
+                    <h2>Verified Relief Centers</h2>
+                    <span class="ledger-hint">Select any row to inspect details &amp; quick controls</span>
+                </div>
+                <span class="count-pill">{{ resources|length }} Results</span>
             </div>
-        {% else %}
-            <div class="card empty-state-card">
-                <i class="fa-solid fa-box-open empty-icon" aria-hidden="true"></i>
-                <h3>No Resources Found</h3>
-                <p>No active aid centers matched your search query or selected filters.</p>
-                <a href="{% url 'home:dashboard' %}" class="btn btn-primary btn-sm">
-                    <i class="fa-solid fa-rotate-left" aria-hidden="true"></i> Clear Filters
-                </a>
-            </div>
-        {% endif %}
+
+            {% if resources %}
+                <div class="ledger-list" id="resourceList">
+                    {% for resource in resources %}
+                        <details class="ledger-item resource-row" id="resource-card-{{ resource.id }}" data-lat="{{ resource.latitude }}" data-lng="{{ resource.longitude }}" data-id="{{ resource.id }}">
+                            <summary class="ledger-summary">
+                                <span class="ledger-cat-dot dot-{{ resource.category|lower }}" aria-hidden="true"></span>
+                                <div class="ledger-main-col">
+                                    <div class="ledger-item-title">
+                                        <span>{{ resource.name }}</span>
+                                        {% if resource.status == 'FULL_CAPACITY' %}
+                                            <span class="status-pill status-full">Full</span>
+                                        {% elif resource.status == 'TEMPORARILY_CLOSED' %}
+                                            <span class="status-pill status-closed">Closed</span>
+                                        {% else %}
+                                            <span class="status-pill status-open">Open</span>
+                                        {% endif %}
+                                        {% if resource.urgency_level == 'CRITICAL' %}
+                                            <span class="urgency-badge urgency-critical">Critical</span>
+                                        {% endif %}
+                                    </div>
+                                    <div class="ledger-item-sub">{{ resource.location }}</div>
+                                </div>
+                                <div class="ledger-stat-col">
+                                    <span class="ledger-cap-mini">{{ resource.capacity_available }}/{{ resource.capacity_total }}</span>
+                                    <span class="ledger-cap-sub">{{ resource.occupancy_percentage }}% used</span>
+                                </div>
+                                <i class="fa-solid fa-chevron-down ledger-expand-icon" aria-hidden="true"></i>
+                            </summary>
+
+                            <div class="ledger-body">
+                                <p class="resource-desc">{{ resource.description|default:"No special instructions provided." }}</p>
+                                {% if resource.supplies_needed %}
+                                    <div>
+                                        <span class="supplies-tag"><i class="fa-solid fa-boxes-stacked" aria-hidden="true"></i> Needed: {{ resource.supplies_needed }}</span>
+                                    </div>
+                                {% endif %}
+                                <div class="ledger-detail-meta">
+                                    <span><i class="fa-solid fa-clock" aria-hidden="true"></i> {{ resource.operating_hours }}</span>
+                                    {% if resource.contact_info %}
+                                        <span><i class="fa-solid fa-phone" aria-hidden="true"></i> {{ resource.contact_info }}</span>
+                                    {% endif %}
+                                    {% if resource.created_by %}
+                                        <span><i class="fa-solid fa-user-shield" aria-hidden="true"></i> {{ resource.created_by.profile.full_name|default:resource.created_by.username }}</span>
+                                    {% endif %}
+                                </div>
+                                <div class="ledger-detail-actions">
+                                    <button type="button" class="btn btn-sm btn-outline pan-to-pin-btn" data-lat="{{ resource.latitude }}" data-lng="{{ resource.longitude }}" data-id="{{ resource.id }}">
+                                        <i class="fa-solid fa-map-pin" aria-hidden="true"></i> View on Map
+                                    </button>
+
+                                    <form method="POST" action="{% url 'home:confirm_resource' resource.id %}" class="inline-action-form">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-sm btn-outline" title="Confirm this relief center is currently active">
+                                            <i class="fa-solid fa-thumbs-up" aria-hidden="true"></i> Verified ({{ resource.confirmations }})
+                                        </button>
+                                    </form>
+
+                                    <form method="POST" action="{% url 'home:update_status' resource.id %}" class="inline-action-form">
+                                        {% csrf_token %}
+                                        <select name="status" class="quick-status-select" onchange="this.form.submit()" title="Quickly update operating status" aria-label="Operating status for {{ resource.name }}">
+                                            {% for key, val in statuses %}
+                                                <option value="{{ key }}" {% if resource.status == key %}selected{% endif %}>{{ val }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </form>
+                                </div>
+                            </div>
+                        </details>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="empty-state-card">
+                    <i class="fa-solid fa-box-open empty-icon" aria-hidden="true"></i>
+                    <h3>No Resources Found</h3>
+                    <p>No active aid centers matched your search query or selected filters.</p>
+                    <a href="{% url 'home:dashboard' %}" class="btn btn-primary btn-sm">
+                        <i class="fa-solid fa-rotate-left" aria-hidden="true"></i> Clear Filters
+                    </a>
+                </div>
+            {% endif %}
+        </div>
     </div>
 </div>
 
@@ -245,7 +198,7 @@
                 <h2 id="addResourceModalTitle"><i class="fa-solid fa-circle-plus" aria-hidden="true"></i> Submit Community Aid Resource</h2>
                 <button type="button" class="modal-close" id="closeAddModalBtn" aria-label="Close modal">&times;</button>
             </div>
-            
+
             <div class="modal-picker-notice">
                 <i class="fa-solid fa-crosshairs" aria-hidden="true"></i>
                 <span>Tip: Click anywhere on the background map to auto-fill latitude &amp; longitude!</span>
@@ -253,12 +206,12 @@
 
             <form method="POST" action="{% url 'home:add_resource' %}" class="modal-body" id="addResourceForm">
                 {% csrf_token %}
-                
+
                 <div class="form-group">
                     <label for="{{ resource_form.name.id_for_label }}">Resource / Center Name *</label>
                     {{ resource_form.name }}
                 </div>
-                
+
                 <div class="form-row">
                     <div class="form-group col">
                         <label for="{{ resource_form.category.id_for_label }}">Category *</label>

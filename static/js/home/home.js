@@ -155,8 +155,11 @@ document.addEventListener("DOMContentLoaded", () => {
                 marker.on("click", () => {
                     const card = document.getElementById(`resource-card-${res.id}`);
                     if (card) {
-                        document.querySelectorAll(".resource-card").forEach(c => c.classList.remove("card-highlighted"));
+                        document.querySelectorAll(".resource-card, .resource-row").forEach(c => c.classList.remove("card-highlighted"));
                         card.classList.add("card-highlighted");
+                        if (card.tagName === "DETAILS") {
+                            card.open = true;
+                        }
                         card.scrollIntoView({ behavior: prefersReducedMotion() ? "auto" : "smooth", block: "center" });
                     }
                 });
@@ -187,8 +190,8 @@ document.addEventListener("DOMContentLoaded", () => {
             });
         });
 
-        document.querySelectorAll(".resource-card").forEach(card => {
-            card.addEventListener("click", (e) => {
+        document.querySelectorAll(".resource-card, .resource-row").forEach(card => {
+            const handleSelect = (e) => {
                 if (e.target.closest("button, a, select, input, form, label")) {
                     return;
                 }
@@ -196,7 +199,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 const lng = parseFloat(card.dataset.lng);
                 const id = card.dataset.id;
 
-                document.querySelectorAll(".resource-card").forEach(c => c.classList.remove("card-highlighted"));
+                document.querySelectorAll(".resource-card, .resource-row").forEach(c => c.classList.remove("card-highlighted"));
                 card.classList.add("card-highlighted");
 
                 if (!isNaN(lat) && !isNaN(lng)) {
@@ -206,7 +209,8 @@ document.addEventListener("DOMContentLoaded", () => {
                         setTimeout(() => markers[id].openPopup(), animate ? 720 : 50);
                     }
                 }
-            });
+            };
+            card.addEventListener("click", handleSelect);
         });
 
         const locateBtn = document.getElementById("locateMeBtn");
@@ -322,7 +326,9 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         };
 
-        openBtn.addEventListener("click", openModal);
+        document.querySelectorAll("#openAddModalBtn, .btn-hero").forEach(btn => {
+            btn.addEventListener("click", openModal);
+        });
         if (closeBtn) closeBtn.addEventListener("click", closeModal);
         if (cancelBtn) cancelBtn.addEventListener("click", closeModal);
 
@@ -359,6 +365,22 @@ document.addEventListener("DOMContentLoaded", () => {
         addResourceForm.addEventListener("submit", () => {
             saveResourceBtn.disabled = true;
             saveResourceBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin" aria-hidden="true"></i> Saving...';
+        });
+    }
+
+    const mapFilterMenu = document.getElementById("mapFilterMenu");
+    if (mapFilterMenu) {
+        document.addEventListener("click", (e) => {
+            if (mapFilterMenu.open && !mapFilterMenu.contains(e.target)) {
+                mapFilterMenu.removeAttribute("open");
+            }
+        });
+        document.addEventListener("keydown", (e) => {
+            if (e.key === "Escape" && mapFilterMenu.open) {
+                mapFilterMenu.removeAttribute("open");
+                const summary = mapFilterMenu.querySelector("summary");
+                if (summary) summary.focus();
+            }
         });
     }
 
