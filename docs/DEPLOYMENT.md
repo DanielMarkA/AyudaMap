@@ -1,70 +1,69 @@
-# Deployment Notes
+# Deploying AyudaMap
 
-The repository ships with development-friendly defaults. **Do not expose it publicly without completing this checklist.**
+This setup uses a Linux host, Gunicorn, an HTTPS reverse proxy, and Supabase PostgreSQL.
 
-## Production checklist
+## 1. Configure the environment
 
-### 1. Environment
+Set these in the host's environment or secret manager:
 
-Create a real `.env` from [`.env.example`](../.env.example):
+| Variable | Value |
+| --- | --- |
+| `DJANGO_DEBUG` | `False` |
+| `SECRET_KEY` | A long random value. Generate one with `python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"`. |
+| `DJANGO_ALLOWED_HOSTS` | Comma-separated public hostnames, without schemes or ports. |
+| `DATABASE_URL` | The connection URL for the intended Supabase PostgreSQL database. Django requires SSL and does not fall back to SQLite with debug off. |
+| `DJANGO_MEDIA_ROOT` | An absolute path on persistent storage, writable by Gunicorn and readable by the proxy. |
+| `DJANGO_TRUST_PROXY_HTTPS` | `True` if the trusted reverse proxy terminates TLS and overwrites `X-Forwarded-Proto`; otherwise leave it unset. |
 
-- `SECRET_KEY` — a long random value. Generate one with:
-  ```powershell
-  python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"
-  ```
-  `config/settings.py` currently falls back to a hard-coded insecure key, so setting this is mandatory.
-- `DATABASE_URL` — your Supabase PostgreSQL connection string with SSL (the ORM path already sets `ssl_require=True`).
-- `SUPABASE_URL` — informational project URL.
+See the [README configuration table](../README.md#configuration) for optional settings. Email delivery is disabled; the notification preferences do not send messages.
 
-### 2. Settings to change in `config/settings.py`
+## 2. Prepare the database and build
 
-| Setting | Current | Production |
-| --- | --- | --- |
-| `DEBUG` | `True` | `False` (ideally read from an env var) |
-| `ALLOWED_HOSTS` | `['*']` | Your exact domain(s) |
-| `EMAIL_BACKEND` | Console backend | A real SMTP/email backend — password reset and notifications otherwise print to stdout |
-| Static files | Served by Django | `python manage.py collectstatic` + a web server / CDN for `staticfiles/` |
-| Media files | Served by Django when `DEBUG` | Serve `media/` through the web server; the `static()` URL helper is disabled when `DEBUG = False` |
+Back up the target database. If it contains course demo data, verify access with a new administrator before disabling the old demo logins or resetting their passwords. Review sample listings before launch: any that aren't real, current aid resources should be unpublished. Removing the old seeder did not change Supabase.
 
-### 3. Database
+From the repository root:
 
-```powershell
-python manage.py migrate
+```bash
+python -m pip install -r requirements.txt
 python manage.py check --deploy
+python manage.py migrate --noinput
+python manage.py collectstatic --noinput
 ```
 
-Run `check --deploy` with production settings to see Django's security warnings. Do **not** run `seed_data.py` in production: it hard-codes demo passwords (`AdminAyuda2026!`, `AyudaPass123!`) and resets them on every run. Create real accounts via `/register/` or the admin site instead.
+Django enforces HTTPS, uses secure session and CSRF cookies, and sends HSTS for the app host. The deployment check may report `security.W005` and `security.W021` because HSTS does not cover subdomains or request browser preload. Review those options once you know which domains you control.
 
-### 4. Application server
+## 3. Start Gunicorn and route requests
 
-The project provides both ASGI and WSGI entry points:
+For a reverse proxy on the same host, run this under your service manager:
 
-```
-config/asgi.py   → config.asgi:application
-config/wsgi.py   → config.wsgi:application
-```
-
-For example, with Gunicorn (WSGI):
-
-```powershell
-pip install gunicorn
-gunicorn config.wsgi:application --bind 0.0.0.0:8000
+```bash
+gunicorn config.wsgi:application --bind 127.0.0.1:8000
 ```
 
-Terminate TLS at a reverse proxy (e.g. nginx), and let that proxy serve `/static/` and `/media/`.
+Terminate TLS at the proxy. Preserve the original `Host` and overwrite (rather than forward a client-provided) `X-Forwarded-Proto`. Keep the Gunicorn listener private. For nginx, the relevant locations inside the HTTPS server block are:
 
-### 5. Post-deploy smoke test
+```nginx
+location /static/ {
+    alias /srv/ayudamap/staticfiles/;
+}
 
-1. Load `/login/` — page renders, no debug traceback.
-2. Sign in with a real account; confirm the map loads and shows verified resources.
-3. Submit a test resource and confirm an audit entry appears in `/reports/`.
-4. Open `/admin/` as staff and verify `Resource` / `ResourceStatusLog` are manageable.
-5. Check that no secret values appear in logs or error pages.
+location /media/ {
+    alias /var/lib/ayudamap/media/;
+    add_header X-Content-Type-Options nosniff;
+}
 
-## Known development-only behaviours
+location / {
+    proxy_set_header Host $host;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_pass http://127.0.0.1:8000;
+}
+```
 
-- `DEBUG = True` is hard-coded rather than env-driven.
-- `ALLOWED_HOSTS = ['*']` accepts every host.
-- Passwords are stored in plain text inside `seed_data.py`.
-- Reports (`/reports/`) are publicly accessible.
-- `TIME_ZONE = 'Asia/Manila'` is appropriate for the target region but should be reviewed if the app is deployed elsewhere.
+Use the actual checkout's `staticfiles/` directory and the configured `DJANGO_MEDIA_ROOT`. Configure HTTP to redirect to HTTPS at the proxy. Back up uploaded media separately from PostgreSQL.
+
+## 4. Verify on staging
+
+1. Load `/` and `/map/` as a guest. Confirm HTTPS redirection, map tiles, styles, and verified listings.
+2. Sign in, open `/dashboard/`, submit a staging-only resource, and verify its audit entry in `/reports/`. Confirm guests cannot access Reports.
+3. Sign in to `/admin/` as the new administrator and verify resource management.
+4. Upload a profile photo, reload it, and confirm it survives a service restart.

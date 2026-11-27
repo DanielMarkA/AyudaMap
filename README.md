@@ -14,7 +14,6 @@ This repository is an individual final project for a Python Django + Supabase co
 - [Tech stack](#tech-stack)
 - [Project structure](#project-structure)
 - [Quick start (local development)](#quick-start-local-development)
-- [Demo accounts](#demo-accounts)
 - [Configuration](#configuration)
 - [Running the tests](#running-the-tests)
 - [Documentation](#documentation)
@@ -61,7 +60,6 @@ AyudaMap/
 │   └── user_settings/      # Preferences and password change
 ├── templates/              # Shared base + per-app templates
 ├── static/                 # CSS and JS, mirrored per app
-├── seed_data.py            # Demo data seeder
 ├── requirements.txt
 ├── .env.example            # Template for required environment variables
 └── docs/                   # This documentation set
@@ -81,44 +79,35 @@ pip install -r requirements.txt
 # 3. Configure the environment
 Copy-Item .env.example .env          # Windows
 # cp .env.example .env              # macOS / Linux
-# Edit .env and set SECRET_KEY. Leave DATABASE_URL unset to use SQLite.
+# Keep DJANGO_DEBUG=True and leave DATABASE_URL blank to use local SQLite.
 
 # 4. Apply migrations
 python manage.py migrate
 
-# 5. (Optional) Load demo accounts and resources
-python seed_data.py
-
-# 6. Run the development server
+# 5. Run the development server
 python manage.py runserver
 ```
 
-Open <http://127.0.0.1:8000/> and sign in. To connect to Supabase instead of SQLite, set `DATABASE_URL` in `.env` (see [Configuration](#configuration)).
-
-## Demo accounts
-
-`seed_data.py` creates the following accounts for demonstration:
-
-| Username | Password | Role |
-| --- | --- | --- |
-| `admin` | `AdminAyuda2026!` | Superuser / National Coordinator |
-| `juan_delacruz` | `AyudaPass123!` | Community volunteer |
-
-It also seeds six verified aid resources around Metro Manila. **These credentials are hard-coded in the seed script and are for local/demo use only — never deploy with them.**
+Open <http://127.0.0.1:8000/> and register an account. On a fresh database, the map starts empty; add a resource from the dashboard. To access Django admin, create a staff login with `python manage.py createsuperuser`. If you need PostgreSQL for development, point `DATABASE_URL` at a separate development database.
 
 ## Configuration
 
-All configuration is read from `.env` in the project root (loaded by `python-dotenv` in `config/settings.py`). See [`.env.example`](.env.example) for the full template.
+Set configuration in your environment or in a local `.env` file. Environment variables take precedence. See [`.env.example`](.env.example) for local setup.
 
 | Variable | Required | Purpose |
 | --- | --- | --- |
-| `SECRET_KEY` | **Yes** | Django signing key. `settings.py` currently falls back to a hard-coded *insecure* development key; always set this outside local development. |
-| `DATABASE_URL` | No | Supabase/Postgres connection string. When absent, Django falls back to `db.sqlite3`. |
+| `DJANGO_DEBUG` | No | Defaults to `False`. Set to `True` for local development only. |
+| `SECRET_KEY` | With debug off | Django signing key. Use a long, random value in production. |
+| `DJANGO_ALLOWED_HOSTS` | With debug off | Comma-separated hostnames, with no scheme or port. |
+| `DATABASE_URL` | With debug off | PostgreSQL connection string; Supabase connections use SSL. SQLite is available in debug mode. |
+| `DJANGO_TRUST_PROXY_HTTPS` | No | Set to `True` only behind a trusted proxy that replaces `X-Forwarded-Proto`. |
+| `DJANGO_MEDIA_ROOT` | No | Filesystem directory for user uploads. Set it to a persistent, writable path on the host. |
 | `SUPABASE_URL` | No | Project URL recorded for reference; not consumed directly by the ORM path. |
-
-Current development defaults in `config/settings.py`: `DEBUG = True`, `ALLOWED_HOSTS = ['*']`, console email backend, and static/media served locally. See [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md) before exposing the app publicly.
+| `CARTO_API_KEY` | No | Map tile key; falls back to OpenStreetMap when blank. |
 
 ## Running the tests
+
+Use the local development configuration with `DATABASE_URL` blank.
 
 ```powershell
 python manage.py test
@@ -130,7 +119,7 @@ To run a single app's suite:
 python manage.py test apps.home
 ```
 
-There are 19 tests across five apps covering the auth flow, home map filters, resource creation, profile and settings updates, and password changes. Details in [`docs/TESTING.md`](docs/TESTING.md).
+Tests cover the auth flow, map filters, resource creation, profile and settings updates, and password changes. Details in [`docs/TESTING.md`](docs/TESTING.md).
 
 ## Documentation
 
@@ -144,4 +133,4 @@ There are 19 tests across five apps covering the auth flow, home map filters, re
 
 ## Production notes
 
-The repository is currently configured for development. Before deploying, at minimum: set a real `SECRET_KEY`, set `DEBUG = False`, restrict `ALLOWED_HOSTS`, configure `DATABASE_URL` with SSL, replace the console email backend, run `collectstatic`, serve media through the web server, and remove the seeded demo credentials. The full checklist is in [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md).
+Production runs behind an HTTPS reverse proxy with Gunicorn, a PostgreSQL database, collected static files, and persistent storage for profile uploads. See [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md) for the setup and launch checks, including what to do if the target database still contains course demo data.

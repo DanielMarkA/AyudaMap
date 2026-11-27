@@ -46,8 +46,10 @@ config/urls.py ──► apps.<feature>.urls ──► view
 
 | Path | Name | Access | Method / purpose |
 | --- | --- | --- | --- |
-| `/` | `home:home` | Login required | GET — map, search, filters |
-| `/reports/` | `home:reports` | Public (by current configuration) | GET — analytics dashboard |
+| `/` | `home:landing` | Public | GET — landing page and aid coverage summary |
+| `/map/` | `home:map` | Public | GET — read-only aid map |
+| `/dashboard/` | `home:dashboard` | Login required | GET — map, ledger, search, filters |
+| `/reports/` | `home:reports` | Login required | GET — analytics dashboard |
 | `/add/` | `home:add_resource` | Login required | POST — create a resource |
 | `/<id>/confirm/` | `home:confirm_resource` | Login required | POST — increment confirmation count |
 | `/<id>/status/` | `home:update_status` | Login required | POST — change operating status |
@@ -58,7 +60,6 @@ config/urls.py ──► apps.<feature>.urls ──► view
 | `/settings/` | `user_settings:settings` | Login required | GET/POST — preferences / password |
 | `/admin/` | admin | Staff | Django admin site |
 
-> Note: `reports_view` currently has no `@login_required` decorator — unlike the other data views. Flag this if the reports page should be private.
 
 ---
 
@@ -208,4 +209,4 @@ One-to-one with `auth_user`. Fields: `dark_mode`, `email_notifications`, `notify
 - **Status side effect:** setting `FULL_CAPACITY` also zeroes `capacity_available`.
 - **Preference-driven default filter:** with no `?category=` parameter, the home view applies `preferred_category` (unless `ALL`).
 - **Map data boundary:** the view builds a list of plain dicts and embeds it as JSON in the page; JavaScript handles all pin rendering. Category codes drive pin colours/icons; status drives badge styling.
-- **Seed script:** `seed_data.py` creates two users, their profile/settings rows, and six verified Metro Manila resources. It is idempotent (uses `get_or_create`), but it **resets passwords on every run** and should be used only in development.
+- **Fresh databases:** Migrations create the schema. Accounts and resources are added through the app or Django admin.

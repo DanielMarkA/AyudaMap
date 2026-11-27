@@ -6,13 +6,12 @@ A short walkthrough for volunteers, coordinators, and anyone evaluating the appl
 
 1. Open the app. If you are not signed in you will see **Login** and **Register** in the header.
 2. Click **Register**, enter a username, email, password, and (optionally) your full name. Submitting creates your account together with an empty profile and a default settings record, and signs you in automatically.
-3. To use the demo data instead, sign in with `admin` / `AdminAyuda2026!` (coordinator) or `juan_delacruz` / `AyudaPass123!` (volunteer). See the [README](../README.md#demo-accounts).
 
 The header navigation changes after sign-in: **Home**, **Reports**, **Profile**, **Settings**, a theme toggle, and your avatar with a sign-out button.
 
-## Home — the aid map (`/`)
+## Aid map and dashboard
 
-The home page is the main operating view. It contains:
+The landing page (`/`) and read-only aid map (`/map/`) are public. Sign in to open the volunteer dashboard (`/dashboard/`), which contains:
 
 - **Summary cards** — total verified resources and how many are marked critical.
 - **Filters** — a keyword search box plus dropdowns for **category**, **status**, and **urgency**. Changing a filter narrows both the list and the map pins. If you have not chosen a category, the app uses the preferred category from your Settings (unless it is `All`).
@@ -23,7 +22,7 @@ The home page is the main operating view. It contains:
 ### Adding a resource
 
 1. Click the **Add Resource** / report-a-site button on the home page.
-2. Fill in the name, category, status, urgency, description, supplies needed, total and available capacity, location, coordinates, operating hours, and contact info.
+2. Fill in the name, category, status, urgency, description, supplies needed, total and available capacity, city, location, coordinates, operating hours, and contact info.
 3. Submit. The new entry is marked verified, attributed to your account, and written to the audit log. A confirmation message appears.
 
 ### Confirming a site
@@ -44,7 +43,7 @@ The Reports page summarises relief operations:
 - **Critical resources** — sites marked `CRITICAL`, most recently updated first.
 - **Field audit log** — the 15 most recent status updates, confirmations, and supply pledges, showing the resource, action, user, and timestamp.
 
-> Reports are currently reachable even without signing in (see [ARCHITECTURE.md](ARCHITECTURE.md#url-map)). If that is not intended, restrict the view.
+Reports require sign-in.
 
 ## Profile (`/profile/`)
 
@@ -69,8 +68,8 @@ Staff/superusers can manage `Resource` and `ResourceStatusLog` records through t
 
 | Symptom | What to check |
 | --- | --- |
-| Redirected to Login when opening Home | Home requires authentication — sign in first. |
-| No pins on the map | The resource may be unverified, or no `DATABASE_URL` is set so you are seeing the local SQLite database rather than Supabase. Run `python seed_data.py`. |
+| Redirected to Login when opening the dashboard | Sign in, or use the public map at `/map/`. |
+| No pins on the map | Clear the filters and check that the database you are using contains verified resources. A fresh local database starts empty. |
 | Map tiles do not load | CARTO tiles require an internet connection; check the browser console. |
 | Wrong map centre | Adjust default latitude/longitude/zoom in Settings. |
-| Uploaded photo missing | `MEDIA_ROOT` is `media/`; media is only served by Django when `DEBUG = True`. |
+| Uploaded photo missing | In production, check that `/media/` is served from the same persistent directory Django uses for uploads. |
