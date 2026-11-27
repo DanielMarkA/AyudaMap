@@ -316,7 +316,7 @@ html.dark-mode .map-viewport.map-osm-fallback .leaflet-tile-pane {
 .dot-food { background-color: #f59e0b; }
 .dot-shelter { background-color: #3b82f6; }
 .dot-gov { background-color: #8b5cf6; }
-.dot-donation { background-color: #10b981; }
+.dot-donation { background-color: var(--success-dark); }
 
 /* Directory List & Resource Cards */
 .directory-header {
@@ -438,18 +438,13 @@ html.dark-mode .capacity-fill {
 
 .supplies-tag {
     display: inline-block;
-    background: #fef3c7;
-    color: #92400e;
+    background: var(--warning-bg);
+    color: var(--warning-text);
     font-size: 0.8rem;
     padding: 0.2rem 0.55rem;
     border-radius: var(--radius-sm);
     margin-top: 0.35rem;
     font-weight: 600;
-}
-
-html.dark-mode .supplies-tag {
-    background: #451a03;
-    color: #fcd34d;
 }
 
 .card-actions-bar {

@@ -1,4 +1,4 @@
-{% extends 'base.html' %}
+﻿{% extends 'base.html' %}
 {% load static %}
 
 {% block title %}Relief Operations Reports - AyudaMap{% endblock %}
@@ -11,12 +11,12 @@
 {% block content %}
 <div class="home-hero">
     <div class="hero-content">
-        <h1><i class="fa-solid fa-chart-line"></i> Relief Operations &amp; Capacity Analytics</h1>
+        <h1><i class="fa-solid fa-chart-line" aria-hidden="true"></i> Relief Operations &amp; Capacity Analytics</h1>
         <p>Live aggregation of verified aid hubs, remaining capacity, critical priorities, and field verification logs.</p>
     </div>
     <div class="hero-actions">
         <a href="{% url 'home:dashboard' %}" class="btn btn-primary btn-hero">
-            <i class="fa-solid fa-table-columns"></i> Back to Dashboard
+            <i class="fa-solid fa-table-columns" aria-hidden="true"></i> Back to Dashboard
         </a>
     </div>
 </div>
@@ -24,22 +24,22 @@
 <!-- KPI Summary Cards -->
 <div class="kpi-grid">
     <div class="card kpi-card">
-        <span class="kpi-title"><i class="fa-solid fa-building-shield"></i> Verified Aid Hubs</span>
+        <span class="kpi-title"><i class="fa-solid fa-building-shield" aria-hidden="true"></i> Verified Aid Hubs</span>
         <span class="kpi-value">{{ totals.total_centers|default:0 }}</span>
         <span class="kpi-sub">Active centers mapped nationwide</span>
     </div>
     <div class="card kpi-card">
-        <span class="kpi-title"><i class="fa-solid fa-boxes-packing"></i> Available Slots / Packs</span>
+        <span class="kpi-title"><i class="fa-solid fa-boxes-packing" aria-hidden="true"></i> Available Slots / Packs</span>
         <span class="kpi-value">{{ totals.available_capacity|default:0 }}</span>
         <span class="kpi-sub">Out of {{ totals.total_capacity|default:0 }} total capacity</span>
     </div>
     <div class="card kpi-card">
-        <span class="kpi-title"><i class="fa-solid fa-gauge-high"></i> Resource Utilization</span>
+        <span class="kpi-title"><i class="fa-solid fa-gauge-high" aria-hidden="true"></i> Resource Utilization</span>
         <span class="kpi-value">{{ utilization_rate }}%</span>
         <span class="kpi-sub">{{ utilized_cap }} slots/packs distributed</span>
     </div>
     <div class="card kpi-card">
-        <span class="kpi-title"><i class="fa-solid fa-circle-check"></i> Community Verifications</span>
+        <span class="kpi-title"><i class="fa-solid fa-circle-check" aria-hidden="true"></i> Community Verifications</span>
         <span class="kpi-value">{{ totals.total_confirmations|default:0 }}</span>
         <span class="kpi-sub">On-the-ground status confirmations</span>
     </div>

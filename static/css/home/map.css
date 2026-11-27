@@ -3,6 +3,7 @@
    ========================================================================== */
 
 body.map-page {
+    height: 100dvh;
     overflow: hidden;
 }
 
@@ -42,10 +43,20 @@ body.map-page .app-footer {
     position: relative;
     width: 100%;
     flex: 1;
-    min-height: calc(100dvh - 60px);
-    height: calc(100dvh - 60px);
+    min-height: 0;
     overflow: hidden;
     background-color: var(--bg-main);
+}
+
+.map-offline-fallback {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    padding: 2rem;
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 0.95rem;
 }
 
 .public-map-viewport {
@@ -556,16 +567,11 @@ html.dark-mode .filter-badge-dot {
     gap: 0.5rem;
     padding: 0.6rem 0.75rem;
     border-radius: var(--radius-sm);
-    background-color: #fef3c7;
-    color: #92400e;
+    background-color: var(--warning-bg);
+    color: var(--warning-text);
     font-size: 0.85rem;
     font-weight: 600;
     line-height: 1.4;
-}
-
-html.dark-mode .detail-supplies {
-    background-color: #451a03;
-    color: #fcd34d;
 }
 
 .detail-supplies i {
@@ -814,7 +820,7 @@ html.dark-mode .detail-capacity-fill--high {
 .dot-food { background-color: #f59e0b; }
 .dot-shelter { background-color: #3b82f6; }
 .dot-gov { background-color: #8b5cf6; }
-.dot-donation { background-color: #10b981; }
+.dot-donation { background-color: var(--success-dark); }
 
 /* Critical Pin Pulse */
 @keyframes pulseRing {
@@ -830,11 +836,6 @@ html.dark-mode .detail-capacity-fill--high {
 
 /* Mobile Responsive Bottom Sheet Layout */
 @media (max-width: 768px) {
-    .map-shell {
-        height: calc(100dvh - 58px);
-        min-height: calc(100dvh - 58px);
-    }
-
     .drawer-collapse-btn {
         display: none;
     }
@@ -907,9 +908,23 @@ html.dark-mode .detail-capacity-fill--high {
     }
 
     .drawer-icon-btn,
-    .map-util-btn {
+    .map-util-btn,
+    .drawer-clear-btn,
+    .detail-close-btn {
         width: 44px;
         height: 44px;
+    }
+
+    .map-cat-chip,
+    .detail-back-btn,
+    .drawer-footer-link {
+        min-height: 44px;
+        display: inline-flex;
+        align-items: center;
+    }
+
+    .drawer-search-input-wrap input.drawer-search-input {
+        padding-right: 2.85rem;
     }
 
     .map-floating-utils {

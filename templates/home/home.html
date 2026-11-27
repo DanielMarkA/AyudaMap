@@ -1,4 +1,4 @@
-{% extends 'base.html' %}
+﻿{% extends 'base.html' %}
 {% load static %}
 
 {% block title %}Community Aid Directory - AyudaMap{% endblock %}
@@ -11,12 +11,12 @@
 {% block content %}
 <div class="home-hero">
     <div class="hero-content">
-        <h1><i class="fa-solid fa-hand-holding-heart"></i> Disaster Relief &amp; Community Aid Directory</h1>
+        <h1><i class="fa-solid fa-hand-holding-heart" aria-hidden="true"></i> Disaster Relief &amp; Community Aid Directory</h1>
         <p>Real-time geolocated aid centers, food stations, evacuation shelters, and medical hubs across the Philippines.</p>
     </div>
     <div class="hero-actions">
         <button type="button" class="btn btn-success btn-hero" id="openAddModalBtn">
-            <i class="fa-solid fa-plus-circle"></i> Submit Aid Resource
+            <i class="fa-solid fa-plus-circle" aria-hidden="true"></i> Submit Aid Resource
         </button>
     </div>
 </div>
@@ -25,16 +25,16 @@
     <div class="category-chips-container">
         <a href="{% url 'home:dashboard' %}{% if query %}?q={{ query }}{% endif %}{% if selected_status %}&status={{ selected_status }}{% endif %}{% if selected_urgency %}&urgency={{ selected_urgency }}{% endif %}" 
            class="category-chip {% if not selected_category %}active{% endif %}">
-            <i class="fa-solid fa-layer-group"></i> All Categories ({{ total_count }})
+            <i class="fa-solid fa-layer-group" aria-hidden="true"></i> All Categories ({{ total_count }})
         </a>
         {% for key, val in categories %}
             <a href="{% url 'home:dashboard' %}?category={{ key }}{% if query %}&q={{ query }}{% endif %}{% if selected_status %}&status={{ selected_status }}{% endif %}{% if selected_urgency %}&urgency={{ selected_urgency }}{% endif %}" 
                class="category-chip chip-{{ key|lower }} {% if selected_category == key %}active{% endif %}">
-                {% if key == 'MEDICAL' %}<i class="fa-solid fa-hospital"></i>
-                {% elif key == 'FOOD' %}<i class="fa-solid fa-bowl-food"></i>
-                {% elif key == 'SHELTER' %}<i class="fa-solid fa-tents"></i>
-                {% elif key == 'GOV' %}<i class="fa-solid fa-building-columns"></i>
-                {% elif key == 'DONATION' %}<i class="fa-solid fa-hand-holding-dollar"></i>
+                {% if key == 'MEDICAL' %}<i class="fa-solid fa-hospital" aria-hidden="true"></i>
+                {% elif key == 'FOOD' %}<i class="fa-solid fa-bowl-food" aria-hidden="true"></i>
+                {% elif key == 'SHELTER' %}<i class="fa-solid fa-tents" aria-hidden="true"></i>
+                {% elif key == 'GOV' %}<i class="fa-solid fa-building-columns" aria-hidden="true"></i>
+                {% elif key == 'DONATION' %}<i class="fa-solid fa-hand-holding-dollar" aria-hidden="true"></i>
                 {% endif %}
                 {{ val }}
             </a>
@@ -58,7 +58,7 @@
             </div>
 
             <div class="status-select-wrapper">
-                <label for="statusSelect"><i class="fa-solid fa-traffic-light"></i> Status:</label>
+                <label for="statusSelect"><i class="fa-solid fa-traffic-light" aria-hidden="true"></i> Status:</label>
                 <select name="status" id="statusSelect" onchange="this.form.submit()">
                     <option value="">All Statuses</option>
                     {% for key, val in statuses %}
@@ -68,7 +68,7 @@
             </div>
 
             <div class="status-select-wrapper">
-                <label for="urgencySelect"><i class="fa-solid fa-triangle-exclamation"></i> Urgency:</label>
+                <label for="urgencySelect"><i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i> Urgency:</label>
                 <select name="urgency" id="urgencySelect" onchange="this.form.submit()">
                     <option value="">All Priorities</option>
                     {% for key, val in urgencies %}
@@ -81,17 +81,17 @@
                 <label for="localVolunteersSelect" title="Show only sites reported by volunteers in your city">
                     <input type="checkbox" name="local_volunteers" id="localVolunteersSelect" value="1"
                            {% if local_volunteers %}checked{% endif %} onchange="this.form.submit()">
-                    <i class="fa-solid fa-users"></i> My local volunteers
+                    <i class="fa-solid fa-users" aria-hidden="true"></i> My local volunteers
                 </label>
             </div>
 
             <button type="submit" class="btn btn-primary btn-search">
-                <i class="fa-solid fa-magnifying-glass"></i> Search
+                <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i> Search
             </button>
 
             {% if query or selected_category or selected_status or selected_urgency or local_volunteers %}
                 <a href="{% url 'home:dashboard' %}" class="btn btn-secondary btn-reset" title="Reset all filters">
-                    <i class="fa-solid fa-rotate-left"></i> Reset
+                    <i class="fa-solid fa-rotate-left" aria-hidden="true"></i> Reset
                 </a>
             {% endif %}
         </form>
@@ -141,18 +141,18 @@
                             <h3 class="resource-title">{{ resource.name }}</h3>
                             <div class="badge-group">
                                 <span class="urgency-badge urgency-{{ resource.urgency_level|lower }}">
-                                    {% if resource.urgency_level == 'CRITICAL' %}<i class="fa-solid fa-triangle-exclamation"></i>{% endif %}
+                                    {% if resource.urgency_level == 'CRITICAL' %}<i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>{% endif %}
                                     {{ resource.get_urgency_level_display }}
                                 </span>
                                 <span class="category-badge cat-{{ resource.category|lower }}">
                                     {{ resource.get_category_display }}
                                 </span>
                                 {% if resource.status == 'FULL_CAPACITY' %}
-                                    <span class="status-pill status-full"><i class="fa-solid fa-circle-exclamation"></i> Full Capacity</span>
+                                    <span class="status-pill status-full"><i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i> Full Capacity</span>
                                 {% elif resource.status == 'TEMPORARILY_CLOSED' %}
-                                    <span class="status-pill status-closed"><i class="fa-solid fa-circle-xmark"></i> Closed</span>
+                                    <span class="status-pill status-closed"><i class="fa-solid fa-circle-xmark" aria-hidden="true"></i> Closed</span>
                                 {% else %}
-                                    <span class="status-pill status-open"><i class="fa-solid fa-circle-check"></i> Operational</span>
+                                    <span class="status-pill status-open"><i class="fa-solid fa-circle-check" aria-hidden="true"></i> Operational</span>
                                 {% endif %}
                             </div>
                         </div>
@@ -161,7 +161,7 @@
 
                         {% if resource.supplies_needed %}
                             <div>
-                                <span class="supplies-tag"><i class="fa-solid fa-boxes-stacked"></i> Needed: {{ resource.supplies_needed }}</span>
+                                <span class="supplies-tag"><i class="fa-solid fa-boxes-stacked" aria-hidden="true"></i> Needed: {{ resource.supplies_needed }}</span>
                             </div>
                         {% endif %}
 
@@ -177,22 +177,22 @@
 
                         <div class="resource-meta">
                             <div class="meta-row">
-                                <i class="fa-solid fa-location-dot"></i>
+                                <i class="fa-solid fa-location-dot" aria-hidden="true"></i>
                                 <span><strong>Location:</strong> {{ resource.location }}</span>
                             </div>
                             <div class="meta-row">
-                                <i class="fa-solid fa-clock"></i>
+                                <i class="fa-solid fa-clock" aria-hidden="true"></i>
                                 <span><strong>Operating Hours:</strong> {{ resource.operating_hours }}</span>
                             </div>
                             {% if resource.contact_info %}
                                 <div class="meta-row">
-                                    <i class="fa-solid fa-phone"></i>
+                                    <i class="fa-solid fa-phone" aria-hidden="true"></i>
                                     <span><strong>Contact:</strong> {{ resource.contact_info }}</span>
                                 </div>
                             {% endif %}
                             {% if resource.created_by %}
                                 <div class="meta-row coordinator-row">
-                                    <i class="fa-solid fa-user-shield"></i>
+                                    <i class="fa-solid fa-user-shield" aria-hidden="true"></i>
                                     <span><strong>Posted By:</strong> {{ resource.created_by.profile.full_name|default:resource.created_by.username }}</span>
                                 </div>
                             {% endif %}
@@ -340,7 +340,7 @@
 
 {% block extra_js %}
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-<script id="mapDataJson" type="application/json">{{ map_data_json|safe }}</script>
-<script id="userMapConfigJson" type="application/json">{{ user_map_config_json|safe }}</script>
+{{ map_data|json_script:"mapDataJson" }}
+{{ user_map_config|json_script:"userMapConfigJson" }}
 <script src="{% static 'js/home/home.js' %}"></script>
 {% endblock %}

@@ -11,6 +11,7 @@
 
 {% block content %}
 <div class="map-shell" id="mapShell">
+    <h1 class="sr-only">Live Community Aid Map</h1>
     <div id="publicMapStatusLive" class="sr-only" role="status" aria-live="polite"></div>
 
     <!-- Full-Viewport Interactive Map Canvas -->
@@ -214,8 +215,8 @@
 
 {% block extra_js %}
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-<script id="publicMapDataJson" type="application/json">{{ map_data_json|safe }}</script>
-<script id="publicMapConfigJson" type="application/json">{{ user_map_config_json|safe }}</script>
-<script id="publicInitialFiltersJson" type="application/json">{{ initial_filters_json|safe }}</script>
+{{ map_data|json_script:"publicMapDataJson" }}
+{{ user_map_config|json_script:"publicMapConfigJson" }}
+{{ initial_filters|json_script:"publicInitialFiltersJson" }}
 <script src="{% static 'js/home/map.js' %}"></script>
 {% endblock %}

@@ -14,6 +14,8 @@
     --danger: #ef4444;
     --success: #10b981;
     --success-dark: #047857;
+    --warning-bg: #fef3c7;
+    --warning-text: #92400e;
     --bg-main: #f8fafc;
     --bg-card: #ffffff;
     --text-primary: #0f172a;
@@ -41,6 +43,8 @@ html.dark-mode {
     --header-text: #f8fafc;
     --primary-light: #134e4a;
     --primary-text: #5eead4;
+    --warning-bg: #451a03;
+    --warning-text: #fcd34d;
 }
 
 * {

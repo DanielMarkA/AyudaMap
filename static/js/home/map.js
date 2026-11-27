@@ -102,7 +102,7 @@ document.addEventListener("DOMContentLoaded", () => {
             case "FOOD": return "#f59e0b";
             case "SHELTER": return "#3b82f6";
             case "GOV": return "#8b5cf6";
-            case "DONATION": return "#10b981";
+            case "DONATION": return "#047857";
             default: return "#0d9488";
         }
     };
@@ -134,7 +134,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (mapContainer && typeof L === "undefined") {
         mapContainer.innerHTML =
-            '<div style="display:flex;align-items:center;justify-content:center;height:100%;padding:2rem;text-align:center;color:var(--text-muted);font-size:0.95rem;">Map tiles could not load (offline or CDN unavailable). You can still browse verified aid centers in the panel.</div>';
+            '<div class="map-offline-fallback">Map tiles could not load (offline or CDN unavailable). You can still browse verified aid centers in the panel.</div>';
     }
 
     if (mapContainer && typeof L !== "undefined") {
@@ -162,6 +162,20 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
+    const drawerInnerSections = Array.from(
+        document.querySelectorAll(".drawer-search-bar, .drawer-filter-panel, #drawerBody, .drawer-footer")
+    );
+
+    const syncDrawerInert = () => {
+        if (!mapShell) return;
+        const hiddenOffscreen = isMobileViewport()
+            ? !mapShell.classList.contains("sheet-expanded")
+            : mapShell.classList.contains("drawer-collapsed");
+        drawerInnerSections.forEach((el) => {
+            el.inert = hiddenOffscreen;
+        });
+    };
+
     const openDrawer = () => {
         if (!mapShell) return;
         if (isMobileViewport()) {
@@ -175,13 +189,19 @@ document.addEventListener("DOMContentLoaded", () => {
                 drawerCollapseBtn.setAttribute("title", "Collapse side panel");
             }
         }
+        syncDrawerInert();
     };
 
-    const showListView = () => {
+    const showListView = (restoreFocus = false) => {
+        const previousId = selectedResourceId;
         selectedResourceId = null;
         if (detailViewEl) detailViewEl.hidden = true;
         if (listViewEl) listViewEl.hidden = false;
         document.querySelectorAll(".map-result-item.is-selected").forEach((el) => el.classList.remove("is-selected"));
+        if (restoreFocus && previousId != null) {
+            const prevBtn = resultsListEl && resultsListEl.querySelector(`.map-result-item[data-id="${previousId}"]`);
+            if (prevBtn) prevBtn.focus();
+        }
     };
 
     const showDetailView = (resource, panMap = true) => {
@@ -257,6 +277,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         if (listViewEl) listViewEl.hidden = true;
         if (detailViewEl) detailViewEl.hidden = false;
+        if (detailBackBtn) detailBackBtn.focus();
 
         const centerBtn = document.getElementById("detailCenterPinBtn");
         if (centerBtn && map) {
@@ -504,8 +525,8 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     });
 
-    if (detailBackBtn) detailBackBtn.addEventListener("click", showListView);
-    if (detailCloseBtn) detailCloseBtn.addEventListener("click", showListView);
+    if (detailBackBtn) detailBackBtn.addEventListener("click", () => showListView(true));
+    if (detailCloseBtn) detailCloseBtn.addEventListener("click", () => showListView(true));
 
     if (drawerCollapseBtn && mapShell) {
         drawerCollapseBtn.addEventListener("click", () => {
@@ -514,6 +535,7 @@ document.addEventListener("DOMContentLoaded", () => {
             drawerCollapseBtn.setAttribute("aria-expanded", String(!willCollapse));
             drawerCollapseBtn.setAttribute("aria-label", willCollapse ? "Expand side panel" : "Collapse side panel");
             drawerCollapseBtn.setAttribute("title", willCollapse ? "Expand side panel" : "Collapse side panel");
+            syncDrawerInert();
             if (map) {
                 setTimeout(() => map.invalidateSize(), 240);
             }
@@ -524,8 +546,12 @@ document.addEventListener("DOMContentLoaded", () => {
         sheetHandleBtn.addEventListener("click", () => {
             const expanded = mapShell.classList.toggle("sheet-expanded");
             sheetHandleBtn.setAttribute("aria-expanded", String(expanded));
+            syncDrawerInert();
         });
     }
+
+    window.addEventListener("resize", syncDrawerInert);
+    syncDrawerInert();
 
     if (fitAllBtn) {
         fitAllBtn.addEventListener("click", () => {
@@ -585,7 +611,7 @@ document.addEventListener("DOMContentLoaded", () => {
     document.addEventListener("keydown", (e) => {
         if (e.key !== "Escape") return;
         if (detailViewEl && !detailViewEl.hidden) {
-            showListView();
+            showListView(true);
         } else if (filterPanel && !filterPanel.hidden) {
             filterPanel.hidden = true;
             if (filterToggleBtn) filterToggleBtn.setAttribute("aria-expanded", "false");

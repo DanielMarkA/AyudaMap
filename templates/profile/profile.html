@@ -1,4 +1,4 @@
-{% extends 'base.html' %}
+﻿{% extends 'base.html' %}
 {% load static %}
 
 {% block title %}User Profile - AyudaMap{% endblock %}
@@ -17,7 +17,7 @@
                     <img src="{{ profile.profile_image.url }}" alt="Profile photo of {{ profile.full_name|default:user.username }}" class="profile-avatar" id="avatarPreview">
                 {% else %}
                     <div class="profile-avatar-placeholder" id="avatarPlaceholder" aria-hidden="true">
-                        <i class="fa-solid fa-user-shield"></i>
+                        <i class="fa-solid fa-user-shield" aria-hidden="true"></i>
                     </div>
                 {% endif %}
             </div>
@@ -27,15 +27,15 @@
             
             <div class="role-badge-wrapper">
                 {% if profile.is_volunteer %}
-                    <span class="profile-role-badge volunteer-badge"><i class="fa-solid fa-shield-heart"></i> Active Relief Volunteer</span>
+                    <span class="profile-role-badge volunteer-badge"><i class="fa-solid fa-shield-heart" aria-hidden="true"></i> Active Relief Volunteer</span>
                 {% else %}
-                    <span class="profile-role-badge member-badge"><i class="fa-solid fa-user"></i> Community Member</span>
+                    <span class="profile-role-badge member-badge"><i class="fa-solid fa-user" aria-hidden="true"></i> Community Member</span>
                 {% endif %}
             </div>
 
             {% if profile.organization %}
                 <div class="profile-org-box">
-                    <i class="fa-solid fa-building-ngo"></i> {{ profile.organization }}
+                    <i class="fa-solid fa-building-ngo" aria-hidden="true"></i> {{ profile.organization }}
                 </div>
             {% endif %}
 
@@ -45,23 +45,23 @@
 
             <div class="profile-quick-stats">
                 <div class="stat-item">
-                    <span class="stat-label"><i class="fa-solid fa-envelope"></i> Email</span>
+                    <span class="stat-label"><i class="fa-solid fa-envelope" aria-hidden="true"></i> Email</span>
                     <span class="stat-val">{{ user.email|default:"Not specified" }}</span>
                 </div>
                 <div class="stat-item">
-                    <span class="stat-label"><i class="fa-solid fa-phone"></i> Contact</span>
+                    <span class="stat-label"><i class="fa-solid fa-phone" aria-hidden="true"></i> Contact</span>
                     <span class="stat-val">{{ profile.phone_number|default:"Not set" }}</span>
                 </div>
                 <div class="stat-item">
-                    <span class="stat-label"><i class="fa-solid fa-city"></i> City / Region</span>
+                    <span class="stat-label"><i class="fa-solid fa-city" aria-hidden="true"></i> City / Region</span>
                     <span class="stat-val">{{ profile.city|default:"Not set" }}</span>
                 </div>
                 <div class="stat-item">
-                    <span class="stat-label"><i class="fa-solid fa-hand-holding-heart"></i> Aid Hubs Posted</span>
+                    <span class="stat-label"><i class="fa-solid fa-hand-holding-heart" aria-hidden="true"></i> Aid Hubs Posted</span>
                     <span class="stat-val stat-highlight">{{ my_resources_count }} Center{{ my_resources_count|pluralize }}</span>
                 </div>
                 <div class="stat-item">
-                    <span class="stat-label"><i class="fa-solid fa-calendar-check"></i> Member Since</span>
+                    <span class="stat-label"><i class="fa-solid fa-calendar-check" aria-hidden="true"></i> Member Since</span>
                     <span class="stat-val">{{ user.date_joined|date:"M d, Y" }}</span>
                 </div>
             </div>
@@ -81,7 +81,7 @@
                 {% csrf_token %}
 
                 <div class="form-section-title">
-                    <i class="fa-solid fa-id-card-clip"></i> Identity &amp; Affiliation
+                    <i class="fa-solid fa-id-card-clip" aria-hidden="true"></i> Identity &amp; Affiliation
                 </div>
 
                 <div class="form-row">
@@ -119,7 +119,7 @@
                 </div>
 
                 <div class="form-section-title">
-                    <i class="fa-solid fa-address-book"></i> Contact Details
+                    <i class="fa-solid fa-address-book" aria-hidden="true"></i> Contact Details
                 </div>
 
                 <div class="form-row">
@@ -147,7 +147,7 @@
 
                 <div class="form-actions">
                     <button type="submit" class="btn btn-primary" id="saveProfileBtn">
-                        <i class="fa-solid fa-floppy-disk"></i> Save Profile Changes
+                        <i class="fa-solid fa-floppy-disk" aria-hidden="true"></i> Save Profile Changes
                     </button>
                 </div>
             </form>
@@ -175,12 +175,12 @@
                                     {% else %}
                                         <span class="status-pill status-open">Operational</span>
                                     {% endif %}
-                                    <span class="loc-text"><i class="fa-solid fa-location-dot"></i> {{ res.location }}</span>
+                                    <span class="loc-text"><i class="fa-solid fa-location-dot" aria-hidden="true"></i> {{ res.location }}</span>
                                 </div>
                             </div>
                             <div class="contribution-action">
                                 <a href="{% url 'home:map' %}?q={{ res.name|urlencode }}" class="btn btn-sm btn-outline" title="View on public map">
-                                    <i class="fa-solid fa-crosshairs"></i> View on Map
+                                    <i class="fa-solid fa-crosshairs" aria-hidden="true"></i> View on Map
                                 </a>
                             </div>
                         </div>
@@ -188,10 +188,10 @@
                 </div>
             {% else %}
                 <div class="empty-contributions">
-                    <i class="fa-solid fa-hand-holding-medical"></i>
+                    <i class="fa-solid fa-hand-holding-medical" aria-hidden="true"></i>
                     <p>You haven't submitted any aid resources yet.</p>
                     <a href="{% url 'home:dashboard' %}" class="btn btn-sm btn-success">
-                        <i class="fa-solid fa-plus"></i> Submit an Aid Center
+                        <i class="fa-solid fa-plus" aria-hidden="true"></i> Submit an Aid Center
                     </a>
                 </div>
             {% endif %}
@@ -212,7 +212,7 @@
                                 <div class="contribution-meta">
                                     <span class="status-pill status-open">{{ log.get_action_type_display }}</span>
                                     {% if log.note %}<span class="loc-text">{{ log.note }}</span>{% endif %}
-                                    <span class="loc-text"><i class="fa-solid fa-clock"></i> {{ log.created_at|timesince }} ago</span>
+                                    <span class="loc-text"><i class="fa-solid fa-clock" aria-hidden="true"></i> {{ log.created_at|timesince }} ago</span>
                                 </div>
                             </div>
                         </div>
@@ -220,7 +220,7 @@
                 </div>
             {% else %}
                 <div class="empty-contributions">
-                    <i class="fa-solid fa-clipboard-list"></i>
+                    <i class="fa-solid fa-clipboard-list" aria-hidden="true"></i>
                     <p>No status updates or verifications logged yet.</p>
                 </div>
             {% endif %}

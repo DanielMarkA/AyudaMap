@@ -165,6 +165,10 @@ html.dark-mode .auth-icon-circle {
     color: var(--text-muted);
 }
 
+.auth-footer p + p {
+    margin-top: 0.45rem;
+}
+
 .auth-footer a {
     color: var(--primary-text);
     text-decoration: none;

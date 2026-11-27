@@ -92,7 +92,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 case 'FOOD': return '#f59e0b';
                 case 'SHELTER': return '#3b82f6';
                 case 'GOV': return '#8b5cf6';
-                case 'DONATION': return '#10b981';
+                case 'DONATION': return '#047857';
                 default: return '#0d9488';
             }
         };

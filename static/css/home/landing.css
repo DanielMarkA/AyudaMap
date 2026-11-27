@@ -576,14 +576,9 @@ html.dark-mode .impact-bar-fill {
     gap: 0.65rem;
     background-color: var(--bg-card);
     border: 1px solid var(--border-color);
-    border-top: 3px solid var(--primary-dark);
     border-radius: var(--radius-md);
     padding: 1.5rem;
     box-shadow: var(--shadow-sm);
-}
-
-html.dark-mode .workflow-step {
-    border-top-color: #5eead4;
 }
 
 .step-head {
