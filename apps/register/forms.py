@@ -2,6 +2,7 @@ from django import forms
 from django.contrib.auth.models import User
 from django.contrib.auth.forms import UserCreationForm
 
+
 class UserRegisterForm(UserCreationForm):
     email = forms.EmailField(
         required=True,
@@ -11,19 +12,33 @@ class UserRegisterForm(UserCreationForm):
         })
     )
     full_name = forms.CharField(
-        required=False,
+        required=True,
+        max_length=150,
         widget=forms.TextInput(attrs={
-            'placeholder': 'Enter your full name',
+            'placeholder': 'Enter your full name (shown on aid pins)',
+            'class': 'form-control',
+        })
+    )
+    city = forms.CharField(
+        required=False,
+        max_length=100,
+        widget=forms.TextInput(attrs={
+            'placeholder': 'e.g. Quezon City (optional)',
             'class': 'form-control',
         })
     )
 
     class Meta:
         model = User
-        fields = ['username', 'email', 'full_name']
+        fields = ['username', 'email', 'full_name', 'city']
+
+    def clean_full_name(self):
+        value = self.cleaned_data.get('full_name', '').strip()
+        if not value:
+            raise forms.ValidationError("Please enter your full name.")
+        return value
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         for field_name in self.fields:
             self.fields[field_name].widget.attrs.update({'class': 'form-control'})
-

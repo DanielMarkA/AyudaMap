@@ -286,6 +286,10 @@ html.dark-mode .badge-live {
     z-index: 10;
 }
 
+html.dark-mode .map-viewport.map-osm-fallback .leaflet-tile-pane {
+    filter: invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%);
+}
+
 .map-legend {
     display: flex;
     flex-wrap: wrap;

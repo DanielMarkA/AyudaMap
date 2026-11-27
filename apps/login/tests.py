@@ -16,7 +16,7 @@ class LoginViewTests(TestCase):
             "username": "testuser",
             "password": "TestPassword123!"
         })
-        self.assertRedirects(response, reverse("home:home"))
+        self.assertRedirects(response, reverse("home:dashboard"))
 
     def test_login_failure(self):
         response = self.client.post(reverse("login:login"), {

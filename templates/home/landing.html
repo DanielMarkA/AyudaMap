@@ -17,10 +17,14 @@
                 <h1 id="landing-hero-title">Find open shelters and verified relief near you.</h1>
                 <p class="hero-lead">Live status for open shelters, medical hubs, and food stations across the Philippines.</p>
                 <div class="hero-cta-row">
-                    <a href="{% url 'register:register' %}" class="btn btn-primary btn-landing-primary">Register to Open Map</a>
-                    <a href="{% url 'login:login' %}" class="hero-signin-link">Log in to map &rarr;</a>
+                    <a href="{% url 'home:map' %}" class="btn btn-primary btn-landing-primary">Open Live Aid Map</a>
+                    {% if user.is_authenticated %}
+                        <a href="{% url 'home:dashboard' %}" class="hero-signin-link">Go to Volunteer Dashboard &rarr;</a>
+                    {% else %}
+                        <a href="{% url 'login:login' %}" class="hero-signin-link">Volunteer sign in &rarr;</a>
+                    {% endif %}
                 </div>
-                <p class="hero-cta-note">Free account &middot; Instant access, no approval wait &mdash; keeps hub updates verified.</p>
+                <p class="hero-cta-note">No account needed to view aid &middot; Kept current by verified local volunteers.</p>
                 <div class="hero-live-status" aria-label="Current network status">
                     {% if totals.total_centers > 0 %}
                         <span class="beacon-dot" aria-hidden="true"></span>
@@ -212,12 +216,16 @@
 
             <div class="chapter-closing-cta">
                 <div class="chapter-closing-text">
-                    <h3 class="chapter-closing-title">Find open shelters or verify hubs in your area.</h3>
-                    <p class="chapter-closing-copy">Free account &middot; Instant map access for families and field volunteers.</p>
+                    <h3 class="chapter-closing-title">Need aid right now, or ready to help on the ground?</h3>
+                    <p class="chapter-closing-copy">Open the public aid map with zero sign-up, or register as a volunteer to keep hubs verified.</p>
                 </div>
                 <div class="chapter-closing-actions">
-                    <a href="{% url 'register:register' %}" class="btn btn-primary btn-landing-primary">Register to Open Map</a>
-                    <a href="{% url 'login:login' %}" class="hero-signin-link">Log in to map &rarr;</a>
+                    <a href="{% url 'home:map' %}" class="btn btn-primary btn-landing-primary">Open Live Aid Map</a>
+                    {% if user.is_authenticated %}
+                        <a href="{% url 'home:dashboard' %}" class="hero-signin-link">Volunteer Dashboard &rarr;</a>
+                    {% else %}
+                        <a href="{% url 'register:register' %}" class="hero-signin-link">Become a Volunteer &rarr;</a>
+                    {% endif %}
                 </div>
             </div>
         </div>

@@ -1,6 +1,8 @@
 from django.urls import path
 from .views import (
-    home_view,
+    landing_view,
+    map_view,
+    dashboard_view,
     add_resource_view,
     confirm_resource_view,
     update_resource_status_view,
@@ -10,7 +12,9 @@ from .views import (
 app_name = "home"
 
 urlpatterns = [
-    path("", home_view, name="home"),
+    path("", landing_view, name="landing"),
+    path("map/", map_view, name="map"),
+    path("dashboard/", dashboard_view, name="dashboard"),
     path("reports/", reports_view, name="reports"),
     path("add/", add_resource_view, name="add_resource"),
     path("<int:resource_id>/confirm/", confirm_resource_view, name="confirm_resource"),

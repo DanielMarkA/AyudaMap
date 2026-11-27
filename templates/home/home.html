@@ -23,12 +23,12 @@
 
 <div class="filter-section">
     <div class="category-chips-container">
-        <a href="{% url 'home:home' %}{% if query %}?q={{ query }}{% endif %}{% if selected_status %}&status={{ selected_status }}{% endif %}{% if selected_urgency %}&urgency={{ selected_urgency }}{% endif %}" 
+        <a href="{% url 'home:dashboard' %}{% if query %}?q={{ query }}{% endif %}{% if selected_status %}&status={{ selected_status }}{% endif %}{% if selected_urgency %}&urgency={{ selected_urgency }}{% endif %}" 
            class="category-chip {% if not selected_category %}active{% endif %}">
             <i class="fa-solid fa-layer-group"></i> All Categories ({{ total_count }})
         </a>
         {% for key, val in categories %}
-            <a href="{% url 'home:home' %}?category={{ key }}{% if query %}&q={{ query }}{% endif %}{% if selected_status %}&status={{ selected_status }}{% endif %}{% if selected_urgency %}&urgency={{ selected_urgency }}{% endif %}" 
+            <a href="{% url 'home:dashboard' %}?category={{ key }}{% if query %}&q={{ query }}{% endif %}{% if selected_status %}&status={{ selected_status }}{% endif %}{% if selected_urgency %}&urgency={{ selected_urgency }}{% endif %}" 
                class="category-chip chip-{{ key|lower }} {% if selected_category == key %}active{% endif %}">
                 {% if key == 'MEDICAL' %}<i class="fa-solid fa-hospital"></i>
                 {% elif key == 'FOOD' %}<i class="fa-solid fa-bowl-food"></i>
@@ -42,7 +42,7 @@
     </div>
 
     <div class="card search-filter-card">
-        <form method="GET" action="{% url 'home:home' %}" class="filter-form" id="searchFilterForm">
+        <form method="GET" action="{% url 'home:dashboard' %}" class="filter-form" id="searchFilterForm">
             {% if selected_category %}
                 <input type="hidden" name="category" value="{{ selected_category }}">
             {% endif %}
@@ -51,7 +51,7 @@
                 <i class="fa-solid fa-magnifying-glass search-icon" aria-hidden="true"></i>
                 <input type="text" name="q" id="searchKeywordInput" value="{{ query }}" placeholder="Search by name, landmark, city, or needed supplies..." aria-label="Search aid resources by name, landmark, city, or needed supplies" class="search-input">
                 {% if query %}
-                    <a href="{% url 'home:home' %}{% if selected_category %}?category={{ selected_category }}{% endif %}" class="clear-search-btn" title="Clear search" aria-label="Clear search">
+                    <a href="{% url 'home:dashboard' %}{% if selected_category %}?category={{ selected_category }}{% endif %}" class="clear-search-btn" title="Clear search" aria-label="Clear search">
                         <i class="fa-solid fa-xmark" aria-hidden="true"></i>
                     </a>
                 {% endif %}
@@ -90,7 +90,7 @@
             </button>
 
             {% if query or selected_category or selected_status or selected_urgency or local_volunteers %}
-                <a href="{% url 'home:home' %}" class="btn btn-secondary btn-reset" title="Reset all filters">
+                <a href="{% url 'home:dashboard' %}" class="btn btn-secondary btn-reset" title="Reset all filters">
                     <i class="fa-solid fa-rotate-left"></i> Reset
                 </a>
             {% endif %}
@@ -229,7 +229,7 @@
                 <i class="fa-solid fa-box-open empty-icon" aria-hidden="true"></i>
                 <h3>No Resources Found</h3>
                 <p>No active aid centers matched your search query or selected filters.</p>
-                <a href="{% url 'home:home' %}" class="btn btn-primary btn-sm">
+                <a href="{% url 'home:dashboard' %}" class="btn btn-primary btn-sm">
                     <i class="fa-solid fa-rotate-left" aria-hidden="true"></i> Clear Filters
                 </a>
             </div>

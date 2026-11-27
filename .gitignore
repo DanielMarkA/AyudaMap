@@ -14,7 +14,3 @@ db.sqlite3-journal
 media/
 
 .vscode/
-
-.impeccable/
-PRODUCT.md
-DESIGN.md

@@ -179,7 +179,7 @@
                                 </div>
                             </div>
                             <div class="contribution-action">
-                                <a href="{% url 'home:home' %}?q={{ res.name }}" class="btn btn-sm btn-outline" title="View on map">
+                                <a href="{% url 'home:map' %}?q={{ res.name|urlencode }}" class="btn btn-sm btn-outline" title="View on public map">
                                     <i class="fa-solid fa-crosshairs"></i> View on Map
                                 </a>
                             </div>
@@ -190,7 +190,7 @@
                 <div class="empty-contributions">
                     <i class="fa-solid fa-hand-holding-medical"></i>
                     <p>You haven't submitted any aid resources yet.</p>
-                    <a href="{% url 'home:home' %}" class="btn btn-sm btn-success">
+                    <a href="{% url 'home:dashboard' %}" class="btn btn-sm btn-success">
                         <i class="fa-solid fa-plus"></i> Submit an Aid Center
                     </a>
                 </div>

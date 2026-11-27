@@ -5,15 +5,17 @@ from .forms import UserRegisterForm
 from apps.profile.models import Profile
 from apps.user_settings.models import UserSettings
 
+
 def register_view(request):
     if request.user.is_authenticated:
-        return redirect("home:home")
+        return redirect("home:dashboard")
 
     if request.method == "POST":
         form = UserRegisterForm(request.POST)
         if form.is_valid():
             user = form.save(commit=False)
             full_name = form.cleaned_data.get('full_name', '').strip()
+            city = form.cleaned_data.get('city', '').strip()
 
             if full_name:
                 name_parts = full_name.split(' ', 1)
@@ -24,15 +26,20 @@ def register_view(request):
             user.save()
 
             profile, _ = Profile.objects.get_or_create(user=user)
-            if full_name:
-                profile.full_name = full_name
-                profile.save()
+            profile.full_name = full_name
+            if city:
+                profile.city = city
+            profile.is_volunteer = True
+            profile.save()
 
             UserSettings.objects.get_or_create(user=user)
 
             login(request, user)
-            messages.success(request, f"Welcome to AyudaMap, {user.username}! Your account has been created.")
-            return redirect("home:home")
+            messages.success(
+                request,
+                f"Welcome to AyudaMap, {full_name or user.username}! Your volunteer account is active.",
+            )
+            return redirect("home:dashboard")
         else:
             return render(request, "register/register.html", {"form": form})
     else:

@@ -1,0 +1,221 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Live Aid Map - AyudaMap{% endblock %}
+{% block body_class %}map-page{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+<link rel="stylesheet" href="{% static 'css/home/map.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="map-shell" id="mapShell">
+    <div id="publicMapStatusLive" class="sr-only" role="status" aria-live="polite"></div>
+
+    <!-- Full-Viewport Interactive Map Canvas -->
+    <div id="publicMapViewport" class="public-map-viewport" role="region" aria-label="Full-screen public community aid map"></div>
+
+    <!-- Mobile Top Search + Chips Overlay (shared DOM via responsive positioning) -->
+    <div class="map-category-bar" id="mapCategoryBar" role="navigation" aria-label="Filter map pins by category">
+        <button type="button" class="map-cat-chip {% if not selected_category %}active{% endif %}" data-category="">
+            <i class="fa-solid fa-layer-group" aria-hidden="true"></i> All
+        </button>
+        {% for key, val in categories %}
+            <button type="button" class="map-cat-chip {% if selected_category == key %}active{% endif %}" data-category="{{ key }}">
+                {% if key == 'MEDICAL' %}<i class="fa-solid fa-hospital" aria-hidden="true"></i> Medical
+                {% elif key == 'FOOD' %}<i class="fa-solid fa-bowl-food" aria-hidden="true"></i> Food
+                {% elif key == 'SHELTER' %}<i class="fa-solid fa-tents" aria-hidden="true"></i> Shelter
+                {% elif key == 'GOV' %}<i class="fa-solid fa-building-columns" aria-hidden="true"></i> Govt Aid
+                {% elif key == 'DONATION' %}<i class="fa-solid fa-hand-holding-dollar" aria-hidden="true"></i> Donation
+                {% else %}{{ val }}{% endif %}
+            </button>
+        {% endfor %}
+    </div>
+
+    <!-- Google Maps-Style Collapsible Left Drawer (Desktop) / Bottom Sheet (Mobile) -->
+    <aside class="map-drawer" id="mapDrawer" aria-label="Aid centers panel">
+        <!-- Mobile Drag/Expand Handle -->
+        <button type="button" class="sheet-handle-btn" id="sheetHandleBtn" aria-expanded="false" aria-controls="drawerBody">
+            <span class="sheet-grabber" aria-hidden="true"></span>
+            <span class="sheet-summary-text" id="sheetSummaryText">
+                <strong id="sheetCountNum">{{ total_count }}</strong> verified aid hub{{ total_count|pluralize }} &middot; Tap to browse
+            </span>
+        </button>
+
+        <!-- Search & Filter Bar -->
+        <div class="drawer-search-bar">
+            <div class="drawer-search-input-wrap">
+                <i class="fa-solid fa-magnifying-glass drawer-search-icon" aria-hidden="true"></i>
+                <input type="text"
+                       id="mapSearchInput"
+                       class="drawer-search-input"
+                       value="{{ query }}"
+                       placeholder="Search shelters, clinics, cities, supplies..."
+                       aria-label="Search verified aid resources">
+                <button type="button" id="mapClearSearchBtn" class="drawer-clear-btn" aria-label="Clear search" hidden>
+                    <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+                </button>
+            </div>
+            <button type="button"
+                    id="mapFilterToggleBtn"
+                    class="drawer-icon-btn"
+                    aria-expanded="false"
+                    aria-controls="mapFilterPanel"
+                    title="Filter by status and urgency"
+                    aria-label="Filter by status and urgency">
+                <i class="fa-solid fa-sliders" aria-hidden="true"></i>
+                <span class="filter-badge-dot" id="filterActiveDot" hidden></span>
+            </button>
+        </div>
+
+        <!-- Collapsible Secondary Filters (Status & Urgency) -->
+        <div class="drawer-filter-panel" id="mapFilterPanel" hidden>
+            <div class="drawer-filter-grid">
+                <div class="drawer-filter-field">
+                    <label for="mapStatusFilter">Status</label>
+                    <select id="mapStatusFilter" class="form-control">
+                        <option value="">All Statuses</option>
+                        {% for key, val in statuses %}
+                            <option value="{{ key }}" {% if selected_status == key %}selected{% endif %}>{{ val }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="drawer-filter-field">
+                    <label for="mapUrgencyFilter">Urgency</label>
+                    <select id="mapUrgencyFilter" class="form-control">
+                        <option value="">All Priorities</option>
+                        {% for key, val in urgencies %}
+                            <option value="{{ key }}" {% if selected_urgency == key %}selected{% endif %}>{{ val }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            <div class="drawer-filter-actions">
+                <button type="button" id="mapResetFiltersBtn" class="btn btn-sm btn-outline">
+                    <i class="fa-solid fa-rotate-left" aria-hidden="true"></i> Reset Filters
+                </button>
+            </div>
+        </div>
+
+        <!-- Drawer Body: List View + Selected Hub Detail View -->
+        <div class="drawer-body" id="drawerBody">
+            <!-- List View -->
+            <div class="drawer-list-view" id="drawerListView">
+                <div class="drawer-list-header">
+                    <span class="drawer-result-count num-cell" id="drawerResultCount">
+                        {{ total_count }} verified hub{{ total_count|pluralize }}
+                    </span>
+                    <span class="urgency-badge urgency-critical" id="drawerCriticalBadge" {% if critical_count == 0 %}hidden{% endif %}>
+                        <i class="fa-solid fa-fire" aria-hidden="true"></i> <span id="drawerCriticalNum">{{ critical_count }}</span> Critical
+                    </span>
+                </div>
+
+                <div class="drawer-results-list" id="mapResultsList">
+                    <!-- Server-rendered initial cards for instant paint / no-JS fallback -->
+                    {% for resource in resources %}
+                        <button type="button"
+                                class="map-result-item"
+                                data-id="{{ resource.id }}">
+                            <div class="result-item-top">
+                                <span class="result-item-title">{{ resource.name }}</span>
+                                {% if resource.status == 'FULL_CAPACITY' %}
+                                    <span class="status-pill status-full">Full</span>
+                                {% elif resource.status == 'TEMPORARILY_CLOSED' %}
+                                    <span class="status-pill status-closed">Closed</span>
+                                {% else %}
+                                    <span class="status-pill status-open">Open</span>
+                                {% endif %}
+                            </div>
+                            <div class="result-item-badges">
+                                <span class="category-badge cat-{{ resource.category|lower }}">{{ resource.get_category_display }}</span>
+                                {% if resource.urgency_level == 'CRITICAL' %}
+                                    <span class="urgency-badge urgency-critical"><i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i> Critical</span>
+                                {% endif %}
+                            </div>
+                            <div class="result-item-meta">
+                                <span><i class="fa-solid fa-location-dot" aria-hidden="true"></i> {{ resource.location }}</span>
+                                <span class="num-cell"><i class="fa-solid fa-users" aria-hidden="true"></i> {{ resource.capacity_available }} / {{ resource.capacity_total }} open</span>
+                            </div>
+                            <div class="result-item-volunteer">
+                                <i class="fa-solid fa-user-shield" aria-hidden="true"></i>
+                                Added by {% if resource.created_by %}{{ resource.created_by.profile.full_name|default:resource.created_by.get_full_name|default:resource.created_by.username }}{% else %}Verified Volunteer{% endif %}
+                            </div>
+                        </button>
+                    {% empty %}
+                        <div class="drawer-empty">
+                            <i class="fa-solid fa-map-location-dot" aria-hidden="true"></i>
+                            <p>No verified aid centers are mapped yet.</p>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Selected Pin Detail View (Read-Only) -->
+            <div class="drawer-detail-view" id="drawerDetailView" hidden>
+                <div class="detail-topbar">
+                    <button type="button" class="detail-back-btn" id="detailBackBtn">
+                        <i class="fa-solid fa-arrow-left" aria-hidden="true"></i> All Results
+                    </button>
+                    <button type="button" class="detail-close-btn" id="detailCloseBtn" aria-label="Close hub details">
+                        <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+                    </button>
+                </div>
+                <div class="detail-content" id="detailContent"></div>
+            </div>
+        </div>
+
+        <!-- Subtle Read-Only Footer Prompt -->
+        <div class="drawer-footer">
+            {% if user.is_authenticated %}
+                <span>Want to add or update a hub?</span>
+                <a href="{% url 'home:dashboard' %}" class="drawer-footer-link">Open Dashboard &rarr;</a>
+            {% else %}
+                <span>Want to help keep aid sites updated?</span>
+                <a href="{% url 'register:register' %}" class="drawer-footer-link">Become a Volunteer &rarr;</a>
+            {% endif %}
+        </div>
+
+        <!-- Desktop Collapse / Expand Edge Tab -->
+        <button type="button"
+                class="drawer-collapse-btn"
+                id="drawerCollapseBtn"
+                aria-expanded="true"
+                aria-controls="mapDrawer"
+                aria-label="Collapse side panel"
+                title="Collapse side panel">
+            <i class="fa-solid fa-chevron-left" aria-hidden="true"></i>
+        </button>
+    </aside>
+
+    <!-- Floating Bottom-Right Map Utilities -->
+    <div class="map-floating-utils">
+        <div class="map-floating-legend" id="publicMapLegend" hidden>
+            <span class="legend-item"><span class="dot dot-medical" aria-hidden="true"></span> Medical</span>
+            <span class="legend-item"><span class="dot dot-food" aria-hidden="true"></span> Food</span>
+            <span class="legend-item"><span class="dot dot-shelter" aria-hidden="true"></span> Shelter</span>
+            <span class="legend-item"><span class="dot dot-gov" aria-hidden="true"></span> Govt Aid</span>
+            <span class="legend-item"><span class="dot dot-donation" aria-hidden="true"></span> Donation</span>
+        </div>
+        <div class="map-util-buttons">
+            <button type="button" class="map-util-btn" id="publicLegendBtn" aria-expanded="false" aria-controls="publicMapLegend" title="Toggle pin legend" aria-label="Toggle pin legend">
+                <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
+            </button>
+            <button type="button" class="map-util-btn" id="publicFitAllBtn" title="Fit all visible pins" aria-label="Fit all visible pins">
+                <i class="fa-solid fa-expand" aria-hidden="true"></i>
+            </button>
+            <button type="button" class="map-util-btn" id="publicLocateBtn" title="Center on my location" aria-label="Center on my location">
+                <i class="fa-solid fa-location-crosshairs" aria-hidden="true"></i>
+            </button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script id="publicMapDataJson" type="application/json">{{ map_data_json|safe }}</script>
+<script id="publicMapConfigJson" type="application/json">{{ user_map_config_json|safe }}</script>
+<script id="publicInitialFiltersJson" type="application/json">{{ initial_filters_json|safe }}</script>
+<script src="{% static 'js/home/map.js' %}"></script>
+{% endblock %}

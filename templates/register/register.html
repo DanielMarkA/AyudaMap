@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Create Account - AyudaMap{% endblock %}
+{% block title %}Become a Volunteer - AyudaMap{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/auth.css' %}">
@@ -14,23 +14,23 @@
         <!-- Left Hero Panel -->
         <div class="auth-hero-panel">
             <div class="hero-brand-badge">
-                <i class="fa-solid fa-hand-holding-heart"></i> Volunteer &amp; Aid Network
+                <i class="fa-solid fa-hand-holding-heart"></i> Volunteer Registration
             </div>
-            <h2>Join the Disaster Relief &amp; Community Aid Network.</h2>
-            <p>Create an account to pin new relief stations, update real-time shelter statuses, and coordinate aid efforts in your city.</p>
+            <h2>Join the Field Volunteer Relief Network.</h2>
+            <p>Anyone can browse the public map without signing up. Register as a volunteer to pin relief hubs, confirm active sites, and keep live capacity accurate.</p>
             
             <div class="hero-feature-list">
                 <div class="feature-item">
                     <i class="fa-solid fa-circle-check"></i>
-                    <span>Pin new emergency food banks, clinics, and relief shelters</span>
+                    <span>Activated as a verified field volunteer immediately on sign-up</span>
                 </div>
                 <div class="feature-item">
                     <i class="fa-solid fa-circle-check"></i>
-                    <span>Get recognized as an active relief coordinator or volunteer</span>
+                    <span>Your full name credits every aid site you add on the public map</span>
                 </div>
                 <div class="feature-item">
                     <i class="fa-solid fa-circle-check"></i>
-                    <span>Help disaster-affected families locate aid in critical hours</span>
+                    <span>Filter and coordinate with fellow volunteers in your city</span>
                 </div>
             </div>
         </div>
@@ -41,8 +41,8 @@
                 <div class="auth-icon-circle register-icon">
                     <i class="fa-solid fa-user-plus"></i>
                 </div>
-                <h1>Create Your AyudaMap Account</h1>
-                <p>Fill out the details below to join the community.</p>
+                <h1>Register as a Volunteer</h1>
+                <p>Your account will be flagged as an active volunteer right away.</p>
             </div>
 
             {% if form.errors %}
@@ -61,19 +61,28 @@
             <form method="POST" class="auth-form" id="registerForm">
                 {% csrf_token %}
                 
-                <div class="form-group">
-                    <label for="{{ form.username.id_for_label }}"><i class="fa-solid fa-user"></i> Username *</label>
-                    {{ form.username }}
+                <div class="form-row">
+                    <div class="form-group col">
+                        <label for="{{ form.username.id_for_label }}"><i class="fa-solid fa-user"></i> Username *</label>
+                        {{ form.username }}
+                    </div>
+
+                    <div class="form-group col">
+                        <label for="{{ form.email.id_for_label }}"><i class="fa-solid fa-envelope"></i> Email Address *</label>
+                        {{ form.email }}
+                    </div>
                 </div>
 
-                <div class="form-group">
-                    <label for="{{ form.email.id_for_label }}"><i class="fa-solid fa-envelope"></i> Email Address *</label>
-                    {{ form.email }}
-                </div>
+                <div class="form-row">
+                    <div class="form-group col">
+                        <label for="{{ form.full_name.id_for_label }}"><i class="fa-solid fa-id-card"></i> Full Name *</label>
+                        {{ form.full_name }}
+                    </div>
 
-                <div class="form-group">
-                    <label for="{{ form.full_name.id_for_label }}"><i class="fa-solid fa-id-card"></i> Full Name (Display Name)</label>
-                    {{ form.full_name }}
+                    <div class="form-group col">
+                        <label for="{{ form.city.id_for_label }}"><i class="fa-solid fa-city"></i> City</label>
+                        {{ form.city }}
+                    </div>
                 </div>
 
                 <div class="form-row">
@@ -99,12 +108,13 @@
                 </div>
 
                 <button type="submit" class="btn btn-primary btn-block btn-auth-submit" id="registerSubmitBtn">
-                    <i class="fa-solid fa-user-check"></i> Register Account
+                    <i class="fa-solid fa-user-check"></i> Register as Volunteer
                 </button>
             </form>
 
             <div class="auth-footer">
-                <p>Already have an account? <a href="{% url 'login:login' %}"><strong>Sign in here</strong></a></p>
+                <p>Already a volunteer? <a href="{% url 'login:login' %}"><strong>Sign in here</strong></a></p>
+                <p style="margin-top: 0.45rem;">Just looking for aid? <a href="{% url 'home:map' %}"><strong>Browse the public Aid Map &rarr;</strong></a></p>
             </div>
         </div>
     </div>

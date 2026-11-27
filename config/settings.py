@@ -76,7 +76,7 @@ TEMPLATES = [
 ]
 
 LOGIN_URL = 'login:login'
-LOGIN_REDIRECT_URL = 'home:home'
+LOGIN_REDIRECT_URL = 'home:dashboard'
 LOGOUT_REDIRECT_URL = 'login:login'
 
 WSGI_APPLICATION = 'config.wsgi.application'
@@ -140,3 +140,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Email backend (Console output for testing)
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
+# Map tiles (CARTO Basemaps API key; falls back to OSM if unset)
+CARTO_API_KEY = os.environ.get('CARTO_API_KEY', '').strip()
+SECURE_REFERRER_POLICY = 'strict-origin-when-cross-origin'

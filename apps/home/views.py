@@ -1,9 +1,9 @@
 import json
+from django.conf import settings
 from django.db.models import Q, F, Count, Sum, Subquery
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from django.db.models import Q, F
 from django.views.decorators.http import require_POST
 from .models import Resource, ResourceStatusLog
 from .forms import ResourceForm
@@ -53,43 +53,135 @@ def _get_impact_summary(resources):
     }
 
 
-def home_view(request):
-    if not request.user.is_authenticated:
-        verified_resources = Resource.objects.filter(is_verified=True)
-        summary = _get_impact_summary(verified_resources)
-        summary['critical_count'] = verified_resources.filter(urgency_level='CRITICAL').count()
-        summary['last_updated'] = (
-            verified_resources.order_by('-updated_at').values_list('updated_at', flat=True).first()
-        )
-        featured = (
-            verified_resources.filter(category='SHELTER', status='OPERATIONAL').order_by('-confirmations', '-capacity_available').first()
-            or verified_resources.filter(status='OPERATIONAL').order_by('-confirmations', '-capacity_available').first()
-            or verified_resources.order_by('-confirmations').first()
-        )
-        status_class_map = {
-            'OPERATIONAL': 'open',
-            'FULL_CAPACITY': 'full',
-            'TEMPORARILY_CLOSED': 'closed',
-        }
-        if featured:
-            feat_total = featured.capacity_total or 0
-            feat_avail = featured.capacity_available or 0
-            feat_pct = round((feat_avail / feat_total) * 100) if feat_total > 0 else 0
-            summary['featured_hub'] = {
-                'name': featured.name,
-                'location': featured.location,
-                'category_code': featured.category,
-                'category_label': featured.get_category_display(),
-                'status_display': featured.get_status_display(),
-                'status_class': status_class_map.get(featured.status, 'open'),
-                'capacity_available': feat_avail,
-                'capacity_total': feat_total,
-                'available_pct': max(0, min(100, feat_pct)),
-            }
-        else:
-            summary['featured_hub'] = None
-        return render(request, 'home/landing.html', summary)
+def _resolve_submitter_info(resource):
+    user = resource.created_by
+    if not user:
+        return "Verified Volunteer", ""
+    profile = getattr(user, 'profile', None)
+    full_name = (
+        (getattr(profile, 'full_name', '') or '').strip()
+        or user.get_full_name().strip()
+        or user.username
+    )
+    organization = (getattr(profile, 'organization', '') or '').strip()
+    return full_name, organization
 
+
+def _serialize_resources_for_map(resources):
+    map_data = []
+    for r in resources:
+        posted_by, posted_by_org = _resolve_submitter_info(r)
+        map_data.append({
+            'id': r.id,
+            'name': r.name,
+            'category': r.get_category_display(),
+            'category_code': r.category,
+            'status': r.status,
+            'status_display': r.get_status_display(),
+            'urgency': r.urgency_level,
+            'urgency_display': r.get_urgency_level_display(),
+            'location': r.location,
+            'description': r.description or '',
+            'supplies_needed': r.supplies_needed or '',
+            'capacity_total': r.capacity_total,
+            'capacity_available': r.capacity_available,
+            'occupancy_percentage': r.occupancy_percentage,
+            'confirmations': r.confirmations,
+            'operating_hours': r.operating_hours,
+            'contact_info': r.contact_info,
+            'posted_by': posted_by,
+            'posted_by_org': posted_by_org,
+            'lat': r.latitude or 10.3157,
+            'lng': r.longitude or 123.8854,
+        })
+    return map_data
+
+
+def _get_user_map_config(request):
+    user_settings = getattr(request.user, 'settings', None) if request.user.is_authenticated else None
+    return {
+        'lat': getattr(user_settings, 'default_latitude', 10.3157),
+        'lng': getattr(user_settings, 'default_longitude', 123.8854),
+        'zoom': getattr(user_settings, 'default_zoom', 12),
+        'carto_api_key': settings.CARTO_API_KEY,
+    }
+
+
+def landing_view(request):
+    verified_resources = Resource.objects.filter(is_verified=True)
+    summary = _get_impact_summary(verified_resources)
+    summary['critical_count'] = verified_resources.filter(urgency_level='CRITICAL').count()
+    summary['last_updated'] = (
+        verified_resources.order_by('-updated_at').values_list('updated_at', flat=True).first()
+    )
+    featured = (
+        verified_resources.filter(category='SHELTER', status='OPERATIONAL').order_by('-confirmations', '-capacity_available').first()
+        or verified_resources.filter(status='OPERATIONAL').order_by('-confirmations', '-capacity_available').first()
+        or verified_resources.order_by('-confirmations').first()
+    )
+    status_class_map = {
+        'OPERATIONAL': 'open',
+        'FULL_CAPACITY': 'full',
+        'TEMPORARILY_CLOSED': 'closed',
+    }
+    if featured:
+        feat_total = featured.capacity_total or 0
+        feat_avail = featured.capacity_available or 0
+        feat_pct = round((feat_avail / feat_total) * 100) if feat_total > 0 else 0
+        summary['featured_hub'] = {
+            'name': featured.name,
+            'location': featured.location,
+            'category_code': featured.category,
+            'category_label': featured.get_category_display(),
+            'status_display': featured.get_status_display(),
+            'status_class': status_class_map.get(featured.status, 'open'),
+            'capacity_available': feat_avail,
+            'capacity_total': feat_total,
+            'available_pct': max(0, min(100, feat_pct)),
+        }
+    else:
+        summary['featured_hub'] = None
+    return render(request, 'home/landing.html', summary)
+
+
+def map_view(request):
+    """Public, read-only full-viewport aid map for guests and volunteers."""
+    query = request.GET.get('q', '').strip()
+    selected_category = request.GET.get('category', '').strip()
+    selected_status = request.GET.get('status', '').strip()
+    selected_urgency = request.GET.get('urgency', '').strip()
+
+    all_verified = Resource.objects.filter(is_verified=True).select_related('created_by', 'created_by__profile')
+    map_data = _serialize_resources_for_map(all_verified)
+    user_map_config = _get_user_map_config(request)
+
+    initial_filters = {
+        'q': query,
+        'category': selected_category,
+        'status': selected_status,
+        'urgency': selected_urgency,
+    }
+
+    context = {
+        'resources': all_verified,
+        'total_count': all_verified.count(),
+        'critical_count': all_verified.filter(urgency_level='CRITICAL').count(),
+        'categories': Resource.CATEGORY_CHOICES,
+        'statuses': Resource.STATUS_CHOICES,
+        'urgencies': Resource.URGENCY_CHOICES,
+        'query': query,
+        'selected_category': selected_category,
+        'selected_status': selected_status,
+        'selected_urgency': selected_urgency,
+        'map_data_json': json.dumps(map_data),
+        'user_map_config_json': json.dumps(user_map_config),
+        'initial_filters_json': json.dumps(initial_filters),
+    }
+    return render(request, 'home/map.html', context)
+
+
+@login_required
+def dashboard_view(request):
     query = request.GET.get('q', '').strip()
     selected_status = request.GET.get('status', '').strip()
     selected_urgency = request.GET.get('urgency', '').strip()
@@ -101,7 +193,7 @@ def home_view(request):
         user_pref = getattr(getattr(request.user, 'settings', None), 'preferred_category', '')
         selected_category = user_pref if user_pref and user_pref != 'ALL' else ''
 
-    resources = Resource.objects.filter(is_verified=True).select_related('created_by')
+    resources = Resource.objects.filter(is_verified=True).select_related('created_by', 'created_by__profile')
 
     if query:
         resources = resources.filter(
@@ -123,35 +215,8 @@ def home_view(request):
         ).values('user')
         resources = resources.filter(created_by__in=Subquery(local_volunteer_ids))
 
-    map_data = []
-    for r in resources:
-        map_data.append({
-            'id': r.id,
-            'name': r.name,
-            'category': r.get_category_display(),
-            'category_code': r.category,
-            'status': r.status,
-            'status_display': r.get_status_display(),
-            'urgency': r.urgency_level,
-            'urgency_display': r.get_urgency_level_display(),
-            'location': r.location,
-            'description': r.description or '',
-            'supplies_needed': r.supplies_needed or '',
-            'capacity_total': r.capacity_total,
-            'capacity_available': r.capacity_available,
-            'confirmations': r.confirmations,
-            'operating_hours': r.operating_hours,
-            'contact_info': r.contact_info,
-            'lat': r.latitude or 10.3157,
-            'lng': r.longitude or 123.8854,
-        })
-        
-    user_settings = getattr(request.user, 'settings', None) if request.user.is_authenticated else None
-    user_map_config = {
-        'lat': getattr(user_settings, 'default_latitude', 10.3157),
-        'lng': getattr(user_settings, 'default_longitude', 123.8854),
-        'zoom': getattr(user_settings, 'default_zoom', 12),
-    }
+    map_data = _serialize_resources_for_map(resources)
+    user_map_config = _get_user_map_config(request)
 
     context = {
         'resources': resources,
@@ -164,11 +229,17 @@ def home_view(request):
         'statuses': Resource.STATUS_CHOICES,
         'urgencies': Resource.URGENCY_CHOICES,
         'map_data_json': json.dumps(map_data),
+        'user_map_config_json': json.dumps(user_map_config),
         'resource_form': ResourceForm(),
         'total_count': resources.count(),
+        'operational_count': resources.filter(status='OPERATIONAL').count(),
         'critical_count': resources.filter(urgency_level='CRITICAL').count(),
     }
     return render(request, 'home/home.html', context)
+
+
+# Preserve alias if imported elsewhere
+home_view = dashboard_view
 
 
 @login_required
@@ -185,12 +256,12 @@ def add_resource_view(request):
             updated_by=request.user,
             action_type='STATUS_UPDATE',
             new_status=resource.status,
-            note=f"Initial submission ({resource.get_urgency_display()})",
+            note=f"Initial submission ({resource.get_urgency_level_display()})",
         )
         messages.success(request, f"Resource '{resource.name}' was successfully added to AyudaMap!")
     else:
         messages.error(request, "Please correct the errors in the form.")
-    return redirect('home:home')
+    return redirect('home:dashboard')
 
 
 @login_required
@@ -207,7 +278,7 @@ def confirm_resource_view(request, resource_id):
         note="Verified active on site",
     )
     messages.success(request, f"Confirmed '{resource.name}' is active!")
-    return redirect('home:home')
+    return redirect('home:dashboard')
 
 
 @login_required
@@ -233,7 +304,8 @@ def update_resource_status_view(request, resource_id):
             note=f"Updated status to {valid_statuses[new_status]}",
         )
         messages.success(request, f"Updated '{resource.name}' to {valid_statuses[new_status]}.")
-    return redirect('home:home')
+    return redirect('home:dashboard')
+
 
 @login_required
 def reports_view(request):

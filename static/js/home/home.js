@@ -44,10 +44,22 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     };
 
-    const getTileUrl = (isDark) => {
-        return isDark
-            ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
-            : 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png';
+    const cartoApiKey = (userMapConfig.carto_api_key || '').trim();
+    const createTileLayer = (isDark) => {
+        if (cartoApiKey) {
+            const base = isDark
+                ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
+                : 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png';
+            return L.tileLayer(`${base}?key=${encodeURIComponent(cartoApiKey)}`, {
+                maxZoom: 19,
+                subdomains: 'abcd',
+                attribution: '&copy; OpenStreetMap contributors &copy; CARTO'
+            });
+        }
+        return L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '&copy; OpenStreetMap contributors'
+        });
     };
 
     if (mapContainer && typeof L === "undefined") {
@@ -60,24 +72,19 @@ document.addEventListener("DOMContentLoaded", () => {
             ? [resources[0].lat, resources[0].lng]
             : [userMapConfig.lat, userMapConfig.lng];
 
+        mapContainer.classList.toggle('map-osm-fallback', !cartoApiKey);
         map = L.map('ayudaMapViewport').setView(defaultCenter, userMapConfig.zoom || 12);
 
-        tileLayer = L.tileLayer(getTileUrl(isDark), {
-            maxZoom: 19,
-            subdomains: 'abcd',
-            attribution: '&copy; OpenStreetMap contributors &copy; CARTO'
-        }).addTo(map);
+        tileLayer = createTileLayer(isDark).addTo(map);
 
-        window.addEventListener("themeChanged", (e) => {
-            if (map && tileLayer) {
-                map.removeLayer(tileLayer);
-                tileLayer = L.tileLayer(getTileUrl(e.detail.isDark), {
-                    maxZoom: 19,
-                    subdomains: 'abcd',
-                    attribution: '&copy; OpenStreetMap contributors &copy; CARTO'
-                }).addTo(map);
-            }
-        });
+        if (cartoApiKey) {
+            window.addEventListener("themeChanged", (e) => {
+                if (map && tileLayer) {
+                    map.removeLayer(tileLayer);
+                    tileLayer = createTileLayer(e.detail.isDark).addTo(map);
+                }
+            });
+        }
 
         const getCategoryColor = (cat) => {
             switch (cat) {
