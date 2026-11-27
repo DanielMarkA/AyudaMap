@@ -6,6 +6,7 @@ from django.contrib import messages
 from django.views.decorators.http import require_POST
 from .models import Resource, ResourceStatusLog
 from .forms import ResourceForm
+from apps.locations import normalize_city
 from apps.profile.models import Profile
 
 
@@ -79,7 +80,8 @@ def _serialize_resources_for_map(resources):
             'status_display': r.get_status_display(),
             'urgency': r.urgency_level,
             'urgency_display': r.get_urgency_level_display(),
-            'location': r.location,
+            'city': r.city,
+            'location': r.display_location,
             'description': r.description or '',
             'supplies_needed': r.supplies_needed or '',
             'capacity_total': r.capacity_total,
@@ -129,7 +131,7 @@ def landing_view(request):
         feat_pct = round((feat_avail / feat_total) * 100) if feat_total > 0 else 0
         summary['featured_hub'] = {
             'name': featured.name,
-            'location': featured.location,
+            'location': featured.display_location,
             'category_code': featured.category,
             'category_label': featured.get_category_display(),
             'status_display': featured.get_status_display(),
@@ -198,6 +200,7 @@ def dashboard_view(request):
         resources = resources.filter(
             Q(name__icontains=query) |
             Q(description__icontains=query) |
+            Q(city__icontains=query) |
             Q(location__icontains=query) |
             Q(supplies_needed__icontains=query)
         )
@@ -209,19 +212,23 @@ def dashboard_view(request):
         resources = resources.filter(urgency_level=selected_urgency)
     if local_volunteers:
         profile = getattr(request.user, 'profile', None)
-        city = getattr(profile, 'city', '').strip()
-        resources = resources.filter(location__icontains=city) if city else resources.none()
+        city = normalize_city(getattr(profile, 'city', ''))
         if city:
             local_volunteer_ids = Profile.objects.filter(
                 is_volunteer=True,
-                city=city,
+                city__iexact=city,
             ).values('user')
-            resources = resources.filter(created_by__in=Subquery(local_volunteer_ids))
+            resources = resources.filter(
+                Q(city__iexact=city) | Q(city='', location__icontains=city),
+                created_by__in=Subquery(local_volunteer_ids),
+            )
         else:
             resources = resources.none()
 
     map_data = _serialize_resources_for_map(resources)
     user_map_config = _get_user_map_config(request)
+    user_city = normalize_city(getattr(getattr(request.user, 'profile', None), 'city', ''))
+    resource_form = ResourceForm(initial={'city': user_city} if user_city else None)
 
     context = {
         'resources': resources,
@@ -235,7 +242,7 @@ def dashboard_view(request):
         'urgencies': Resource.URGENCY_CHOICES,
         'map_data': map_data,
         'user_map_config': user_map_config,
-        'resource_form': ResourceForm(),
+        'resource_form': resource_form,
         'total_count': resources.count(),
         'operational_count': resources.filter(status='OPERATIONAL').count(),
         'critical_count': resources.filter(urgency_level='CRITICAL').count(),

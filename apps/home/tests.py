@@ -24,7 +24,8 @@ class HomeViewTests(TestCase):
             category="MEDICAL",
             status="OPERATIONAL",
             urgency_level="CRITICAL",
-            location="Manila City",
+            city="Manila",
+            location="Sampaloc, Manila",
             operating_hours="24/7",
             contact_info="12345",
             is_verified=True,
@@ -35,7 +36,8 @@ class HomeViewTests(TestCase):
             category="FOOD",
             status="FULL_CAPACITY",
             urgency_level="MEDIUM",
-            location="Pasig City",
+            city="Pasig",
+            location="Ortigas Ave, Pasig",
             operating_hours="8am-5pm",
             contact_info="67890",
             is_verified=True,
@@ -139,7 +141,8 @@ class HomeViewTests(TestCase):
             "description": "Safe shelter for typhoon victims",
             "capacity_total": 100,
             "capacity_available": 80,
-            "location": "Quezon City",
+            "city": "Quezon City",
+            "location": "Maginhawa St, Teachers Village",
             "latitude": 14.65,
             "longitude": 121.05,
             "operating_hours": "24/7",
@@ -150,6 +153,8 @@ class HomeViewTests(TestCase):
         self.assertIsNotNone(res)
         self.assertEqual(res.created_by, self.user)
         self.assertEqual(res.status, "OPERATIONAL")
+        self.assertEqual(res.city, "Quezon City")
+        self.assertEqual(res.display_location, "Maginhawa St, Teachers Village, Quezon City")
 
     def test_add_resource_rejects_available_capacity_above_total(self):
         self.client.force_login(self.user)
@@ -160,10 +165,53 @@ class HomeViewTests(TestCase):
             "urgency_level": "MEDIUM",
             "capacity_total": 10,
             "capacity_available": 20,
-            "location": "Quezon City",
+            "city": "Quezon City",
+            "location": "Maginhawa St",
             "latitude": 14.65,
             "longitude": 121.05,
             "operating_hours": "24/7",
         }, follow=True)
         self.assertContains(response, "Available capacity cannot exceed total capacity.")
         self.assertFalse(Resource.objects.filter(name="New Shelter Center").exists())
+
+    def test_add_resource_rejects_invalid_city(self):
+        self.client.force_login(self.user)
+        response = self.client.post(reverse("home:add_resource"), {
+            "name": "Bad City Hub",
+            "category": "SHELTER",
+            "status": "OPERATIONAL",
+            "urgency_level": "MEDIUM",
+            "capacity_total": 10,
+            "capacity_available": 5,
+            "city": "quezon",
+            "location": "Some Street",
+            "latitude": 14.65,
+            "longitude": 121.05,
+            "operating_hours": "24/7",
+        }, follow=True)
+        self.assertFalse(Resource.objects.filter(name="Bad City Hub").exists())
+
+    def test_local_volunteers_filter_is_case_insensitive_for_legacy_city_casing(self):
+        peer = User.objects.create_user(username="qc_peer", password="Password123!")
+        peer_profile, _ = Profile.objects.get_or_create(user=peer)
+        peer_profile.is_volunteer = True
+        peer_profile.city = "Quezon City"
+        peer_profile.save()
+
+        Resource.objects.create(
+            name="QC Pantry",
+            category="FOOD",
+            status="OPERATIONAL",
+            urgency_level="LOW",
+            city="Quezon City",
+            location="Maginhawa St",
+            is_verified=True,
+            created_by=peer,
+        )
+
+        # Simulate legacy lowercase/alias profile value on the logged-in user
+        Profile.objects.filter(user=self.user).update(city="quezon city")
+        self.client.force_login(self.user)
+        response = self.client.get(reverse("home:dashboard"), {"local_volunteers": "1"})
+        self.assertContains(response, "QC Pantry")
+        self.assertNotContains(response, "Manila City Clinic")

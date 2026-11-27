@@ -102,7 +102,7 @@
             <h3 class="critical-heading"><i class="fa-solid fa-fire" aria-hidden="true"></i> Critical Priority Centers</h3>
             <ul class="critical-list">
                 {% for cr in critical_resources %}
-                    <li><strong>{{ cr.name }}</strong> &mdash; {{ cr.location }} {% if cr.supplies_needed %}(Needs: {{ cr.supplies_needed }}){% endif %}</li>
+                    <li><strong>{{ cr.name }}</strong> &mdash; {{ cr.display_location }} {% if cr.supplies_needed %}(Needs: {{ cr.supplies_needed }}){% endif %}</li>
                 {% endfor %}
             </ul>
         {% endif %}

@@ -428,6 +428,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 const haystack = [
                     r.name,
                     r.description,
+                    r.city,
                     r.location,
                     r.supplies_needed,
                     r.posted_by,

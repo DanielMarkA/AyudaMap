@@ -126,7 +126,7 @@
                                             <span class="urgency-badge urgency-critical">Critical</span>
                                         {% endif %}
                                     </div>
-                                    <div class="ledger-item-sub">{{ resource.location }}</div>
+                                    <div class="ledger-item-sub">{{ resource.display_location }}</div>
                                 </div>
                                 <div class="ledger-stat-col">
                                     <span class="ledger-cap-mini">{{ resource.capacity_available }}/{{ resource.capacity_total }}</span>
@@ -248,9 +248,15 @@
                     </div>
                 </div>
 
-                <div class="form-group">
-                    <label for="{{ resource_form.location.id_for_label }}">Location / Address *</label>
-                    {{ resource_form.location }}
+                <div class="form-row">
+                    <div class="form-group col">
+                        <label for="{{ resource_form.city.id_for_label }}">City *</label>
+                        {{ resource_form.city }}
+                    </div>
+                    <div class="form-group col">
+                        <label for="{{ resource_form.location.id_for_label }}">Street / Barangay / Landmark *</label>
+                        {{ resource_form.location }}
+                    </div>
                 </div>
 
                 <div class="form-row coords-row">

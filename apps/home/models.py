@@ -1,6 +1,7 @@
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.contrib.auth.models import User
+from apps.locations import CITY_CHOICES
 
 
 class Resource(models.Model):
@@ -36,6 +37,14 @@ class Resource(models.Model):
     category = models.CharField(max_length=50, choices=CATEGORY_CHOICES, db_index=True)
     description = models.TextField(blank=True)
     location = models.CharField(max_length=255)
+    city = models.CharField(
+        max_length=100,
+        choices=CITY_CHOICES,
+        blank=True,
+        default='',
+        db_index=True,
+        help_text="Canonical city/municipality for consistent local filtering",
+    )
     latitude = models.FloatField(default=10.3157, help_text="Latitude for map pin")
     longitude = models.FloatField(default=123.8854, help_text="Longitude for map pin")
     operating_hours = models.CharField(max_length=100, default="8:00 AM - 5:00 PM")
@@ -96,6 +105,18 @@ class Resource(models.Model):
             raise ValidationError({
                 'capacity_available': 'Available capacity cannot exceed total capacity.',
             })
+
+    @property
+    def display_location(self):
+        loc = (self.location or '').strip()
+        city = (self.city or '').strip()
+        if not city:
+            return loc
+        if not loc:
+            return city
+        if city.lower() in loc.lower():
+            return loc
+        return f"{loc}, {city}"
 
     @property
     def occupancy_percentage(self):

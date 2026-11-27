@@ -44,3 +44,15 @@ class RegisterViewTests(TestCase):
         })
         self.assertEqual(response.status_code, 200)
         self.assertFalse(User.objects.filter(username="nofullname").exists())
+
+    def test_register_rejects_non_canonical_city(self):
+        response = self.client.post(reverse("register:register"), {
+            "username": "badcityuser",
+            "email": "badcity@test.com",
+            "full_name": "Bad City",
+            "city": "quezon",
+            "password1": "SecurePass2026!",
+            "password2": "SecurePass2026!",
+        })
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(User.objects.filter(username="badcityuser").exists())

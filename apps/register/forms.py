@@ -1,6 +1,7 @@
 from django import forms
 from django.contrib.auth.models import User
 from django.contrib.auth.forms import UserCreationForm
+from apps.locations import OPTIONAL_CITY_CHOICES
 
 
 class UserRegisterForm(UserCreationForm):
@@ -19,11 +20,10 @@ class UserRegisterForm(UserCreationForm):
             'class': 'form-control',
         })
     )
-    city = forms.CharField(
+    city = forms.ChoiceField(
         required=False,
-        max_length=100,
-        widget=forms.TextInput(attrs={
-            'placeholder': 'e.g. Quezon City (optional)',
+        choices=OPTIONAL_CITY_CHOICES,
+        widget=forms.Select(attrs={
             'class': 'form-control',
         })
     )

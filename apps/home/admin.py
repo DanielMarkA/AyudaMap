@@ -4,9 +4,9 @@ from .models import Resource, ResourceStatusLog
 
 @admin.register(Resource)
 class ResourceAdmin(admin.ModelAdmin):
-    list_display = ('name', 'category', 'status', 'urgency_level', 'capacity_available', 'confirmations', 'is_verified')
-    list_filter = ('category', 'status', 'urgency_level', 'is_verified')
-    search_fields = ('name', 'location', 'supplies_needed')
+    list_display = ('name', 'city', 'category', 'status', 'urgency_level', 'capacity_available', 'confirmations', 'is_verified')
+    list_filter = ('city', 'category', 'status', 'urgency_level', 'is_verified')
+    search_fields = ('name', 'city', 'location', 'supplies_needed')
 
 
 @admin.register(ResourceStatusLog)
