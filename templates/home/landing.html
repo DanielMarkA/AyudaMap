@@ -24,13 +24,6 @@
                         <a href="{% url 'login:login' %}" class="hero-signin-link">Volunteer sign in &rarr;</a>
                     {% endif %}
                 </div>
-                <p class="hero-cta-note">No account needed to view aid &middot; Kept current by verified local volunteers.</p>
-                <div class="hero-live-status" aria-label="Current network status">
-                    {% if totals.total_centers > 0 %}
-                        <span class="beacon-dot" aria-hidden="true"></span>
-                    {% endif %}
-                    <span><strong>{{ totals.total_centers|default:0 }}</strong> verified hubs active &middot; <strong>{{ totals.total_confirmations|default:0 }}</strong> confirmations</span>
-                </div>
             </div>
 
             <!-- Static Stylized Aid Map Preview (Zero Leaflet JS / Zero Tile Requests) -->
