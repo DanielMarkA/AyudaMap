@@ -1,4 +1,3 @@
-import json
 from django.conf import settings
 from django.db.models import Q, F, Count, Sum, Subquery
 from django.shortcuts import render, redirect, get_object_or_404
@@ -173,9 +172,9 @@ def map_view(request):
         'selected_category': selected_category,
         'selected_status': selected_status,
         'selected_urgency': selected_urgency,
-        'map_data_json': json.dumps(map_data),
-        'user_map_config_json': json.dumps(user_map_config),
-        'initial_filters_json': json.dumps(initial_filters),
+        'map_data': map_data,
+        'user_map_config': user_map_config,
+        'initial_filters': initial_filters,
     }
     return render(request, 'home/map.html', context)
 
@@ -209,11 +208,16 @@ def dashboard_view(request):
     if selected_urgency:
         resources = resources.filter(urgency_level=selected_urgency)
     if local_volunteers:
-        local_volunteer_ids = Profile.objects.filter(
-            is_volunteer=True,
-            city=request.user.profile.city,
-        ).values('user')
-        resources = resources.filter(created_by__in=Subquery(local_volunteer_ids))
+        profile = getattr(request.user, 'profile', None)
+        city = getattr(profile, 'city', '')
+        if city:
+            local_volunteer_ids = Profile.objects.filter(
+                is_volunteer=True,
+                city=city,
+            ).values('user')
+            resources = resources.filter(created_by__in=Subquery(local_volunteer_ids))
+        else:
+            resources = resources.none()
 
     map_data = _serialize_resources_for_map(resources)
     user_map_config = _get_user_map_config(request)
@@ -228,8 +232,8 @@ def dashboard_view(request):
         'categories': Resource.CATEGORY_CHOICES,
         'statuses': Resource.STATUS_CHOICES,
         'urgencies': Resource.URGENCY_CHOICES,
-        'map_data_json': json.dumps(map_data),
-        'user_map_config_json': json.dumps(user_map_config),
+        'map_data': map_data,
+        'user_map_config': user_map_config,
         'resource_form': ResourceForm(),
         'total_count': resources.count(),
         'operational_count': resources.filter(status='OPERATIONAL').count(),
@@ -260,7 +264,11 @@ def add_resource_view(request):
         )
         messages.success(request, f"Resource '{resource.name}' was successfully added to AyudaMap!")
     else:
-        messages.error(request, "Please correct the errors in the form.")
+        for field in form:
+            for error in field.errors:
+                messages.error(request, f"{field.label}: {error}")
+        for error in form.non_field_errors():
+            messages.error(request, error)
     return redirect('home:dashboard')
 
 

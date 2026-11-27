@@ -1,3 +1,4 @@
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.contrib.auth.models import User
 
@@ -84,6 +85,17 @@ class Resource(models.Model):
         ]
         verbose_name = 'Aid Resource'
         verbose_name_plural = 'Aid Resources'
+
+    def clean(self):
+        super().clean()
+        if (
+            self.capacity_total is not None
+            and self.capacity_available is not None
+            and self.capacity_available > self.capacity_total
+        ):
+            raise ValidationError({
+                'capacity_available': 'Available capacity cannot exceed total capacity.',
+            })
 
     @property
     def occupancy_percentage(self):

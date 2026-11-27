@@ -61,6 +61,19 @@ class HomeViewTests(TestCase):
         self.assertContains(response, "Pasig Food Pantry")
         self.assertContains(response, "Juan Dela Cruz")
 
+    def test_map_json_escapes_html_characters(self):
+        self.resource1.name = "Clinic <East> & West"
+        self.resource1.save(update_fields=["name"])
+        self.client.force_login(self.user)
+
+        for route in ("home:map", "home:dashboard"):
+            with self.subTest(route=route):
+                response = self.client.get(reverse(route))
+                self.assertContains(response, r'"Clinic \u003CEast\u003E \u0026 West"')
+
+        response = self.client.get(reverse("home:map"), {"q": "<East> & West"})
+        self.assertContains(response, r'"q": "\u003CEast\u003E \u0026 West"')
+
     def test_dashboard_requires_login(self):
         response = self.client.get(reverse("home:dashboard"))
         self.assertRedirects(response, f"{reverse('login:login')}?next={reverse('home:dashboard')}")
@@ -104,6 +117,18 @@ class HomeViewTests(TestCase):
         self.assertContains(response, "Pasig Food Pantry")
         self.assertNotContains(response, "Manila City Clinic")
 
+    def test_dashboard_local_volunteers_filter_without_profile(self):
+        self.client.force_login(self.user)
+        dashboard_url = reverse("home:dashboard")
+        response = self.client.get(dashboard_url, {"local_volunteers": "1"})
+        self.assertContains(response, "Manila City Clinic")
+        self.assertNotContains(response, "Pasig Food Pantry")
+
+        Profile.objects.filter(user=self.user).delete()
+        response = self.client.get(dashboard_url, {"local_volunteers": "1"})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(list(response.context["resources"]), [])
+
     def test_add_resource_view(self):
         self.client.login(username="testuser", password="Password123!")
         response = self.client.post(reverse("home:add_resource"), {
@@ -125,3 +150,20 @@ class HomeViewTests(TestCase):
         self.assertIsNotNone(res)
         self.assertEqual(res.created_by, self.user)
         self.assertEqual(res.status, "OPERATIONAL")
+
+    def test_add_resource_rejects_available_capacity_above_total(self):
+        self.client.force_login(self.user)
+        response = self.client.post(reverse("home:add_resource"), {
+            "name": "New Shelter Center",
+            "category": "SHELTER",
+            "status": "OPERATIONAL",
+            "urgency_level": "MEDIUM",
+            "capacity_total": 10,
+            "capacity_available": 20,
+            "location": "Quezon City",
+            "latitude": 14.65,
+            "longitude": 121.05,
+            "operating_hours": "24/7",
+        }, follow=True)
+        self.assertContains(response, "Available capacity cannot exceed total capacity.")
+        self.assertFalse(Resource.objects.filter(name="New Shelter Center").exists())
