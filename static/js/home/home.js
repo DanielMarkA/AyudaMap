@@ -112,18 +112,18 @@ document.addEventListener("DOMContentLoaded", () => {
             let bg = '#2e7d32';
             if (status === 'FULL_CAPACITY') bg = '#c2410c';
             else if (status === 'TEMPORARILY_CLOSED') bg = '#c62828';
-            return `<span style="display:inline-block; font-size: 10px; padding: 2px 6px; border-radius: 9999px; background: ${bg}; color: white; font-weight: 700; margin-left: 4px;">${escapeHtml(statusDisplay || status)}</span>`;
+            return `<span class="ayuda-popup-status" style="background: ${bg};">${escapeHtml(statusDisplay || status)}</span>`;
         };
 
         resources.forEach(res => {
             if (res.lat && res.lng) {
                 const color = getCategoryColor(res.category_code);
                 const iconClass = getCategoryIconClass(res.category_code);
-                const criticalClass = res.urgency === 'CRITICAL' ? 'pin-critical' : '';
+                const criticalClass = res.urgency === 'CRITICAL' ? ' pin-critical' : '';
 
                 const customIcon = L.divIcon({
                     className: 'custom-map-pin',
-                    html: `<div class="${criticalClass}" style="background-color: ${color}; width: 28px; height: 28px; border-radius: 50%; border: 2.5px solid white; box-shadow: 0 3px 8px rgba(0,0,0,0.38); display: flex; align-items: center; justify-content: center; color: white; font-size: 12px; cursor: pointer;"><i class="fa-solid ${iconClass}"></i></div>`,
+                    html: `<div class="ayuda-pin-circle${criticalClass}" style="background-color: ${color};"><i class="fa-solid ${iconClass}"></i></div>`,
                     iconSize: [28, 28],
                     iconAnchor: [14, 14]
                 });
@@ -232,7 +232,7 @@ document.addEventListener("DOMContentLoaded", () => {
                         } else {
                             const userIcon = L.divIcon({
                                 className: 'user-location-pin',
-                                html: `<div style="background-color: #0284c7; width: 22px; height: 22px; border-radius: 50%; border: 3px solid white; box-shadow: 0 0 10px rgba(2,132,199,0.8); display: flex; align-items: center; justify-content: center; color: white; font-size: 9px;"><i class="fa-solid fa-user"></i></div>`,
+                                html: `<div class="ayuda-pin-user"><i class="fa-solid fa-user"></i></div>`,
                                 iconSize: [22, 22],
                                 iconAnchor: [11, 11]
                             });
@@ -278,7 +278,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     clickPickerMarker = L.marker(e.latlng, {
                         icon: L.divIcon({
                             className: 'picker-pin',
-                            html: `<div style="background-color: #0d9488; width: 24px; height: 24px; border-radius: 50%; border: 2px solid white; box-shadow: 0 0 10px rgba(13,148,136,0.8); display: flex; align-items: center; justify-content: center; color: white; font-size: 11px;"><i class="fa-solid fa-crosshairs"></i></div>`,
+                            html: `<div class="ayuda-pin-picker"><i class="fa-solid fa-crosshairs"></i></div>`,
                             iconSize: [24, 24],
                             iconAnchor: [12, 12]
                         })

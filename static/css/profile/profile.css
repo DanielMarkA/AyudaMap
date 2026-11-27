@@ -60,7 +60,7 @@ html.dark-mode .profile-banner {
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.75rem;
+    font-size: 1.55rem;
 }
 
 .profile-id-text {
@@ -75,7 +75,7 @@ html.dark-mode .profile-banner {
 }
 
 .profile-name-row h1 {
-    font-size: 1.4rem;
+    font-size: 1.55rem;
     font-weight: 700;
     margin: 0;
     color: #ffffff;
@@ -114,7 +114,7 @@ html.dark-mode .profile-banner {
 
 .profile-bio {
     font-size: 0.88rem;
-    color: #f1f5f9;
+    color: #e2e8f0;
     margin: 0.45rem 0 0;
     max-width: 56ch;
     line-height: 1.45;
@@ -123,16 +123,20 @@ html.dark-mode .profile-banner {
 
 .profile-kpis {
     display: flex;
-    gap: 0.75rem;
+    align-items: center;
+    gap: 1.25rem;
     flex-wrap: wrap;
 }
 
 .profile-kpi {
-    background-color: rgba(255, 255, 255, 0.12);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    border-radius: var(--radius-sm);
-    padding: 0.55rem 0.95rem;
-    min-width: 108px;
+    padding: 0.25rem 0 0.25rem 1.25rem;
+    border-left: 1px solid rgba(255, 255, 255, 0.24);
+    min-width: 96px;
+}
+
+.profile-kpi:first-child {
+    padding-left: 0;
+    border-left: none;
 }
 
 .profile-kpi-num {
@@ -157,12 +161,6 @@ html.dark-mode .profile-banner {
     position: relative;
 }
 
-.profile-tab-radio {
-    position: absolute;
-    opacity: 0;
-    pointer-events: none;
-}
-
 .profile-tab-bar {
     display: flex;
     align-items: center;
@@ -181,14 +179,22 @@ html.dark-mode .profile-banner {
     font-size: 0.88rem;
     font-weight: 600;
     color: var(--text-muted);
-    cursor: pointer;
+    background: none;
+    border: none;
     border-bottom: 2.5px solid transparent;
+    cursor: pointer;
+    font-family: inherit;
     white-space: nowrap;
     transition: color 0.14s ease, border-color 0.14s ease;
 }
 
 .profile-tab-lbl:hover {
     color: var(--text-primary);
+}
+
+.profile-tab-lbl:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: -2px;
 }
 
 .profile-tab-count {
@@ -199,29 +205,17 @@ html.dark-mode .profile-banner {
     color: var(--text-primary);
 }
 
-#profileTabEdit:checked ~ .profile-tab-bar label[for="profileTabEdit"],
-#profileTabHubs:checked ~ .profile-tab-bar label[for="profileTabHubs"],
-#profileTabLogs:checked ~ .profile-tab-bar label[for="profileTabLogs"] {
+.profile-tab-lbl[aria-selected="true"] {
     color: var(--primary-text);
     border-bottom-color: var(--primary);
 }
 
-#profileTabEdit:focus-visible ~ .profile-tab-bar label[for="profileTabEdit"],
-#profileTabHubs:focus-visible ~ .profile-tab-bar label[for="profileTabHubs"],
-#profileTabLogs:focus-visible ~ .profile-tab-bar label[for="profileTabLogs"] {
-    outline: 2px solid var(--primary);
-    outline-offset: -2px;
-}
-
 .profile-panel {
-    display: none;
     padding: 1.5rem 1.75rem;
 }
 
-#profileTabEdit:checked ~ .profile-panel-edit,
-#profileTabHubs:checked ~ .profile-panel-hubs,
-#profileTabLogs:checked ~ .profile-panel-logs {
-    display: block;
+.profile-panel[hidden] {
+    display: none;
 }
 
 /* Edit Profile Form */

@@ -14,7 +14,7 @@
         <div class="profile-identity">
             <div class="profile-avatar-container">
                 {% if profile.profile_image %}
-                    <img src="{{ profile.profile_image.url }}" alt="Profile photo of {{ profile.full_name|default:user.username }}" class="profile-avatar" id="avatarPreview">
+                    <img src="{{ profile.profile_image.url }}" alt="Profile photo of {{ profile.full_name|default:user.username }}" width="78" height="78" decoding="async" class="profile-avatar" id="avatarPreview">
                 {% else %}
                     <div class="profile-avatar-placeholder" id="avatarPlaceholder" aria-hidden="true">
                         <i class="fa-solid fa-user-shield" aria-hidden="true"></i>
@@ -57,26 +57,22 @@
 
     <!-- Focused Tabbed Workspace -->
     <div class="card profile-tabs-card">
-        <input type="radio" name="profileTab" id="profileTabEdit" class="profile-tab-radio" checked>
-        <input type="radio" name="profileTab" id="profileTabHubs" class="profile-tab-radio">
-        <input type="radio" name="profileTab" id="profileTabLogs" class="profile-tab-radio">
-
         <div class="profile-tab-bar" role="tablist" aria-label="Profile sections">
-            <label for="profileTabEdit" class="profile-tab-lbl">
+            <button type="button" role="tab" id="profileTabEdit" class="profile-tab-lbl" aria-selected="true" aria-controls="profilePanelEdit" tabindex="0">
                 <i class="fa-solid fa-user-pen" aria-hidden="true"></i> Edit Profile
-            </label>
-            <label for="profileTabHubs" class="profile-tab-lbl">
+            </button>
+            <button type="button" role="tab" id="profileTabHubs" class="profile-tab-lbl" aria-selected="false" aria-controls="profilePanelHubs" tabindex="-1">
                 <i class="fa-solid fa-map-location-dot" aria-hidden="true"></i> My Aid Hubs
                 <span class="profile-tab-count">{{ my_resources_count }}</span>
-            </label>
-            <label for="profileTabLogs" class="profile-tab-lbl">
+            </button>
+            <button type="button" role="tab" id="profileTabLogs" class="profile-tab-lbl" aria-selected="false" aria-controls="profilePanelLogs" tabindex="-1">
                 <i class="fa-solid fa-clipboard-check" aria-hidden="true"></i> Field Activity
                 <span class="profile-tab-count">{{ my_logs|length }}</span>
-            </label>
+            </button>
         </div>
 
         <!-- Tab 1: Edit Profile -->
-        <div class="profile-panel profile-panel-edit">
+        <div class="profile-panel profile-panel-edit" id="profilePanelEdit" role="tabpanel" aria-labelledby="profileTabEdit">
             <form method="POST" enctype="multipart/form-data" class="profile-form" id="profileForm">
                 {% csrf_token %}
                 <div class="profile-form-grid">
@@ -134,7 +130,7 @@
         </div>
 
         <!-- Tab 2: My Submitted Aid Hubs -->
-        <div class="profile-panel profile-panel-hubs">
+        <div class="profile-panel profile-panel-hubs" id="profilePanelHubs" role="tabpanel" aria-labelledby="profileTabHubs" hidden>
             {% if my_resources %}
                 {% for res in my_resources %}
                     <div class="profile-ledger-row">
@@ -169,7 +165,7 @@
         </div>
 
         <!-- Tab 3: Field Verification Activity -->
-        <div class="profile-panel profile-panel-logs">
+        <div class="profile-panel profile-panel-logs" id="profilePanelLogs" role="tabpanel" aria-labelledby="profileTabLogs" hidden>
             {% if my_logs %}
                 {% for log in my_logs %}
                     <div class="profile-ledger-row">

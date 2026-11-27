@@ -68,20 +68,20 @@
                             <span class="user-greeting">{{ user.first_name|default:user.username }}</span>
                             <i class="fa-solid fa-chevron-down user-menu-caret" aria-hidden="true"></i>
                         </summary>
-                        <div class="user-dropdown" role="menu">
+                        <div class="user-dropdown">
                             <div class="user-dropdown-header">
                                 <span class="user-dropdown-label">Signed in as</span>
                                 <span class="user-dropdown-name">{{ user.get_full_name|default:user.username }}</span>
                                 <span class="user-dropdown-email">{{ user.email|default:user.username }}</span>
                             </div>
-                            <a href="{% url 'profile:profile' %}" class="user-dropdown-item {% if request.resolver_match.app_name == 'profile' %}active{% endif %}" role="menuitem" {% if request.resolver_match.app_name == 'profile' %}aria-current="page"{% endif %}>
+                            <a href="{% url 'profile:profile' %}" class="user-dropdown-item {% if request.resolver_match.app_name == 'profile' %}active{% endif %}" {% if request.resolver_match.app_name == 'profile' %}aria-current="page"{% endif %}>
                                 <i class="fa-solid fa-user" aria-hidden="true"></i> Profile
                             </a>
-                            <a href="{% url 'user_settings:settings' %}" class="user-dropdown-item {% if request.resolver_match.app_name == 'user_settings' %}active{% endif %}" role="menuitem" {% if request.resolver_match.app_name == 'user_settings' %}aria-current="page"{% endif %}>
+                            <a href="{% url 'user_settings:settings' %}" class="user-dropdown-item {% if request.resolver_match.app_name == 'user_settings' %}active{% endif %}" {% if request.resolver_match.app_name == 'user_settings' %}aria-current="page"{% endif %}>
                                 <i class="fa-solid fa-gear" aria-hidden="true"></i> Settings
                             </a>
-                            <div class="user-dropdown-sep" role="separator"></div>
-                            <a href="{% url 'login:logout' %}" class="user-dropdown-item is-danger" role="menuitem">
+                            <div class="user-dropdown-sep" aria-hidden="true"></div>
+                            <a href="{% url 'login:logout' %}" class="user-dropdown-item is-danger">
                                 <i class="fa-solid fa-right-from-bracket" aria-hidden="true"></i> Sign out
                             </a>
                         </div>
@@ -236,8 +236,5 @@
     });
     </script>
     {% block extra_js %}{% endblock %}
-<!-- impeccable-live-start -->
-<script src="http://localhost:8400/live.js?token=305dddc1-2fd7-49ca-82c8-f6ea431315bd"></script>
-<!-- impeccable-live-end -->
 </body>
 </html>

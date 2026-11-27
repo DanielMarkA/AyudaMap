@@ -28,7 +28,7 @@
 }
 
 .settings-top h1 {
-    font-size: 1.45rem;
+    font-size: 1.55rem;
     font-weight: 700;
     margin: 0 0 0.2rem;
     color: var(--text-primary);
@@ -48,9 +48,9 @@
     border-radius: 9999px;
     font-size: 0.78rem;
     font-weight: 600;
-    background-color: color-mix(in srgb, var(--success-dark) 12%, transparent);
-    color: var(--success-dark);
-    border: 1px solid color-mix(in srgb, var(--success-dark) 28%, transparent);
+    background-color: #d1fae5;
+    color: #065f46;
+    border: 1px solid rgba(6, 95, 70, 0.25);
 }
 
 html.dark-mode .settings-status-pill {
@@ -144,6 +144,7 @@ html.dark-mode .settings-status-pill {
     margin: 0;
     font-size: 0.84rem;
     color: var(--text-muted);
+    text-wrap: pretty;
 }
 
 .settings-prefs-form,
