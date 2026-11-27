@@ -107,6 +107,7 @@ textarea {
     max-width: 1200px;
     margin: 0 auto;
     padding: 0.75rem 1.5rem;
+    column-gap: 0.875rem;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -142,7 +143,45 @@ textarea {
 .nav-links {
     display: flex;
     align-items: center;
-    gap: 1.15rem;
+    gap: 0.875rem;
+    margin-left: auto;
+}
+
+.header-controls {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-shrink: 0;
+}
+
+.nav-divider {
+    width: 1px;
+    height: 20px;
+    background-color: rgba(255, 255, 255, 0.24);
+    flex-shrink: 0;
+}
+
+.nav-auth-group {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+}
+
+@media (max-width: 768px) {
+    .nav-links {
+        margin-left: 0;
+    }
+    .header-controls {
+        margin-left: auto;
+    }
+    .nav-divider {
+        display: none;
+    }
+    .nav-auth-group {
+        flex-direction: column;
+        align-items: stretch;
+        width: 100%;
+    }
 }
 
 .nav-item {
