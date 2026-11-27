@@ -27,7 +27,21 @@ if not SECRET_KEY:
     else:
         raise ImproperlyConfigured("The SECRET_KEY environment variable must be set when DEBUG is False.")
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = [
+    host.strip() for host in os.environ.get('DJANGO_ALLOWED_HOSTS', '').split(',')
+    if host.strip()
+]
+if DEBUG and not ALLOWED_HOSTS:
+    ALLOWED_HOSTS = ['localhost', '127.0.0.1', '[::1]']
+if not DEBUG and (not ALLOWED_HOSTS or '*' in ALLOWED_HOSTS):
+    raise ImproperlyConfigured("Set DJANGO_ALLOWED_HOSTS to your deployment hostnames.")
+
+SECURE_SSL_REDIRECT = not DEBUG
+SESSION_COOKIE_SECURE = not DEBUG
+CSRF_COOKIE_SECURE = not DEBUG
+SECURE_HSTS_SECONDS = 0 if DEBUG else 3600
+if os.environ.get('DJANGO_TRUST_PROXY_HTTPS', '').lower() == 'true':
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 
 # Application definition
@@ -82,22 +96,28 @@ LOGOUT_REDIRECT_URL = 'login:login'
 WSGI_APPLICATION = 'config.wsgi.application'
 
 
-# Database - Supabase PostgreSQL (via DATABASE_URL in .env) with SQLite fallback
-if os.environ.get("DATABASE_URL"):
+# SQLite is available for local development only.
+database_url = os.environ.get('DATABASE_URL', '').strip()
+if database_url:
     DATABASES = {
         "default": dj_database_url.parse(
-            os.environ["DATABASE_URL"],
+            database_url,
             conn_max_age=0,
             ssl_require=True,
         )
     }
-else:
+elif DEBUG:
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
             'NAME': BASE_DIR / 'db.sqlite3',
         }
     }
+else:
+    raise ImproperlyConfigured("Set DATABASE_URL to your production PostgreSQL database.")
+
+if not DEBUG and DATABASES['default']['ENGINE'] != 'django.db.backends.postgresql':
+    raise ImproperlyConfigured("DATABASE_URL must point to PostgreSQL when DEBUG is False.")
 
 
 # Password validation
@@ -133,13 +153,16 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 # Media files
 MEDIA_URL = 'media/'
-MEDIA_ROOT = BASE_DIR / 'media'
+MEDIA_ROOT = Path(os.environ.get('DJANGO_MEDIA_ROOT') or BASE_DIR / 'media')
 
 # Default primary key field type
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# Email backend (Console output for testing)
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+# AyudaMap does not send email. Keep development output out of production logs.
+EMAIL_BACKEND = (
+    'django.core.mail.backends.console.EmailBackend' if DEBUG
+    else 'django.core.mail.backends.dummy.EmailBackend'
+)
 
 # Map tiles (CARTO Basemaps API key; falls back to OSM if unset)
 CARTO_API_KEY = os.environ.get('CARTO_API_KEY', '').strip()
