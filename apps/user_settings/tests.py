@@ -24,6 +24,9 @@ class UserSettingsViewTests(TestCase):
             "dark_mode": True,
             "email_notifications": True,
             "notify_on_new_resources": False,
+            "default_latitude": 14.65,
+            "default_longitude": 121.05,
+            "default_zoom": 18,
         })
         self.assertRedirects(response, reverse("user_settings:settings"))
         
@@ -31,6 +34,21 @@ class UserSettingsViewTests(TestCase):
         self.assertTrue(settings.dark_mode)
         self.assertTrue(settings.email_notifications)
         self.assertFalse(settings.notify_on_new_resources)
+        self.assertEqual(settings.default_zoom, 18)
+
+    def test_settings_rejects_zoom_outside_supported_range(self):
+        self.client.force_login(self.user)
+        for zoom in (4, 19):
+            with self.subTest(zoom=zoom):
+                response = self.client.post(reverse("user_settings:settings"), {
+                    "action": "save_settings",
+                    "default_latitude": 14.65,
+                    "default_longitude": 121.05,
+                    "default_zoom": zoom,
+                })
+                self.assertEqual(response.status_code, 200)
+                self.assertIn("default_zoom", response.context["form"].errors)
+                self.assertEqual(UserSettings.objects.get(user=self.user).default_zoom, 12)
 
     def test_change_password(self):
         self.client.login(username="testsettingsuser", password="Password123!")

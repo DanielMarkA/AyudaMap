@@ -1,4 +1,5 @@
 from django.contrib.auth.models import User
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.db.models.signals import post_save
 from django.dispatch import receiver
@@ -24,7 +25,11 @@ class UserSettings(models.Model):
     )
     default_latitude = models.FloatField(default=10.3157, help_text="Default map latitude on login")
     default_longitude = models.FloatField(default=123.8854, help_text="Default map longitude on login")
-    default_zoom = models.PositiveSmallIntegerField(default=12, help_text="Default map zoom level (5-18)")
+    default_zoom = models.PositiveSmallIntegerField(
+        default=12,
+        validators=[MinValueValidator(5), MaxValueValidator(18)],
+        help_text="Default map zoom level (5-18)",
+    )
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
