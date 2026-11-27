@@ -55,26 +55,37 @@
                     <a href="{% url 'home:reports' %}" class="nav-item {% if request.resolver_match.url_name == 'reports' %}active{% endif %}" {% if request.resolver_match.url_name == 'reports' %}aria-current="page"{% endif %}>
                         <i class="fa-solid fa-chart-pie" aria-hidden="true"></i> Reports
                     </a>
-                    <a href="{% url 'profile:profile' %}" class="nav-item {% if request.resolver_match.app_name == 'profile' %}active{% endif %}" {% if request.resolver_match.app_name == 'profile' %}aria-current="page"{% endif %}>
-                        <i class="fa-solid fa-user" aria-hidden="true"></i> Profile
-                    </a>
-                    <a href="{% url 'user_settings:settings' %}" class="nav-item {% if request.resolver_match.app_name == 'user_settings' %}active{% endif %}" {% if request.resolver_match.app_name == 'user_settings' %}aria-current="page"{% endif %}>
-                        <i class="fa-solid fa-gear" aria-hidden="true"></i> Settings
-                    </a>
                     <span class="nav-divider" aria-hidden="true"></span>
-                    <div class="user-pill">
-                        {% if user.profile.profile_image %}
-                            <img src="{{ user.profile.profile_image.url }}" alt="" width="26" height="26" decoding="async" class="nav-avatar">
-                        {% else %}
-                            <div class="nav-avatar-placeholder" aria-hidden="true">
-                                <i class="fa-solid fa-user"></i>
+                    <details class="user-menu" id="userAccountMenu">
+                        <summary class="user-menu-trigger {% if request.resolver_match.app_name == 'profile' or request.resolver_match.app_name == 'user_settings' %}has-active{% endif %}" aria-label="Account menu">
+                            {% if user.profile.profile_image %}
+                                <img src="{{ user.profile.profile_image.url }}" alt="" width="26" height="26" decoding="async" class="nav-avatar">
+                            {% else %}
+                                <div class="nav-avatar-placeholder" aria-hidden="true">
+                                    <i class="fa-solid fa-user"></i>
+                                </div>
+                            {% endif %}
+                            <span class="user-greeting">{{ user.first_name|default:user.username }}</span>
+                            <i class="fa-solid fa-chevron-down user-menu-caret" aria-hidden="true"></i>
+                        </summary>
+                        <div class="user-dropdown" role="menu">
+                            <div class="user-dropdown-header">
+                                <span class="user-dropdown-label">Signed in as</span>
+                                <span class="user-dropdown-name">{{ user.get_full_name|default:user.username }}</span>
+                                <span class="user-dropdown-email">{{ user.email|default:user.username }}</span>
                             </div>
-                        {% endif %}
-                        <span class="user-greeting">{{ user.first_name|default:user.username }}</span>
-                        <a href="{% url 'login:logout' %}" class="btn-logout" title="Sign out" aria-label="Sign out">
-                            <i class="fa-solid fa-right-from-bracket" aria-hidden="true"></i>
-                        </a>
-                    </div>
+                            <a href="{% url 'profile:profile' %}" class="user-dropdown-item {% if request.resolver_match.app_name == 'profile' %}active{% endif %}" role="menuitem" {% if request.resolver_match.app_name == 'profile' %}aria-current="page"{% endif %}>
+                                <i class="fa-solid fa-user" aria-hidden="true"></i> Profile
+                            </a>
+                            <a href="{% url 'user_settings:settings' %}" class="user-dropdown-item {% if request.resolver_match.app_name == 'user_settings' %}active{% endif %}" role="menuitem" {% if request.resolver_match.app_name == 'user_settings' %}aria-current="page"{% endif %}>
+                                <i class="fa-solid fa-gear" aria-hidden="true"></i> Settings
+                            </a>
+                            <div class="user-dropdown-sep" role="separator"></div>
+                            <a href="{% url 'login:logout' %}" class="user-dropdown-item is-danger" role="menuitem">
+                                <i class="fa-solid fa-right-from-bracket" aria-hidden="true"></i> Sign out
+                            </a>
+                        </div>
+                    </details>
                 {% else %}
                     <a href="{% url 'home:map' %}" class="nav-item {% if request.resolver_match.url_name == 'map' %}active{% endif %}" {% if request.resolver_match.url_name == 'map' %}aria-current="page"{% endif %}>
                         <i class="fa-solid fa-map" aria-hidden="true"></i> Aid Map
@@ -202,6 +213,23 @@
                     !navToggle.contains(e.target)
                 ) {
                     setNavOpen(false);
+                }
+            });
+        }
+
+        // 3. Account Menu Dropdown (Escape & outside-click dismiss)
+        const userMenu = document.getElementById("userAccountMenu");
+        if (userMenu) {
+            document.addEventListener("click", function(e) {
+                if (userMenu.open && !userMenu.contains(e.target)) {
+                    userMenu.removeAttribute("open");
+                }
+            });
+            document.addEventListener("keydown", function(e) {
+                if (e.key === "Escape" && userMenu.open) {
+                    userMenu.removeAttribute("open");
+                    const summary = userMenu.querySelector("summary");
+                    if (summary) summary.focus();
                 }
             });
         }
