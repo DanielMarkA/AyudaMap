@@ -209,7 +209,8 @@ def dashboard_view(request):
         resources = resources.filter(urgency_level=selected_urgency)
     if local_volunteers:
         profile = getattr(request.user, 'profile', None)
-        city = getattr(profile, 'city', '')
+        city = getattr(profile, 'city', '').strip()
+        resources = resources.filter(location__icontains=city) if city else resources.none()
         if city:
             local_volunteer_ids = Profile.objects.filter(
                 is_volunteer=True,

@@ -384,6 +384,35 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
+    const ledgerItems = Array.from(document.querySelectorAll(".ledger-item"));
+    if (ledgerItems.length) {
+        ledgerItems.forEach((item) => {
+            item.addEventListener("toggle", () => {
+                if (item.open) {
+                    ledgerItems.forEach((other) => {
+                        if (other !== item && other.open) other.removeAttribute("open");
+                    });
+                }
+            });
+        });
+        document.addEventListener("click", (e) => {
+            ledgerItems.forEach((item) => {
+                if (item.open && !item.contains(e.target)) {
+                    item.removeAttribute("open");
+                }
+            });
+        });
+        document.addEventListener("keydown", (e) => {
+            if (e.key !== "Escape") return;
+            const openItem = ledgerItems.find((item) => item.open);
+            if (openItem) {
+                openItem.removeAttribute("open");
+                const summary = openItem.querySelector("summary");
+                if (summary) summary.focus();
+            }
+        });
+    }
+
     if (modalGpsBtn && navigator.geolocation) {
         modalGpsBtn.addEventListener("click", () => {
             modalGpsBtn.disabled = true;
