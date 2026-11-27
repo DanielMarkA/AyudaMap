@@ -17,7 +17,6 @@
                 <i class="fa-solid fa-hand-holding-heart" aria-hidden="true"></i> Volunteer Portal
             </div>
             <h2>Keep Community Relief Information Live and Verified.</h2>
-            <p>Sign in as an AyudaMap volunteer to pin new aid centers, confirm active shelters, and update live status and capacity from the field.</p>
             
             <div class="hero-feature-list">
                 <div class="feature-item">
@@ -41,8 +40,7 @@
                 <div class="auth-icon-circle">
                     <i class="fa-solid fa-right-to-bracket" aria-hidden="true"></i>
                 </div>
-                <h1>Volunteer Sign In</h1>
-                <p>Enter your volunteer credentials to open the dashboard.</p>
+                <h1>Sign In As Volunteer</h1>
             </div>
 
             {% if error %}
@@ -74,13 +72,12 @@
                 </div>
 
                 <button type="submit" class="btn btn-primary btn-block btn-auth-submit" id="loginSubmitBtn">
-                    <i class="fa-solid fa-arrow-right-to-bracket" aria-hidden="true"></i> Sign In to Volunteer Dashboard
+                    <i class="fa-solid fa-arrow-right-to-bracket" aria-hidden="true"></i> Login
                 </button>
             </form>
 
             <div class="auth-footer">
                 <p>Want to help verify aid sites? <a href="{% url 'register:register' %}"><strong>Become a Volunteer</strong></a></p>
-                <p>Just looking for help? <a href="{% url 'home:map' %}"><strong>Open the public Aid Map &rarr;</strong></a></p>
             </div>
         </div>
     </div>

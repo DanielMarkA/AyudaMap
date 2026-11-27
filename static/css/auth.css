@@ -22,9 +22,21 @@
 @media (max-width: 860px) {
     .auth-split-wrapper {
         grid-template-columns: 1fr;
+        gap: 1.25rem;
+    }
+    .auth-card {
+        order: -1;
     }
     .auth-hero-panel {
-        display: none;
+        padding: 1.75rem 1.5rem;
+        box-shadow: var(--shadow-md);
+    }
+    .auth-hero-panel h2 {
+        font-size: 1.35rem;
+        margin-bottom: 0.85rem;
+    }
+    .hero-brand-badge {
+        margin-bottom: 0.85rem;
     }
 }
 

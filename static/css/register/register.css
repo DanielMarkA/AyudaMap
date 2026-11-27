@@ -3,12 +3,23 @@
    ========================================================================== */
 
 .auth-split-wrapper {
-    grid-template-columns: 1fr 1.2fr;
     max-width: 1050px;
+}
+
+@media (min-width: 861px) {
+    .auth-split-wrapper {
+        grid-template-columns: 1fr 1.2fr;
+    }
 }
 
 .register-card {
     padding: 2.25rem;
+}
+
+@media (max-width: 860px) {
+    .register-card {
+        padding: 1.6rem 1.25rem;
+    }
 }
 
 .auth-header {
