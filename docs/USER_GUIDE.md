@@ -1,75 +1,80 @@
 # AyudaMap User Guide
 
-A short walkthrough for volunteers, coordinators, and anyone evaluating the application.
+A walkthrough for guests, field volunteers, and relief coordinators using AyudaMap.
 
 ## Getting access
 
-1. Open the app. If you are not signed in you will see **Login** and **Register** in the header.
-2. Click **Register**, enter a username, email, password, and (optionally) your full name. Submitting creates your account together with an empty profile and a default settings record, and signs you in automatically.
+1. Open the app. Guests see **Aid Map**, **Login**, and **Become a Volunteer** in the header.
+2. Click **Become a Volunteer** (`/register/`) and enter a **username**, **email address**, **full name** (credited on aid hubs you submit), optional **city**, and **password**. Submitting creates your account with an active volunteer profile and default settings, and signs you in automatically.
 
-The header navigation changes after sign-in: **Home**, **Reports**, **Profile**, **Settings**, a theme toggle, and your avatar with a sign-out button.
+After signing in, the header navigation updates to **Dashboard**, **Aid Map**, **Reports**, an **Account menu** dropdown (**Profile**, **Settings**, **Sign out**), and a one-click light/dark **theme toggle**.
 
-## Aid map and dashboard
+## Public landing page (`/`) & live aid map (`/map/`)
 
-The landing page (`/`) and read-only aid map (`/map/`) are public. Sign in to open the volunteer dashboard (`/dashboard/`), which contains:
+Both the landing page and the full-viewport aid map are open to the public without signing in:
 
-- **Summary cards** — total verified resources and how many are marked critical.
-- **Filters** — a keyword search box plus dropdowns for **category**, **status**, and **urgency**. Changing a filter narrows both the list and the map pins. If you have not chosen a category, the app uses the preferred category from your Settings (unless it is `All`).
-- **The map** — an interactive Leaflet map with CARTO basemaps. Pins are colour-coded by category: Medical (red), Food (amber), Shelter (blue), Government (purple), Donation (green). Click a pin for details such as operating hours, capacity, supplies needed, contact info, and verification count. The map follows your light/dark theme.
-- **Location tools** — "locate me" centres the map on your device location; the coordinate picker lets you set latitude/longitude when adding a resource.
-- **Resource list** — cards for each verified site, with status/urgency badges and action buttons.
+- **Landing page (`/`)** — Displays live relief coverage totals (verified hubs, currently open hubs, cities covered, community confirmations), a featured verified hub card, and active coverage by aid category.
+- **Live Aid Map (`/map/`)** — Full-screen interactive Leaflet map powered by CARTO Voyager (light) and Dark Matter (dark) basemaps, with automatic OpenStreetMap fallback when no `CARTO_API_KEY` is configured.
+  - **Search & filters** — Filter by category chip (`All`, `Medical`, `Food`, `Shelter`, `Govt Aid`, `Donation`), search by hub name, city, address, service (e.g., `Drinking Water`, `First Aid / Meds`), or volunteer name, and toggle the operating-status filter (`Operational / Open`, `Crowded / Limited`, `Closed`).
+  - **Pin details** — Click any pin or list card to view offered services, operating hours (including automatic after-hours status), contact info, field confirmations, volunteer attribution, and a Google Maps **Directions** link.
+  - **Map controls** — Toggle the color legend, fit all matching pins in view, or center on your current GPS location. On mobile, browse results in the expandable bottom sheet.
 
-### Adding a resource
+## Volunteer dashboard (`/dashboard/`)
 
-1. Click the **Add Resource** / report-a-site button on the home page.
-2. Fill in the name, category, status, urgency, description, supplies needed, total and available capacity, city, location, coordinates, operating hours, and contact info.
-3. Submit. The new entry is marked verified, attributed to your account, and written to the audit log. A confirmation message appears.
+Sign in to access the volunteer workbench (`/dashboard/`):
 
-### Confirming a site
+- **Interactive map & filters** — Filter in place without reloading the page using category chips (defaults to your Settings **Preferred Category** unless `All`), the **Operating Status** dropdown, and the **Local volunteers** checkbox (shows only verified hubs in your city reported by local volunteers). Active filters sync to shareable URLs.
+- **Verified Relief Centers ledger** — Click any row to expand its description, service tags, operating hours, contact info, submitter name, and action buttons:
+  - **View on Map** — Flies to the pin and opens its popup.
+  - **Directions** — Opens Google Maps directions to the pin's coordinates.
+  - **Verified (N)** — Confirms the hub is still active on site, incrementing its confirmation count and recording a `CONFIRM_ACTIVE` audit entry.
+  - **Quick status dropdown** — Update the hub's operating status (`Operational / Open`, `Crowded / Limited`, `Closed`), writing a `STATUS_UPDATE` audit entry.
 
-Click **Confirm** on a resource card if you have checked that the site is still active. Each click increments its community confirmation count and creates a `CONFIRM_ACTIVE` log entry. This helps coordinators trust the data.
+### Submitting a new aid hub
 
-### Changing a status
-
-Coordinators can update a site's operating status (**Operational**, **Full Capacity**, **Temporarily Closed**). Setting **Full Capacity** automatically sets available capacity to zero. Every change is recorded with the previous and new status.
+1. Click **Submit Aid Resource** on `/dashboard/`.
+2. Fill in the **Resource / Safe Haven Name**, **Category**, **Operating Status**, **City** dropdown, and **Street / Barangay / Landmark**.
+3. Optionally add a description, check available **Safe Haven Services & Amenities** (`Safe Shelter`, `Drinking Water`, `Hot Meals / Packs`, `First Aid / Meds`, `Power / Charging`, `Wi-Fi / Signal`, `PWD Accessible`, `Pet-Friendly`), and enter **Contact Info**.
+4. Set coordinates by clicking directly on the background map, typing latitude/longitude, or clicking **Use My Current GPS Coordinates**.
+5. Check **Open 24/7** or specify **Opens At** and **Closes At** times (`Asia/Manila`). Hubs outside their scheduled hours automatically show as `Closed` until they reopen.
+6. Click **Save Resource**. The hub is immediately published and logged in the audit trail.
 
 ## Reports (`/reports/`)
 
-The Reports page summarises relief operations:
+Sign in to view operational analytics at `/reports/`:
 
-- **Totals** — number of centres, total and available capacity, total confirmations.
-- **Utilisation rate** — percentage of total capacity currently used.
-- **Breakdowns** — counts by category and by urgency level.
-- **Critical resources** — sites marked `CRITICAL`, most recently updated first.
-- **Field audit log** — the 15 most recent status updates, confirmations, and supply pledges, showing the resource, action, user, and timestamp.
-
-Reports require sign-in.
+- **KPI summary** — Verified aid hubs, currently open hubs (with open rate %), cities covered, and total community verifications.
+- **Currently Open Havens by City** — Open now vs. total mapped centers per city/municipality.
+- **Currently Open Havens by Service** — Count of currently open hubs offering each service.
+- **Coverage by Aid Category** — Total centers, open now, and confirmations per category.
+- **Recent Field Verification & Status Audit Log** — The 15 most recent status updates and on-site confirmations, showing the hub, action, note, volunteer, and relative time.
 
 ## Profile (`/profile/`)
 
-- Edit your name, email, organization, volunteer flag, bio, phone number, city, and profile photo.
-- See your own contributed resources, how many you have submitted, the total confirmations they have received, and your recent verification activity.
-- If you set a full name but no first/last name, the app fills those in from the full name automatically.
+Organized into three tabs:
+
+- **Edit Profile** — Update first/last name, display/full name, email, affiliated organization (NGO/LGU), active volunteer status, phone number, city dropdown, bio, and profile photo (with live preview).
+- **My Aid Hubs** — View every hub you submitted along with a **View on Map** shortcut.
+- **Field Activity** — Review your 10 most recent status updates and confirmations.
 
 ## Settings (`/settings/`)
 
-Two independent forms:
+- **General & Alerts** — Toggle dark mode interface and stored notification flags *(note: outbound email delivery is not enabled in this deployment)*.
+- **Map Defaults** — Set your default dashboard aid category filter, starting latitude/longitude, and zoom level (`5–18`).
+- **Security & Password** — Update your password without signing out of your active session.
 
-- **Preferences** — dark mode, email notifications, notifications about new resources, preferred resource category, default map latitude/longitude, and zoom level (5–18). These control the theme, the default home filter, and where the map starts.
-- **Change password** — requires your current password; your session stays signed in after the change.
-
-Use the header theme toggle for a one-click light/dark switch; it is remembered in your browser's local storage.
+Use the header theme toggle at any time for an instant light/dark switch persisted in browser storage.
 
 ## Admin (`/admin/`)
 
-Staff/superusers can manage `Resource` and `ResourceStatusLog` records through the Django admin, including filtering by category, status, urgency, and verification.
+Staff/superusers can manage `Resource` (including the internal `supplies_needed` coordinator note and `is_verified` flag) and `ResourceStatusLog` records through Django admin.
 
-## Getting help / troubleshooting
+## Troubleshooting
 
 | Symptom | What to check |
 | --- | --- |
-| Redirected to Login when opening the dashboard | Sign in, or use the public map at `/map/`. |
-| No pins on the map | Clear the filters and check that the database you are using contains verified resources. A fresh local database starts empty. |
-| Map tiles do not load | CARTO tiles require an internet connection; check the browser console. |
-| Wrong map centre | Adjust default latitude/longitude/zoom in Settings. |
-| Uploaded photo missing | In production, check that `/media/` is served from the same persistent directory Django uses for uploads. |
+| Redirected to Login when opening `/dashboard/` or `/reports/` | Sign in, or browse the public map at `/map/`. |
+| No pins on the map | Reset active filters and verify the database contains `is_verified=True` resources. A fresh local SQLite database starts empty. |
+| Map tiles show OpenStreetMap instead of CARTO, or fail offline | CARTO tiles require `CARTO_API_KEY` and internet access; blank keys automatically fall back to OpenStreetMap. |
+| Wrong default map center | Adjust default latitude, longitude, and zoom in **Settings → Map Defaults**. |
+| Uploaded profile photo missing in production | Ensure nginx/your proxy serves `/media/` from the same persistent directory configured in `DJANGO_MEDIA_ROOT`. |

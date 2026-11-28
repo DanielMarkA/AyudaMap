@@ -2,70 +2,100 @@
 
 **Community Aid & Disaster Relief Platform**
 
-AyudaMap is a Django web application for mapping and coordinating community aid resources during disasters and relief operations. Volunteers and coordinators can publish verified aid locations (medical facilities, food distribution, shelters, government services, donation drop-offs), see them on an interactive map, confirm that a site is still active, update its operating status, and review relief-operations analytics.
+[![Python](https://img.shields.io/badge/Python-3.x-3776AB?logo=python&logoColor=white)](https://www.python.org/)
+[![Django](https://img.shields.io/badge/Django-6.1.1-092E20?logo=django&logoColor=white)](https://www.djangoproject.com/)
+[![PostgreSQL](https://img.shields.io/badge/Database-Supabase%20PostgreSQL%20%7C%20SQLite-0f766e?logo=postgresql&logoColor=white)](https://supabase.com/)
+[![Leaflet](https://img.shields.io/badge/Maps-Leaflet%20%2B%20CARTO-199900?logo=leaflet&logoColor=white)](https://leafletjs.com/)
 
-This repository is an individual final project for a Python Django + Supabase course. The SQL JOIN / SUBQUERY requirement is demonstrated through the app's existing resource views and map filters.
+AyudaMap is a Django web application for mapping and coordinating verified community aid resources during disasters and relief operations across the Philippines. Guests can locate open shelters, medical facilities, food hubs, government services, and donation drop-offs with zero sign-up, while field volunteers and coordinators keep operating statuses, service checklists, and audit logs current in real time.
+
+> Built as an individual final project for a Python Django + Supabase course. The SQL `JOIN` (`select_related`) and `SUBQUERY` (`Subquery`) requirements are implemented directly inside the aid directory, volunteer-network filter, and analytics reports.
 
 ---
 
-## Table of contents
+## Navigation
 
-- [Features](#features)
-- [Tech stack](#tech-stack)
-- [Project structure](#project-structure)
-- [Quick start (local development)](#quick-start-local-development)
-- [Configuration](#configuration)
-- [Running the tests](#running-the-tests)
-- [Documentation](#documentation)
-- [Production notes](#production-notes)
+[Screenshots](#screenshots) · [Features](#features) · [Tech Stack](#tech-stack) · [Project Structure](#project-structure) · [Quick Start](#quick-start-local-development) · [Configuration](#configuration) · [Testing](#running-the-tests) · [Documentation](#documentation)
+
+---
+
+## Screenshots
+
+### Public Landing Page (`/`)
+Live relief coverage metrics, featured open safe haven preview, and step-by-step verification overview.
+
+![AyudaMap Public Landing Page](docs/screenshots/landing-desktop.png)
+
+### Live Aid Map & Dark-Mode Volunteer Dashboard
+| Public Live Aid Map (`/map/`) | Volunteer Dashboard — Dark Mode (`/dashboard/`) |
+| :---: | :---: |
+| ![Public Live Aid Map](docs/screenshots/map-desktop.png) | ![Volunteer Dashboard in Dark Mode](docs/screenshots/dashboard-dark.png) |
+| Full-viewport Leaflet + CARTO Voyager map with keyword/service search, category chips, and status filter | Split workbench with CARTO Dark Matter tiles, in-place AJAX filters, expanded hub actions, and click-to-pick coordinates |
+
+### Operations Analytics & Mobile Field Experience
+| Relief Operations Reports (`/reports/`) | Mobile Public Aid Map (`390×844`) |
+| :---: | :---: |
+| ![Relief Operations Reports](docs/screenshots/reports-desktop.png) | ![Mobile Public Aid Map](docs/screenshots/mobile-map.png) |
+| Live KPIs, open havens by city & service, category breakdown, and field verification audit log | Touch-friendly floating category chips and expandable bottom sheet for field responders |
 
 ---
 
 ## Features
 
-- **Interactive aid map** powered by Leaflet and CARTO basemaps, with category-coloured pins, dark-mode tiles, popups, and "locate me" / click-to-pick coordinates.
-- **Verified resources** — only `is_verified=True` entries appear on the public map.
-- **Search and filters** by keyword, category, operating status, and urgency level; category defaults to the signed-in user's preference.
-- **Live updates** — volunteers can add a resource, confirm a site is still active (atomic `F('confirmations') + 1`), and change its status. Every change writes a `ResourceStatusLog` audit entry.
-- **Capacity tracking** — `capacity_total` / `capacity_available` with a computed `occupancy_percentage`.
-- **Reports dashboard** (`/reports/`) with totals, utilisation rate, category and urgency breakdowns, critical resources, and a recent field-audit log.
-- **Accounts** — registration, login/logout, profile editing (including profile image upload), password change, and user preferences (theme, notifications, preferred category, default map centre/zoom).
-- **Volunteer-network filter** — on the map, show only aid sites submitted by volunteers in your city (Django `Subquery`).
-- **Django admin** registrations for `Resource` and `ResourceStatusLog`.
+### Public Discovery (No Sign-Up Required)
+- **Live coverage landing (`/`)** — Real-time totals for verified hubs, currently open sites, cities covered, community confirmations, and category coverage bars.
+- **Full-viewport aid map (`/map/`)** — Interactive Leaflet map with CARTO basemaps (and automatic OpenStreetMap fallback), category-coded pins, client-side keyword/service search, status filters, pin legend, locate-me, and Google Maps **Directions** links.
+- **Verified-only visibility** — Only `is_verified=True` entries appear publicly; internal coordinator notes (`supplies_needed`) remain restricted to Django admin.
 
-## Tech stack
+### Volunteer Field Operations (`/dashboard/`)
+- **In-place AJAX filtering** — Filter by category chip (defaults to user preference), effective operating status (`Operational / Open`, `Crowded / Limited`, `Closed`), and **Local volunteers** (`Subquery` matching volunteers in your canonical Philippine city) with shareable URLs.
+- **Safe-haven service tags & operating hours** — Track 8 practical amenities (`Safe Shelter`, `Drinking Water`, `Hot Meals / Packs`, `First Aid / Meds`, `Power / Charging`, `Wi-Fi / Signal`, `PWD Accessible`, `Pet-Friendly`) plus **Open 24/7** or daily `opens_at`/`closes_at` schedules (`Asia/Manila`, including overnight windows) that automatically display as `Closed` after hours.
+- **One-tap verification & audit trail** — Add hubs with click-to-pick or GPS coordinates and standardized PSGC-aligned Philippine city choices ([`apps/locations.py`](apps/locations.py)), confirm active sites atomically (`F('confirmations') + 1`), or update operating statuses—each writing a [`ResourceStatusLog`](apps/home/models.py) entry.
+
+### Coordinator Analytics & Accounts
+- **Reports dashboard (`/reports/`)** — Live aggregations for open havens by city, open havens by service, aid category breakdowns, and the 15 most recent field audit entries.
+- **Volunteer accounts (`/register/`, `/profile/`, `/settings/`)** — Volunteer onboarding, tabbed profile workspace with avatar upload and personal hub/log history, persistent light/dark theme toggle, map center/zoom defaults, and password management.
+- **Django admin (`/admin/`)** — Staff management for `Resource` and `ResourceStatusLog`.
+
+---
+
+## Tech Stack
 
 | Layer | Technology |
 | --- | --- |
 | Backend | Python 3, Django 6.1.1 |
-| Database | Supabase PostgreSQL via `DATABASE_URL`; SQLite fallback for local dev |
-| DB drivers / utils | `psycopg[binary]` 3.3.9, `dj-database-url` 3.1.2, `sqlparse` 0.6.0 |
-| Frontend | Server-rendered Django templates, Leaflet.js, CARTO basemaps, Font Awesome, vanilla CSS/JS |
-| Images | Pillow 12.3.0 (profile uploads) |
-| Config | `python-dotenv` 1.2.3, timezone `Asia/Manila` |
-| Email | Console backend (test/dev only) |
+| Database | Supabase PostgreSQL via `DATABASE_URL`; SQLite fallback in debug mode |
+| DB drivers / config | `psycopg[binary]` 3.3.9, `dj-database-url` 3.1.2, `python-dotenv` 1.2.3, `sqlparse` 0.6.0 |
+| Frontend | Server-rendered Django templates, Leaflet.js 1.9.4, CARTO / OSM tiles, Font Awesome 6.4, vanilla CSS & JS |
+| Media & Timezone | Pillow 12.3.0 (profile uploads), `Asia/Manila` (`tzdata` 2026.3) |
+| Production WSGI | Gunicorn 27.0.1 (non-Windows) behind an HTTPS reverse proxy |
 
-## Project structure
+---
 
-The project uses a **vertical-slice** layout: each feature app owns its models, forms, views, URLs, templates segment, and static assets.
+## Project Structure
 
-```
+AyudaMap follows a **vertical-slice** layout where each feature app owns its models, forms, views, URLs, templates, and static assets:
+
+```text
 AyudaMap/
-├── config/                 # Project settings, root URLs, ASGI/WSGI
+├── config/                     # Project settings, root URLs, ASGI/WSGI
 ├── apps/
-│   ├── home/               # Resources, map, add/confirm/status, reports
-│   ├── login/              # Authentication
-│   ├── register/           # Registration (creates Profile + UserSettings)
-│   ├── profile/            # User profiles and volunteer activity
-│   └── user_settings/      # Preferences and password change
-├── templates/              # Shared base + per-app templates
-├── static/                 # CSS and JS, mirrored per app
+│   ├── locations.py            # Shared PSGC-aligned Philippine city choices & normalizer
+│   ├── home/                   # Landing, public map, volunteer dashboard, CRUD actions, reports
+│   ├── login/                  # Authentication (login / logout)
+│   ├── register/               # Volunteer registration (configures Profile + UserSettings)
+│   ├── profile/                # User profile, avatar upload, and volunteer activity tabs
+│   └── user_settings/          # Theme, map defaults, preferences, and password change
+├── templates/                  # Shared base layout + per-app templates
+├── static/                     # Favicon, shared tokens/auth CSS, and per-app CSS/JS
+├── docs/                       # Architecture, user guide, testing, deployment, and screenshots
 ├── requirements.txt
-├── .env.example            # Template for required environment variables
-└── docs/                   # This documentation set
+└── .env.example                # Environment variable template
 ```
 
-## Quick start (local development)
+---
+
+## Quick Start (Local Development)
 
 ```powershell
 # 1. Create and activate a virtual environment
@@ -76,40 +106,47 @@ python -m venv venv
 # 2. Install dependencies
 pip install -r requirements.txt
 
-# 3. Configure the environment
+# 3. Configure local environment
 Copy-Item .env.example .env          # Windows
 # cp .env.example .env              # macOS / Linux
 # Keep DJANGO_DEBUG=True and leave DATABASE_URL blank to use local SQLite.
 
-# 4. Apply migrations
+# 4. Apply database migrations
 python manage.py migrate
 
-# 5. Run the development server
+# 5. Start the development server
 python manage.py runserver
 ```
 
-Open <http://127.0.0.1:8000/> and register an account. On a fresh database, the map starts empty; add a resource from the dashboard. To access Django admin, create a staff login with `python manage.py createsuperuser`. If you need PostgreSQL for development, point `DATABASE_URL` at a separate development database.
+- Open <http://127.0.0.1:8000/> for the public landing page, or <http://127.0.0.1:8000/map/> for the full-screen public aid map.
+- Click **Become a Volunteer** (`/register/`) to create a volunteer account and access `/dashboard/` and `/reports/`.
+- On a fresh database, the map starts empty; submit hubs from `/dashboard/` or create a staff account with `python manage.py createsuperuser` to use `/admin/`.
+
+---
 
 ## Configuration
 
-Set configuration in your environment or in a local `.env` file. Environment variables take precedence. See [`.env.example`](.env.example) for local setup.
+Set configuration via environment variables or a local `.env` file (environment variables take precedence). See [`.env.example`](.env.example).
 
 | Variable | Required | Purpose |
 | --- | --- | --- |
 | `DJANGO_DEBUG` | No | Defaults to `False`. Set to `True` for local development only. |
 | `SECRET_KEY` | With debug off | Django signing key. Use a long, random value in production. |
-| `DJANGO_ALLOWED_HOSTS` | With debug off | Comma-separated hostnames, with no scheme or port. |
-| `DATABASE_URL` | With debug off | PostgreSQL connection string; Supabase connections use SSL. SQLite is available in debug mode. |
-| `DJANGO_TRUST_PROXY_HTTPS` | No | Set to `True` only behind a trusted proxy that replaces `X-Forwarded-Proto`. |
-| `DJANGO_MEDIA_ROOT` | No | Filesystem directory for user uploads. Set it to a persistent, writable path on the host. |
-| `SUPABASE_URL` | No | Project URL recorded for reference; not consumed directly by the ORM path. |
-| `CARTO_API_KEY` | No | Map tile key; falls back to OpenStreetMap when blank. |
+| `DJANGO_ALLOWED_HOSTS` | With debug off | Comma-separated hostnames without schemes or ports. |
+| `DATABASE_URL` | With debug off | PostgreSQL connection string (`ssl_require=True`). SQLite is available only in debug mode. |
+| `DJANGO_TRUST_PROXY_HTTPS` | No | Set to `True` only behind a trusted reverse proxy that overwrites `X-Forwarded-Proto`. |
+| `DJANGO_MEDIA_ROOT` | No | Persistent writable directory for uploaded profile images. |
+| `SUPABASE_URL` | No | Project URL recorded for reference; ORM connects via `DATABASE_URL`. |
+| `CARTO_API_KEY` | No | CARTO Basemaps API key for Voyager/Dark Matter tiles; falls back to OpenStreetMap when blank. |
 
-## Running the tests
+---
 
-Use the local development configuration with `DATABASE_URL` blank.
+## Running the Tests
+
+Use local SQLite (`DJANGO_DEBUG=True` and blank `DATABASE_URL`). If your `.env` sets `DATABASE_URL` for Supabase, override it in your shell before running tests:
 
 ```powershell
+$env:DATABASE_URL=" "; $env:DJANGO_DEBUG="True"
 python manage.py test
 ```
 
@@ -119,18 +156,21 @@ To run a single app's suite:
 python manage.py test apps.home
 ```
 
-Tests cover the auth flow, map filters, resource creation, profile and settings updates, and password changes. Details in [`docs/TESTING.md`](docs/TESTING.md).
+The test suite runs **37 tests** across all 5 apps (`home`, `login`, `register`, `profile`, `user_settings`). See [`docs/TESTING.md`](docs/TESTING.md) for the test inventory and manual SQL verification notes.
+
+---
 
 ## Documentation
 
 | Document | Contents |
 | --- | --- |
-| [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | Vertical-slice architecture, request flow, ERD, model and field reference |
-| [`docs/USER_GUIDE.md`](docs/USER_GUIDE.md) | End-user walkthrough of every screen |
-| [`docs/TESTING.md`](docs/TESTING.md) | Test inventory and how to run/extend it |
-| [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md) | Production configuration checklist |
-| [`CHANGELOG.md`](CHANGELOG.md) | Commit-derived project history |
+| [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | Vertical-slice architecture, request flow, ERD, and data dictionary |
+| [`docs/USER_GUIDE.md`](docs/USER_GUIDE.md) | Walkthrough of every public, volunteer, and coordinator screen |
+| [`docs/TESTING.md`](docs/TESTING.md) | Test inventory, coverage notes, and SQL JOIN/SUBQUERY verification |
+| [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md) | Production checklist (HTTPS proxy, Gunicorn, static/media, Supabase) |
 
-## Production notes
+---
 
-Production runs behind an HTTPS reverse proxy with Gunicorn, a PostgreSQL database, collected static files, and persistent storage for profile uploads. See [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md) for the setup and launch checks, including what to do if the target database still contains course demo data.
+## Production Notes
+
+Production runs with `DJANGO_DEBUG=False` behind an HTTPS reverse proxy with Gunicorn, Supabase PostgreSQL, collected static files (`collectstatic`), and persistent storage (`DJANGO_MEDIA_ROOT`) for profile uploads. See [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md) for the full deployment and staging verification checklist.

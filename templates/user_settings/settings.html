@@ -15,7 +15,7 @@
                 <h1>Account Settings</h1>
                 <p>Manage theme, relief notifications, map defaults, and account security.</p>
             </div>
-            {% if user.is_staff %}
+            {% if user.is_staff and is_postgres %}
                 <span class="settings-status-pill">
                     <i class="fa-solid fa-server" aria-hidden="true"></i> Supabase Cloud: Connected
                 </span>
