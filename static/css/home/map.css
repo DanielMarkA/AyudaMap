@@ -364,6 +364,13 @@ html.dark-mode .filter-badge-dot {
     text-decoration: underline;
 }
 
+@media (max-width: 640px) {
+    .drawer-filter-reset-link {
+        min-height: 44px;
+        padding: 0.45rem 0.65rem;
+    }
+}
+
 .drawer-filter-field label {
     display: block;
     font-size: 0.8rem;
@@ -629,7 +636,7 @@ html.dark-mode .filter-badge-dot {
     align-items: center;
     padding: 0.14rem 0.45rem;
     border-radius: 9999px;
-    font-size: 0.7rem;
+    font-size: 0.78rem;
     font-weight: 600;
     background-color: var(--bg-main);
     color: var(--text-primary);
@@ -669,7 +676,7 @@ html.dark-mode .filter-badge-dot {
     gap: 0.3rem;
     padding: 0.22rem 0.55rem;
     border-radius: 9999px;
-    font-size: 0.75rem;
+    font-size: 0.78rem;
     font-weight: 600;
     background-color: var(--bg-card);
     color: var(--text-primary);
@@ -678,7 +685,7 @@ html.dark-mode .filter-badge-dot {
 
 .haven-service-tag i {
     color: var(--primary-text);
-    font-size: 0.7rem;
+    font-size: 0.78rem;
 }
 
 .detail-hours-note {
@@ -891,7 +898,7 @@ html.dark-mode .filter-badge-dot {
 
 .pin-critical {
     animation: pulseRing 1.8s infinite;
-    border-color: #fef08a !important;
+    border-color: #fef08a;
 }
 
 /* Mobile Responsive Bottom Sheet Layout */

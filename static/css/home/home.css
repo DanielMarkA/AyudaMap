@@ -853,6 +853,13 @@ html.dark-mode .modal-picker-notice {
     .map-workbench .map-viewport {
         height: 320px;
     }
+    .cat-scroll-btn {
+        display: none;
+    }
+    .cat-scroll-wrap.has-left::before,
+    .cat-scroll-wrap.has-right::after {
+        display: none;
+    }
     .map-cat-chip,
     .map-local-chip {
         min-height: 44px;
@@ -913,7 +920,7 @@ html.dark-mode .modal-picker-notice {
     gap: 0.3rem;
     padding: 0.2rem 0.55rem;
     border-radius: 9999px;
-    font-size: 0.75rem;
+    font-size: 0.78rem;
     font-weight: 600;
     background-color: var(--bg-main);
     color: var(--text-primary);
@@ -922,7 +929,7 @@ html.dark-mode .modal-picker-notice {
 
 .haven-service-tag i {
     color: var(--primary-text);
-    font-size: 0.7rem;
+    font-size: 0.78rem;
 }
 
 .service-checklist-grid {
