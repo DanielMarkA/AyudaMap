@@ -133,7 +133,6 @@ Set configuration via environment variables or a local `.env` file (environment 
 | `DATABASE_URL` | With debug off | PostgreSQL connection string (`ssl_require=True`). SQLite is available only in debug mode. |
 | `DJANGO_TRUST_PROXY_HTTPS` | No | Set to `True` only behind a trusted reverse proxy that overwrites `X-Forwarded-Proto`. |
 | `DJANGO_MEDIA_ROOT` | No | Persistent writable directory for uploaded profile images. |
-| `SUPABASE_URL` | No | Project URL recorded for reference; ORM connects via `DATABASE_URL`. |
 | `CARTO_API_KEY` | No | CARTO Basemaps API key for Voyager/Dark Matter tiles; falls back to OpenStreetMap when blank. |
 
 ---
