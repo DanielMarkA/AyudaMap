@@ -632,6 +632,50 @@ html.dark-mode .modal-picker-notice {
     text-decoration: underline;
 }
 
+.map-filter-reset-inline[hidden] {
+    display: none;
+}
+
+.map-filter-error:not([hidden]) {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.map-filter-summary {
+    position: relative;
+}
+
+.map-filter-progress,
+.map-filter-error {
+    font-size: 0.8rem;
+}
+
+.map-filter-progress {
+    position: absolute;
+    inset-block-start: 100%;
+    inset-inline-start: 0;
+    color: var(--text-muted);
+    line-height: 1.1;
+    white-space: nowrap;
+}
+
+@media (max-width: 640px) {
+    .map-filter-progress {
+        position: static;
+    }
+
+    .map-filter-progress:not(:empty) {
+        margin-inline-start: 0.5rem;
+    }
+}
+
+.map-filter-error {
+    margin-top: 0.4rem;
+    gap: 0.4rem 0.65rem;
+    color: var(--text-primary);
+}
+
 .map-workbench .map-viewport {
     height: 410px;
 }

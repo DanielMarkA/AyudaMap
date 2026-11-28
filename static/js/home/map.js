@@ -406,7 +406,7 @@ document.addEventListener("DOMContentLoaded", () => {
         window.history.replaceState({}, "", nextUrl);
     };
 
-    const applyFilters = (shouldFit = true) => {
+    const applyFilters = () => {
         const q = (filters.q || "").trim().toLowerCase();
         currentFiltered = allResources.filter((r) => {
             if (filters.category && r.category_code !== filters.category) return false;
@@ -442,9 +442,7 @@ document.addEventListener("DOMContentLoaded", () => {
             showListView();
         }
 
-        if (shouldFit) {
-            fitVisibleMarkers(!prefersReducedMotion());
-        }
+        if (fitAllBtn) fitAllBtn.disabled = !Object.keys(markersById).length;
 
         syncUrlParams();
     };
@@ -454,7 +452,7 @@ document.addEventListener("DOMContentLoaded", () => {
         searchInput.addEventListener("input", () => {
             filters.q = searchInput.value;
             showListView();
-            applyFilters(false);
+            applyFilters();
         });
     }
 
@@ -466,7 +464,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 searchInput.focus();
             }
             showListView();
-            applyFilters(true);
+            applyFilters();
         });
     }
 
@@ -502,7 +500,7 @@ document.addEventListener("DOMContentLoaded", () => {
         statusFilter.addEventListener("change", () => {
             filters.status = statusFilter.value;
             showListView();
-            applyFilters(true);
+            applyFilters();
         });
     }
 
@@ -512,7 +510,7 @@ document.addEventListener("DOMContentLoaded", () => {
             if (searchInput) searchInput.value = "";
             if (statusFilter) statusFilter.value = "";
             showListView();
-            applyFilters(true);
+            applyFilters();
         });
     }
 
@@ -520,7 +518,7 @@ document.addEventListener("DOMContentLoaded", () => {
         chip.addEventListener("click", () => {
             filters.category = chip.dataset.category || "";
             showListView();
-            applyFilters(true);
+            applyFilters();
         });
     });
 
@@ -555,7 +553,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (fitAllBtn) {
         fitAllBtn.addEventListener("click", () => {
             fitVisibleMarkers(!prefersReducedMotion());
-            announce("Map view reset to all visible aid pins.");
+            announce("Map centered on all matching aid pins.");
         });
     }
 
@@ -621,7 +619,8 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     // Initial render & bounds fit
-    applyFilters(true);
+    applyFilters();
+    fitVisibleMarkers();
 
     // If URL pre-filtered to a single exact match (e.g., from Profile "View on Map"), open its detail sheet directly
     if (filters.q && currentFiltered.length === 1) {

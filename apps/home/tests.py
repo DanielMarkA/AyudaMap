@@ -142,6 +142,24 @@ class HomeViewTests(TestCase):
         self.assertContains(response, "Manila City Clinic")
         self.assertNotContains(response, "Pasig Food Pantry")
 
+    def test_dashboard_filter_request_returns_matching_rows_and_pins(self):
+        self.client.force_login(self.user)
+        response = self.client.get(
+            reverse("home:dashboard"),
+            {"category": "MEDICAL", "local_volunteers": "1"},
+            headers={"X-Dashboard-Filters": "1"},
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("X-Dashboard-Filters", response.headers["Vary"])
+        data = response.json()
+        self.assertIn("Manila City Clinic", data["results"])
+        self.assertIn('name="csrfmiddlewaretoken"', data["results"])
+        self.assertNotIn("Pasig Food Pantry", data["results"])
+        self.assertNotIn("ayudaMapViewport", data["results"])
+        self.assertEqual([item["id"] for item in data["map_data"]], [self.resource1.pk])
+        self.assertEqual((data["operational_count"], data["total_count"]), (1, 1))
+
     def test_dashboard_filter_by_effective_status_during_and_after_hours(self):
         self.client.login(username="testuser", password="Password123!")
 

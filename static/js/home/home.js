@@ -14,8 +14,9 @@ document.addEventListener("DOMContentLoaded", () => {
     let tileLayer = null;
     let userLocationMarker = null;
     let clickPickerMarker = null;
-    const markers = {};
-    const group = [];
+    let markers = {};
+    let renderResourceMarkers = () => {};
+    const results = document.getElementById("dashboardResults");
     let userMapConfig = { lat: 10.3157, lng: 123.8854, zoom: 12 };
     
     const mapCfgEl = document.getElementById("userMapConfigJson");
@@ -115,7 +116,14 @@ document.addEventListener("DOMContentLoaded", () => {
             return `<span class="ayuda-popup-status" style="background: ${bg};">${escapeHtml(statusDisplay || status)}</span>`;
         };
 
-        resources.forEach(res => {
+        const resourceLayer = L.layerGroup().addTo(map);
+        renderResourceMarkers = (items) => {
+            resourceLayer.clearLayers();
+            markers = {};
+            items.forEach(addResourceMarker);
+        };
+
+        function addResourceMarker(res) {
             if (res.lat && res.lng) {
                 const color = getCategoryColor(res.category_code);
                 const iconClass = getCategoryIconClass(res.category_code);
@@ -156,7 +164,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 const marker = L.marker([res.lat, res.lng], { icon: customIcon })
                     .bindPopup(popupContent)
-                    .addTo(map);
+                    .addTo(resourceLayer);
 
                 marker.on("click", () => {
                     const card = document.getElementById(`resource-card-${res.id}`);
@@ -171,52 +179,33 @@ document.addEventListener("DOMContentLoaded", () => {
                 });
 
                 markers[res.id] = marker;
-                group.push([res.lat, res.lng]);
             }
-        });
-
-        if (group.length > 1) {
-            map.fitBounds(group, { padding: [35, 35] });
         }
 
-        document.querySelectorAll(".pan-to-pin-btn").forEach(btn => {
-            btn.addEventListener("click", (e) => {
-                e.stopPropagation();
-                const lat = parseFloat(btn.dataset.lat);
-                const lng = parseFloat(btn.dataset.lng);
-                const id = btn.dataset.id;
+        renderResourceMarkers(resources);
+        const initialPins = Object.values(markers).map(marker => marker.getLatLng());
+        if (initialPins.length > 1) {
+            map.fitBounds(initialPins, { padding: [35, 35] });
+        }
 
-                if (!isNaN(lat) && !isNaN(lng)) {
-                    const animate = !prefersReducedMotion();
-                    map.flyTo([lat, lng], 15, { animate, duration: animate ? 0.8 : 0 });
-                    if (id && markers[id]) {
-                        setTimeout(() => markers[id].openPopup(), animate ? 820 : 50);
-                    }
-                }
-            });
-        });
+        results.addEventListener("click", (e) => {
+            const button = e.target.closest(".pan-to-pin-btn");
+            const card = e.target.closest(".resource-row");
+            if (!card || (!button && e.target.closest("button, a, select, input, form, label"))) return;
 
-        document.querySelectorAll(".resource-card, .resource-row").forEach(card => {
-            const handleSelect = (e) => {
-                if (e.target.closest("button, a, select, input, form, label")) {
-                    return;
-                }
-                const lat = parseFloat(card.dataset.lat);
-                const lng = parseFloat(card.dataset.lng);
-                const id = card.dataset.id;
-
+            if (!button) {
                 document.querySelectorAll(".resource-card, .resource-row").forEach(c => c.classList.remove("card-highlighted"));
                 card.classList.add("card-highlighted");
+            }
 
-                if (!isNaN(lat) && !isNaN(lng)) {
-                    const animate = !prefersReducedMotion();
-                    map.flyTo([lat, lng], 14, { animate, duration: animate ? 0.7 : 0 });
-                    if (id && markers[id]) {
-                        setTimeout(() => markers[id].openPopup(), animate ? 720 : 50);
-                    }
-                }
-            };
-            card.addEventListener("click", handleSelect);
+            const marker = markers[card.dataset.id];
+            if (!marker) return;
+            const animate = !prefersReducedMotion();
+            const duration = button ? 0.8 : 0.7;
+            map.flyTo(marker.getLatLng(), button ? 15 : 14, { animate, duration: animate ? duration : 0 });
+            setTimeout(() => {
+                if (resourceLayer.hasLayer(marker)) marker.openPopup();
+            }, animate ? duration * 1000 + 20 : 50);
         });
 
         const locateBtn = document.getElementById("locateMeBtn");
@@ -403,33 +392,156 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    const ledgerItems = Array.from(document.querySelectorAll(".ledger-item"));
-    if (ledgerItems.length) {
-        ledgerItems.forEach((item) => {
-            item.addEventListener("toggle", () => {
-                if (item.open) {
-                    ledgerItems.forEach((other) => {
-                        if (other !== item && other.open) other.removeAttribute("open");
-                    });
-                }
-            });
-        });
+    if (results) {
         document.addEventListener("click", (e) => {
-            ledgerItems.forEach((item) => {
-                if (item.open && !item.contains(e.target)) {
-                    item.removeAttribute("open");
-                }
-            });
+            const openItem = results.querySelector(".ledger-item[open]");
+            if (openItem && !openItem.contains(e.target)) openItem.open = false;
         });
         document.addEventListener("keydown", (e) => {
             if (e.key !== "Escape") return;
-            const openItem = ledgerItems.find((item) => item.open);
+            const openItem = results.querySelector(".ledger-item[open]");
             if (openItem) {
-                openItem.removeAttribute("open");
-                const summary = openItem.querySelector("summary");
-                if (summary) summary.focus();
+                openItem.open = false;
+                openItem.querySelector("summary").focus();
             }
         });
+    }
+
+    const filterForm = document.getElementById("searchFilterForm");
+    if (filterForm && results) {
+        const status = filterForm.elements.status;
+        const localVolunteers = filterForm.elements.local_volunteers;
+        const category = filterForm.elements.category;
+        const query = filterForm.elements.q;
+        const categoryChips = [...filterForm.querySelectorAll("[data-filter-category]")];
+        const reset = document.getElementById("dashboardResetFilters");
+        const progress = document.getElementById("dashboardFilterProgress");
+        const error = document.getElementById("dashboardFilterError");
+        const retry = document.getElementById("dashboardFilterRetry");
+        let appliedFilters = {
+            category: category.value,
+            status: status.value,
+            local_volunteers: localVolunteers.checked,
+            query: query.value,
+        };
+        let appliedUrl = new URL(window.location.href);
+        let desiredUrl = appliedUrl;
+        let failedUrl;
+        let pendingRequest;
+        let progressTimer;
+
+        const focusActiveChip = () => {
+            const activeChip = filterForm.querySelector('[aria-current="true"]');
+            (activeChip || categoryChips[0]).focus({ preventScroll: true });
+        };
+
+        const syncControls = (filters, url) => {
+            status.value = filters.status;
+            localVolunteers.checked = filters.local_volunteers;
+            category.value = filters.category;
+            query.value = filters.query;
+            query.disabled = !filters.query;
+            reset.hidden = !(filters.category || filters.status || filters.local_volunteers || filters.query);
+
+            for (const chip of categoryChips) {
+                const chipUrl = new URL(url);
+                chipUrl.searchParams.set("category", chip.dataset.filterCategory);
+                chip.href = chipUrl.href;
+                const isCurrent = chip.dataset.filterCategory === filters.category;
+                chip.classList.toggle("active", isCurrent);
+                if (isCurrent) chip.setAttribute("aria-current", "true");
+                else chip.removeAttribute("aria-current");
+            }
+        };
+
+        const updateFilters = async (url) => {
+            if (pendingRequest) {
+                pendingRequest.abort();
+            } else {
+                results.setAttribute("aria-busy", "true");
+            }
+            const request = new AbortController();
+            pendingRequest = request;
+            desiredUrl = url;
+            const activeElement = document.activeElement;
+            const params = url.searchParams;
+            syncControls({
+                category: params.get("category")?.trim() ?? filterForm.dataset.defaultCategory,
+                status: params.get("status")?.trim() || "",
+                local_volunteers: Boolean(params.get("local_volunteers")?.trim()),
+                query: params.get("q")?.trim() || "",
+            }, url);
+            if (activeElement === retry || (activeElement === reset && reset.hidden)) focusActiveChip();
+            error.hidden = true;
+
+            try {
+                const response = await fetch(url, {
+                    headers: { "X-Dashboard-Filters": "1" },
+                    signal: request.signal,
+                    cache: "no-store",
+                });
+                if (request.signal.aborted) return;
+                if (response.redirected) {
+                    window.location.assign(response.url);
+                    return;
+                }
+                if (!response.ok) throw new Error(`Filter request failed (${response.status})`);
+                const data = await response.json();
+                if (request.signal.aborted) return;
+
+                const focused = document.activeElement;
+                const focusWasInResults = results.contains(focused);
+                results.innerHTML = data.results;
+                renderResourceMarkers(data.map_data);
+                document.getElementById("dashboardMapCount").textContent = `${data.operational_count} Open / ${data.total_count} Total`;
+                const resultLabel = data.total_count === 1 ? "result" : "results";
+                document.getElementById("dashboardResultCount").textContent = `${data.total_count} ${resultLabel}`;
+
+                syncControls(data, url);
+                if (url.href !== window.location.href) history.pushState(null, "", url);
+                appliedFilters = data;
+                appliedUrl = url;
+                if (focusWasInResults || (focused === reset && reset.hidden)) focusActiveChip();
+                announceMapStatus(`${data.total_count} ${resultLabel}. ${data.operational_count} open.`);
+            } catch (e) {
+                if (request.signal.aborted) return;
+                // A Back/Forward navigation may already have changed the URL.
+                if (window.location.href !== appliedUrl.href) history.replaceState(history.state, "", appliedUrl);
+                failedUrl = url;
+                desiredUrl = appliedUrl;
+                syncControls(appliedFilters, appliedUrl);
+                if (reset.hidden && document.activeElement === reset) focusActiveChip();
+                error.hidden = false;
+                announceMapStatus(error.querySelector("span").textContent);
+            } finally {
+                if (pendingRequest === request) {
+                    pendingRequest = null;
+                    clearTimeout(progressTimer);
+                    progress.textContent = "";
+                    results.removeAttribute("aria-busy");
+                }
+            }
+        };
+
+        filterForm.addEventListener("change", (e) => {
+            const url = new URL(desiredUrl);
+            const input = e.target;
+            const value = input === localVolunteers && !input.checked ? "" : input.value;
+            if (value) url.searchParams.set(input.name, value);
+            else url.searchParams.delete(input.name);
+            updateFilters(url);
+        });
+
+        document.addEventListener("click", (e) => {
+            const link = e.target.closest("a[data-filter-category], a[data-reset-filters]");
+            if (!link || e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+            e.preventDefault();
+            const url = link.hasAttribute("data-reset-filters") ? new URL(link.href) : new URL(desiredUrl);
+            if (link.hasAttribute("data-filter-category")) url.searchParams.set("category", link.dataset.filterCategory);
+            updateFilters(url);
+        });
+        retry.addEventListener("click", () => updateFilters(failedUrl));
+        window.addEventListener("popstate", () => updateFilters(new URL(window.location.href)));
     }
 
     // Category Chip Overflow Arrows (shows prev/next only when track overflows)

@@ -1,10 +1,13 @@
 from collections import Counter
 from django.conf import settings
 from django.db.models import Q, F, Count, Sum, Subquery
+from django.http import JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
+from django.template.loader import render_to_string
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.views.decorators.http import require_POST
+from django.views.decorators.vary import vary_on_headers
 from .models import Resource, ResourceStatusLog
 from .forms import ResourceForm
 from apps.locations import normalize_city
@@ -175,16 +178,15 @@ def map_view(request):
 
 
 @login_required
+@vary_on_headers("X-Dashboard-Filters")
 def dashboard_view(request):
     query = request.GET.get('q', '').strip()
     selected_status = request.GET.get('status', '').strip()
     local_volunteers = request.GET.get('local_volunteers', '').strip()
 
-    if 'category' in request.GET:
-        selected_category = request.GET.get('category', '').strip()
-    else:
-        user_pref = getattr(getattr(request.user, 'settings', None), 'preferred_category', '')
-        selected_category = user_pref if user_pref and user_pref != 'ALL' else ''
+    user_pref = getattr(getattr(request.user, 'settings', None), 'preferred_category', '')
+    default_category = user_pref if user_pref and user_pref != 'ALL' else ''
+    selected_category = request.GET.get('category', default_category).strip()
 
     resources = Resource.objects.filter(is_verified=True).select_related('created_by', 'created_by__profile')
 
@@ -225,6 +227,7 @@ def dashboard_view(request):
     context = {
         'resources': resources,
         'query': query,
+        'default_category': default_category,
         'selected_category': selected_category,
         'selected_status': selected_status,
         'local_volunteers': local_volunteers,
@@ -236,6 +239,17 @@ def dashboard_view(request):
         'total_count': resources.count(),
         'operational_count': resources.currently_open().count(),
     }
+    if request.headers.get("X-Dashboard-Filters") == "1":
+        return JsonResponse({
+            'results': render_to_string('home/home.html#dashboard-results', context, request),
+            'map_data': map_data,
+            'total_count': context['total_count'],
+            'operational_count': context['operational_count'],
+            'category': selected_category,
+            'status': selected_status,
+            'local_volunteers': bool(local_volunteers),
+            'query': query,
+        })
     return render(request, 'home/home.html', context)
 
 

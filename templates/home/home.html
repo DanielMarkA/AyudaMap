@@ -25,7 +25,10 @@
         <div class="map-header">
             <div class="map-title-group">
                 <h2><i class="fa-solid fa-map-location-dot" aria-hidden="true"></i> Interactive Aid Map</h2>
-                <span class="badge badge-live"><i class="fa-solid fa-signal" aria-hidden="true"></i> {{ operational_count }} Open / {{ total_count }} Total</span>
+                <div class="map-filter-summary">
+                    <span class="badge badge-live"><i class="fa-solid fa-signal" aria-hidden="true"></i> <span id="dashboardMapCount">{{ operational_count }} Open / {{ total_count }} Total</span></span>
+                    <span id="dashboardFilterProgress" class="map-filter-progress" role="status"></span>
+                </div>
             </div>
             <button type="button" class="btn btn-sm btn-outline locate-me-btn" id="locateMeBtn" title="Center map on my current location">
                 <i class="fa-solid fa-location-crosshairs" aria-hidden="true"></i> Locate Me
@@ -33,21 +36,20 @@
         </div>
 
         <div class="map-search-toolbar">
-            <form method="GET" action="{% url 'home:dashboard' %}" id="searchFilterForm" class="map-chip-form">
-                {% if selected_category %}
-                    <input type="hidden" name="category" value="{{ selected_category }}">
-                {% endif %}
+            <form method="GET" action="{% url 'home:dashboard' %}" id="searchFilterForm" class="map-chip-form" data-default-category="{{ default_category }}">
+                <input type="hidden" name="category" value="{{ selected_category }}">
+                <input type="hidden" name="q" value="{{ query }}" {% if not query %}disabled{% endif %}>
 
                 <div class="cat-scroll-wrap" role="group" aria-label="Filter by aid category">
                     <button type="button" class="cat-scroll-btn cat-scroll-prev" aria-label="Scroll categories left" hidden>
                         <i class="fa-solid fa-chevron-left" aria-hidden="true"></i>
                     </button>
                     <div class="cat-scroll-track">
-                        <a href="{% url 'home:dashboard' %}{% if selected_status %}?status={{ selected_status }}{% endif %}{% if local_volunteers %}{% if selected_status %}&{% else %}?{% endif %}local_volunteers=1{% endif %}" class="map-cat-chip {% if not selected_category %}active{% endif %}">
-                            <i class="fa-solid fa-layer-group" aria-hidden="true"></i> All ({{ total_count }})
+                        <a href="{% querystring category='' %}" data-filter-category="" class="map-cat-chip {% if not selected_category %}active{% endif %}" {% if not selected_category %}aria-current="true"{% endif %}>
+                            <i class="fa-solid fa-layer-group" aria-hidden="true"></i> All
                         </a>
                         {% for key, val in categories %}
-                            <a href="{% url 'home:dashboard' %}?category={{ key }}{% if selected_status %}&status={{ selected_status }}{% endif %}{% if local_volunteers %}&local_volunteers=1{% endif %}" class="map-cat-chip {% if selected_category == key %}active{% endif %}">
+                            <a href="{% querystring category=key %}" data-filter-category="{{ key }}" class="map-cat-chip {% if selected_category == key %}active{% endif %}" {% if selected_category == key %}aria-current="true"{% endif %}>
                                 {% if key == 'MEDICAL' %}<i class="fa-solid fa-hospital" aria-hidden="true"></i> Medical
                                 {% elif key == 'FOOD' %}<i class="fa-solid fa-bowl-food" aria-hidden="true"></i> Food
                                 {% elif key == 'SHELTER' %}<i class="fa-solid fa-tents" aria-hidden="true"></i> Shelter
@@ -62,23 +64,26 @@
                     </button>
                 </div>
                 <div class="map-util-row">
-                    <select name="status" id="statusSelect" class="map-status-select" onchange="this.form.submit()" aria-label="Filter by operating status">
+                    <select name="status" id="statusSelect" class="map-status-select" aria-label="Filter by operating status">
                         <option value="">All Statuses</option>
                         {% for key, val in statuses %}
                             <option value="{{ key }}" {% if selected_status == key %}selected{% endif %}>{{ val }}</option>
                         {% endfor %}
                     </select>
                     <label class="map-local-chip" for="localVolunteersSelect" title="Show only sites reported by volunteers in your city">
-                        <input type="checkbox" name="local_volunteers" id="localVolunteersSelect" value="1" {% if local_volunteers %}checked{% endif %} onchange="this.form.submit()">
+                        <input type="checkbox" name="local_volunteers" id="localVolunteersSelect" value="1" {% if local_volunteers %}checked{% endif %}>
                         Local volunteers
                     </label>
-                    {% if selected_category or selected_status or local_volunteers %}
-                        <a href="{% url 'home:dashboard' %}" class="map-filter-reset-inline" title="Reset all filters">
-                            <i class="fa-solid fa-rotate-left" aria-hidden="true"></i> Reset
-                        </a>
-                    {% endif %}
+                    <a href="{% url 'home:dashboard' %}?category=" id="dashboardResetFilters" data-reset-filters class="map-filter-reset-inline" title="Reset all filters" {% if not selected_category and not selected_status and not local_volunteers and not query %}hidden{% endif %}>
+                        <i class="fa-solid fa-rotate-left" aria-hidden="true"></i> Reset
+                    </a>
+                    <noscript><button type="submit" class="btn btn-sm btn-outline">Apply filters</button></noscript>
                 </div>
             </form>
+            <div id="dashboardFilterError" class="map-filter-error" hidden>
+                <span>Couldn’t update filters. Previous results are still shown.</span>
+                <button type="button" id="dashboardFilterRetry" class="btn btn-sm btn-outline">Try again</button>
+            </div>
         </div>
 
         <div id="mapStatusLive" class="sr-only" role="status" aria-live="polite"></div>
@@ -99,12 +104,14 @@
                     <h2>Verified Relief Centers</h2>
                     <span class="ledger-hint">Select any row to inspect hours, services, directions &amp; controls</span>
                 </div>
-                <span class="count-pill">{{ resources|length }} Results</span>
+                <span class="count-pill" id="dashboardResultCount">{{ total_count }} result{{ total_count|pluralize }}</span>
             </div>
-            {% if resources %}
+            <div id="dashboardResults">
+            {% partialdef dashboard-results inline %}
+              {% if resources %}
                 <div class="ledger-list" id="resourceList">
                     {% for resource in resources %}
-                        <details class="ledger-item resource-row" id="resource-card-{{ resource.id }}" data-lat="{{ resource.latitude }}" data-lng="{{ resource.longitude }}" data-id="{{ resource.id }}">
+                        <details name="dashboard-resources" class="ledger-item resource-row" id="resource-card-{{ resource.id }}" data-lat="{{ resource.latitude }}" data-lng="{{ resource.longitude }}" data-id="{{ resource.id }}">
                             <summary class="ledger-summary">
                                 <span class="ledger-cat-dot dot-{{ resource.category|lower }}" aria-hidden="true"></span>
                                 <div class="ledger-main-col">
@@ -182,12 +189,14 @@
                 <div class="empty-state-card">
                     <i class="fa-solid fa-box-open empty-icon" aria-hidden="true"></i>
                     <h3>No Resources Found</h3>
-                    <p>No active aid centers matched your search query or selected filters.</p>
-                    <a href="{% url 'home:dashboard' %}" class="btn btn-primary btn-sm">
+                    <p>No aid centers match the current filters.</p>
+                    <a href="{% url 'home:dashboard' %}?category=" data-reset-filters class="btn btn-primary btn-sm">
                         <i class="fa-solid fa-rotate-left" aria-hidden="true"></i> Clear Filters
                     </a>
                 </div>
-            {% endif %}
+              {% endif %}
+            {% endpartialdef %}
+            </div>
         </div>
     </div>
 </div>
