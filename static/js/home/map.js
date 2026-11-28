@@ -471,10 +471,30 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     if (filterToggleBtn && filterPanel) {
-        filterToggleBtn.addEventListener("click", () => {
+        const closeFilterPanel = (restoreFocus = false) => {
+            if (filterPanel.hidden) return;
+            filterPanel.hidden = true;
+            filterToggleBtn.setAttribute("aria-expanded", "false");
+            if (restoreFocus) filterToggleBtn.focus();
+        };
+
+        filterToggleBtn.addEventListener("click", (e) => {
+            e.stopPropagation();
             const willOpen = filterPanel.hidden;
             filterPanel.hidden = !willOpen;
             filterToggleBtn.setAttribute("aria-expanded", String(willOpen));
+        });
+
+        document.addEventListener("click", (e) => {
+            if (!filterPanel.hidden && !filterPanel.contains(e.target) && !filterToggleBtn.contains(e.target)) {
+                closeFilterPanel(false);
+            }
+        });
+
+        document.addEventListener("keydown", (e) => {
+            if (e.key === "Escape" && !filterPanel.hidden) {
+                closeFilterPanel(true);
+            }
         });
     }
 

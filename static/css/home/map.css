@@ -303,41 +303,79 @@ html.dark-mode .filter-badge-dot {
     display: none;
 }
 
-/* Secondary Filter Panel */
+/* Floating Secondary Filter Popover */
 .drawer-filter-panel {
-    padding: 0.75rem;
-    background-color: var(--bg-main);
-    border-bottom: 1px solid var(--border-color);
-    flex-shrink: 0;
+    position: absolute;
+    top: 66px;
+    left: 0.75rem;
+    right: 0.75rem;
+    z-index: 620;
+    background-color: color-mix(in srgb, var(--bg-card) 92%, transparent);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    box-shadow: 0 16px 34px -8px rgba(0, 0, 0, 0.35), 0 4px 12px -2px rgba(0, 0, 0, 0.18);
+    padding: 0.85rem 0.95rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.65rem;
 }
 
 .drawer-filter-panel[hidden] {
     display: none;
 }
 
-.drawer-filter-grid {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 0.6rem;
+.drawer-filter-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+}
+
+.drawer-filter-title {
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.drawer-filter-reset-link {
+    background: none;
+    border: none;
+    padding: 0.2rem 0.35rem;
+    color: var(--primary-text);
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    font-family: inherit;
+    border-radius: var(--radius-sm);
+}
+
+.drawer-filter-reset-link:hover {
+    text-decoration: underline;
 }
 
 .drawer-filter-field label {
     display: block;
     font-size: 0.8rem;
     font-weight: 600;
-    color: var(--text-muted);
-    margin-bottom: 0.25rem;
+    color: var(--text-primary);
+    margin-bottom: 0.3rem;
 }
 
 .drawer-filter-field select {
-    padding: 0.45rem 0.6rem;
-    font-size: 0.85rem;
-}
-
-.drawer-filter-actions {
-    margin-top: 0.65rem;
-    display: flex;
-    justify-content: flex-end;
+    width: 100%;
+    padding: 0.5rem 0.65rem;
+    font-size: 0.86rem;
 }
 
 /* Drawer Body */
