@@ -432,6 +432,39 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
+    // Category Chip Overflow Arrows (shows prev/next only when track overflows)
+    document.querySelectorAll(".cat-scroll-wrap").forEach((wrap) => {
+        const track = wrap.querySelector(".cat-scroll-track");
+        const prevBtn = wrap.querySelector(".cat-scroll-prev");
+        const nextBtn = wrap.querySelector(".cat-scroll-next");
+        if (!track || !prevBtn || !nextBtn) return;
+
+        const updateArrows = () => {
+            const maxScroll = track.scrollWidth - track.clientWidth;
+            const hasLeft = track.scrollLeft > 4;
+            const hasRight = maxScroll - track.scrollLeft > 4;
+            prevBtn.hidden = !hasLeft;
+            nextBtn.hidden = !hasRight;
+            wrap.classList.toggle("has-left", hasLeft);
+            wrap.classList.toggle("has-right", hasRight);
+        };
+
+        prevBtn.addEventListener("click", () => {
+            track.scrollBy({ left: -180, behavior: prefersReducedMotion() ? "auto" : "smooth" });
+        });
+        nextBtn.addEventListener("click", () => {
+            track.scrollBy({ left: 180, behavior: prefersReducedMotion() ? "auto" : "smooth" });
+        });
+
+        track.addEventListener("scroll", updateArrows, { passive: true });
+        window.addEventListener("resize", updateArrows);
+        if (typeof ResizeObserver !== "undefined") {
+            new ResizeObserver(updateArrows).observe(track);
+        }
+        updateArrows();
+        setTimeout(updateArrows, 120);
+    });
+
     if (modalGpsBtn && navigator.geolocation) {
         modalGpsBtn.addEventListener("click", () => {
             modalGpsBtn.disabled = true;

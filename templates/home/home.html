@@ -33,54 +33,52 @@
         </div>
 
         <div class="map-search-toolbar">
-            <form method="GET" action="{% url 'home:dashboard' %}" id="searchFilterForm" class="map-search-form">
+            <form method="GET" action="{% url 'home:dashboard' %}" id="searchFilterForm" class="map-chip-form">
                 {% if selected_category %}
                     <input type="hidden" name="category" value="{{ selected_category }}">
                 {% endif %}
 
-                <div class="map-search-inline">
-                    <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
-                    <input type="search"
-                           name="q"
-                           value="{{ query }}"
-                           placeholder="Search havens, cities, drinking water, first aid..."
-                           aria-label="Search aid havens and services">
+                <div class="cat-scroll-wrap" role="group" aria-label="Filter by aid category">
+                    <button type="button" class="cat-scroll-btn cat-scroll-prev" aria-label="Scroll categories left" hidden>
+                        <i class="fa-solid fa-chevron-left" aria-hidden="true"></i>
+                    </button>
+                    <div class="cat-scroll-track">
+                        <a href="{% url 'home:dashboard' %}{% if selected_status %}?status={{ selected_status }}{% endif %}{% if local_volunteers %}{% if selected_status %}&{% else %}?{% endif %}local_volunteers=1{% endif %}" class="map-cat-chip {% if not selected_category %}active{% endif %}">
+                            <i class="fa-solid fa-layer-group" aria-hidden="true"></i> All ({{ total_count }})
+                        </a>
+                        {% for key, val in categories %}
+                            <a href="{% url 'home:dashboard' %}?category={{ key }}{% if selected_status %}&status={{ selected_status }}{% endif %}{% if local_volunteers %}&local_volunteers=1{% endif %}" class="map-cat-chip {% if selected_category == key %}active{% endif %}">
+                                {% if key == 'MEDICAL' %}<i class="fa-solid fa-hospital" aria-hidden="true"></i> Medical
+                                {% elif key == 'FOOD' %}<i class="fa-solid fa-bowl-food" aria-hidden="true"></i> Food
+                                {% elif key == 'SHELTER' %}<i class="fa-solid fa-tents" aria-hidden="true"></i> Shelter
+                                {% elif key == 'GOV' %}<i class="fa-solid fa-building-columns" aria-hidden="true"></i> Govt Aid
+                                {% elif key == 'DONATION' %}<i class="fa-solid fa-hand-holding-dollar" aria-hidden="true"></i> Donation
+                                {% else %}{{ val }}{% endif %}
+                            </a>
+                        {% endfor %}
+                    </div>
+                    <button type="button" class="cat-scroll-btn cat-scroll-next" aria-label="Scroll categories right" hidden>
+                        <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
+                    </button>
                 </div>
 
-                <details class="map-filter-details" id="mapFilterMenu">
-                    <summary>
-                        <span class="map-filter-summary-label">
-                            <i class="fa-solid fa-filter" aria-hidden="true"></i>
-                            Filter
-                        </span>
-                        <i class="fa-solid fa-chevron-down map-filter-caret" aria-hidden="true"></i>
-                    </summary>
-                    <div class="map-filter-popover">
-                        <div class="map-filter-top-row">
-                            <select name="status" id="statusSelect" onchange="this.form.submit()" aria-label="Filter by operating status">
-                                <option value="">All Statuses</option>
-                                {% for key, val in statuses %}
-                                    <option value="{{ key }}" {% if selected_status == key %}selected{% endif %}>{{ val }}</option>
-                                {% endfor %}
-                            </select>
-                            <label class="map-filter-local-pill" for="localVolunteersSelect" title="Show only sites reported by volunteers in your city">
-                                <input type="checkbox" name="local_volunteers" id="localVolunteersSelect" value="1" {% if local_volunteers %}checked{% endif %} onchange="this.form.submit()">
-                                Local only
-                            </label>
-                        </div>
-                        <div class="map-filter-chips">
-                            <a href="{% url 'home:dashboard' %}{% if query %}?q={{ query|urlencode }}{% endif %}{% if selected_status %}{% if query %}&{% else %}?{% endif %}status={{ selected_status }}{% endif %}" class="map-filter-chip {% if not selected_category %}active{% endif %}">All ({{ total_count }})</a>
-                            {% for key, val in categories %}
-                                <a href="{% url 'home:dashboard' %}?category={{ key }}{% if query %}&q={{ query|urlencode }}{% endif %}{% if selected_status %}&status={{ selected_status }}{% endif %}" class="map-filter-chip {% if selected_category == key %}active{% endif %}">{{ val }}</a>
-                            {% endfor %}
-                            {% if query or selected_category or selected_status or local_volunteers %}
-                                <a href="{% url 'home:dashboard' %}" class="map-filter-reset-inline" title="Reset all filters">
-                                    <i class="fa-solid fa-rotate-left" aria-hidden="true"></i> Reset
-                                </a>
-                            {% endif %}
-                        </div>
-                    </div>
-                </details>
+                <div class="map-util-row">
+                    <select name="status" id="statusSelect" class="map-status-select" onchange="this.form.submit()" aria-label="Filter by operating status">
+                        <option value="">All Statuses</option>
+                        {% for key, val in statuses %}
+                            <option value="{{ key }}" {% if selected_status == key %}selected{% endif %}>{{ val }}</option>
+                        {% endfor %}
+                    </select>
+                    <label class="map-local-chip" for="localVolunteersSelect" title="Show only sites reported by volunteers in your city">
+                        <input type="checkbox" name="local_volunteers" id="localVolunteersSelect" value="1" {% if local_volunteers %}checked{% endif %} onchange="this.form.submit()">
+                        Local volunteers
+                    </label>
+                    {% if selected_category or selected_status or local_volunteers %}
+                        <a href="{% url 'home:dashboard' %}" class="map-filter-reset-inline" title="Reset all filters">
+                            <i class="fa-solid fa-rotate-left" aria-hidden="true"></i> Reset
+                        </a>
+                    {% endif %}
+                </div>
             </form>
         </div>
 
@@ -158,6 +156,7 @@
                                         {% endif %}
                                     </div>
                                 </div>
+
                                 <div class="ledger-popover-foot">
                                     <button type="button" class="btn btn-sm btn-outline pan-to-pin-btn" data-lat="{{ resource.latitude }}" data-lng="{{ resource.longitude }}" data-id="{{ resource.id }}">
                                         <i class="fa-solid fa-map-pin" aria-hidden="true"></i> View on Map
@@ -165,12 +164,14 @@
                                     <a href="https://www.google.com/maps/dir/?api=1&destination={{ resource.latitude }},{{ resource.longitude }}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-primary">
                                         <i class="fa-solid fa-diamond-turn-right" aria-hidden="true"></i> Directions
                                     </a>
+
                                     <form method="POST" action="{% url 'home:confirm_resource' resource.id %}" class="inline-action-form">
                                         {% csrf_token %}
                                         <button type="submit" class="btn btn-sm btn-outline" title="Confirm this relief center is currently active">
                                             <i class="fa-solid fa-thumbs-up" aria-hidden="true"></i> Verified ({{ resource.confirmations }})
                                         </button>
                                     </form>
+
                                     <form method="POST" action="{% url 'home:update_status' resource.id %}" class="inline-action-form ledger-status-form">
                                         {% csrf_token %}
                                         <select name="status" class="quick-status-select" onchange="this.form.submit()" title="Quickly update operating status" aria-label="Operating status for {{ resource.name }}">
