@@ -1,3 +1,4 @@
+from django.db import connection
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import PasswordChangeForm
@@ -37,5 +38,6 @@ def settings_view(request):
         'settings': user_settings,
         'form': settings_form,
         'password_form': password_form,
+        'is_postgres': connection.vendor == 'postgresql',
     }
     return render(request, 'user_settings/settings.html', context)

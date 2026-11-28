@@ -16,6 +16,7 @@ class UserSettingsViewTests(TestCase):
         response = self.client.get(reverse("user_settings:settings"))
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "user_settings/settings.html")
+        self.assertNotContains(response, "Supabase Cloud: Connected")
 
     def test_settings_update(self):
         self.client.login(username="testsettingsuser", password="Password123!")

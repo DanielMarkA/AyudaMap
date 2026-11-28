@@ -810,7 +810,7 @@ button:focus-visible {
     color: var(--primary-text);
 }
 
-/* Badges, Category Pills, Status Pills & Urgency Badges (shared across Home, Reports, Profile) */
+/* Badges, Category Pills & Status Pills (shared across Home, Reports, Profile) */
 .badge {
     display: inline-flex;
     align-items: center;
@@ -869,32 +869,6 @@ html.dark-mode .cat-donation { background: #064e3b; color: #6ee7b7; }
 .status-open { background-color: #2e7d32; }
 .status-full { background-color: #c2410c; }
 .status-closed { background-color: #c62828; }
-
-.urgency-badge,
-.urgency-pill {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.3rem;
-    font-size: 0.78rem;
-    font-weight: 700;
-    padding: 0.2rem 0.6rem;
-    border-radius: 9999px;
-    white-space: nowrap;
-}
-
-.urgency-critical,
-.urgency-CRITICAL { background: #fee2e2; color: #991b1b; }
-.urgency-medium,
-.urgency-MEDIUM { background: #fef3c7; color: #92400e; }
-.urgency-low,
-.urgency-LOW { background: #e0f2fe; color: #075985; }
-
-html.dark-mode .urgency-critical,
-html.dark-mode .urgency-CRITICAL { background: #450a0a; color: #fca5a5; }
-html.dark-mode .urgency-medium,
-html.dark-mode .urgency-MEDIUM { background: #451a03; color: #fcd34d; }
-html.dark-mode .urgency-low,
-html.dark-mode .urgency-LOW { background: #0c4a6e; color: #bae6fd; }
 
 /* Leaflet Dark Mode Popups */
 html.dark-mode .leaflet-popup-content-wrapper {

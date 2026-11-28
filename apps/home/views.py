@@ -180,7 +180,6 @@ def map_view(request):
 @login_required
 @vary_on_headers("X-Dashboard-Filters")
 def dashboard_view(request):
-    query = request.GET.get('q', '').strip()
     selected_status = request.GET.get('status', '').strip()
     local_volunteers = request.GET.get('local_volunteers', '').strip()
 
@@ -190,16 +189,6 @@ def dashboard_view(request):
 
     resources = Resource.objects.filter(is_verified=True).select_related('created_by', 'created_by__profile')
 
-    if query:
-        search_q = (
-            Q(name__icontains=query) |
-            Q(description__icontains=query) |
-            Q(city__icontains=query) |
-            Q(location__icontains=query)
-        )
-        for code in Resource.matching_service_codes(query):
-            search_q |= Q(services_offered__icontains=f'"{code}"')
-        resources = resources.filter(search_q)
     if selected_category:
         resources = resources.filter(category=selected_category)
     if selected_status:
@@ -226,7 +215,6 @@ def dashboard_view(request):
 
     context = {
         'resources': resources,
-        'query': query,
         'default_category': default_category,
         'selected_category': selected_category,
         'selected_status': selected_status,
@@ -248,7 +236,6 @@ def dashboard_view(request):
             'category': selected_category,
             'status': selected_status,
             'local_volunteers': bool(local_volunteers),
-            'query': query,
         })
     return render(request, 'home/home.html', context)
 

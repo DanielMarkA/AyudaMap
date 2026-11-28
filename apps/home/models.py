@@ -149,19 +149,6 @@ class Resource(models.Model):
         verbose_name = 'Aid Resource'
         verbose_name_plural = 'Aid Resources'
 
-    @classmethod
-    def matching_service_codes(cls, query):
-        q = (query or '').strip().lower()
-        if not q:
-            return []
-        tokens = [t for t in q.split() if t]
-        matches = []
-        for code, label in cls.SERVICE_CHOICES:
-            searchable = f"{code.lower()} {label.lower()}"
-            if q in searchable or (tokens and all(tok in searchable for tok in tokens)):
-                matches.append(code)
-        return matches
-
     def clean(self):
         super().clean()
         if not self.is_24_7:

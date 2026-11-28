@@ -38,7 +38,6 @@
         <div class="map-search-toolbar">
             <form method="GET" action="{% url 'home:dashboard' %}" id="searchFilterForm" class="map-chip-form" data-default-category="{{ default_category }}">
                 <input type="hidden" name="category" value="{{ selected_category }}">
-                <input type="hidden" name="q" value="{{ query }}" {% if not query %}disabled{% endif %}>
 
                 <div class="cat-scroll-wrap" role="group" aria-label="Filter by aid category">
                     <button type="button" class="cat-scroll-btn cat-scroll-prev" aria-label="Scroll categories left" hidden>
@@ -74,7 +73,7 @@
                         <input type="checkbox" name="local_volunteers" id="localVolunteersSelect" value="1" {% if local_volunteers %}checked{% endif %}>
                         Local volunteers
                     </label>
-                    <a href="{% url 'home:dashboard' %}?category=" id="dashboardResetFilters" data-reset-filters class="map-filter-reset-inline" title="Reset all filters" {% if not selected_category and not selected_status and not local_volunteers and not query %}hidden{% endif %}>
+                    <a href="{% url 'home:dashboard' %}?category=" id="dashboardResetFilters" data-reset-filters class="map-filter-reset-inline" title="Reset all filters" {% if not selected_category and not selected_status and not local_volunteers %}hidden{% endif %}>
                         <i class="fa-solid fa-rotate-left" aria-hidden="true"></i> Reset
                     </a>
                     <noscript><button type="submit" class="btn btn-sm btn-outline">Apply filters</button></noscript>

@@ -412,7 +412,6 @@ document.addEventListener("DOMContentLoaded", () => {
         const status = filterForm.elements.status;
         const localVolunteers = filterForm.elements.local_volunteers;
         const category = filterForm.elements.category;
-        const query = filterForm.elements.q;
         const categoryChips = [...filterForm.querySelectorAll("[data-filter-category]")];
         const reset = document.getElementById("dashboardResetFilters");
         const progress = document.getElementById("dashboardFilterProgress");
@@ -422,7 +421,6 @@ document.addEventListener("DOMContentLoaded", () => {
             category: category.value,
             status: status.value,
             local_volunteers: localVolunteers.checked,
-            query: query.value,
         };
         let appliedUrl = new URL(window.location.href);
         let desiredUrl = appliedUrl;
@@ -439,9 +437,7 @@ document.addEventListener("DOMContentLoaded", () => {
             status.value = filters.status;
             localVolunteers.checked = filters.local_volunteers;
             category.value = filters.category;
-            query.value = filters.query;
-            query.disabled = !filters.query;
-            reset.hidden = !(filters.category || filters.status || filters.local_volunteers || filters.query);
+            reset.hidden = !(filters.category || filters.status || filters.local_volunteers);
 
             for (const chip of categoryChips) {
                 const chipUrl = new URL(url);
@@ -469,7 +465,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 category: params.get("category")?.trim() ?? filterForm.dataset.defaultCategory,
                 status: params.get("status")?.trim() || "",
                 local_volunteers: Boolean(params.get("local_volunteers")?.trim()),
-                query: params.get("q")?.trim() || "",
             }, url);
             if (activeElement === retry || (activeElement === reset && reset.hidden)) focusActiveChip();
             error.hidden = true;

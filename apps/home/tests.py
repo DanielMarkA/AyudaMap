@@ -6,7 +6,7 @@ from django.test import TestCase
 from django.urls import reverse
 from django.contrib.auth.models import User
 from apps.profile.models import Profile
-from .models import Resource
+from .models import Resource, ResourceStatusLog
 
 MANILA_TZ = ZoneInfo("Asia/Manila")
 
@@ -199,23 +199,17 @@ class HomeViewTests(TestCase):
         self.assertTrue(night_shelter.is_within_operating_hours(now=early_morning))
         self.assertFalse(night_shelter.is_within_operating_hours(now=noon))
 
-    def test_dashboard_search_by_city_and_service_offered(self):
+    def test_dashboard_does_not_render_search_input(self):
         self.client.login(username="testuser", password="Password123!")
+        response = self.client.get(reverse("home:dashboard"))
+        self.assertEqual(response.status_code, 200)
+        self.assertNotContains(response, 'name="q"')
 
-        city_res = self.client.get(reverse("home:dashboard"), {"q": "Pasig"})
-        self.assertEqual(city_res.status_code, 200)
-        self.assertContains(city_res, "Pasig Food Pantry")
-        self.assertNotContains(city_res, "Manila City Clinic")
-
-        # Searching "drinking water" matches Manila City Clinic (offers WATER),
-        # NOT Pasig Food Pantry (which only has "Drinking Water" in admin-only supplies_needed).
-        water_res = self.client.get(reverse("home:dashboard"), {"q": "drinking water"})
-        self.assertContains(water_res, "Manila City Clinic")
-        self.assertNotContains(water_res, "Pasig Food Pantry")
-
-        first_aid_res = self.client.get(reverse("home:dashboard"), {"q": "first aid"})
-        self.assertContains(first_aid_res, "Manila City Clinic")
-        self.assertNotContains(first_aid_res, "Pasig Food Pantry")
+    def test_public_map_preserves_query_param_without_exposing_supplies_needed(self):
+        response = self.client.get(reverse("home:map"), {"q": "Pasig"})
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, '"q": "Pasig"')
+        self.assertNotContains(response, "Internal Bandage Stock")
 
     def test_dashboard_local_volunteers_filter_without_profile(self):
         self.client.force_login(self.user)
@@ -254,6 +248,49 @@ class HomeViewTests(TestCase):
         self.assertEqual(res.services_offered, ["SHELTER", "WATER", "POWER"])
         self.assertEqual(res.city, "Quezon City")
         self.assertEqual(res.display_location, "Maginhawa St, Teachers Village, Quezon City")
+        log = ResourceStatusLog.objects.filter(resource=res).first()
+        self.assertIsNotNone(log)
+        self.assertEqual(log.action_type, "STATUS_UPDATE")
+        self.assertEqual(log.new_status, "OPERATIONAL")
+        self.assertEqual(log.updated_by, self.user)
+
+    def test_confirm_resource_increments_count_and_creates_log(self):
+        self.client.force_login(self.user)
+        response = self.client.post(reverse("home:confirm_resource", args=[self.resource1.id]))
+        self.assertRedirects(response, reverse("home:dashboard"))
+        self.resource1.refresh_from_db()
+        self.assertEqual(self.resource1.confirmations, 2)
+        log = ResourceStatusLog.objects.filter(resource=self.resource1, action_type="CONFIRM_ACTIVE").first()
+        self.assertIsNotNone(log)
+        self.assertEqual(log.updated_by, self.user)
+
+    def test_update_resource_status_updates_status_and_creates_log(self):
+        self.client.force_login(self.user)
+        response = self.client.post(
+            reverse("home:update_status", args=[self.resource1.id]),
+            {"status": "LIMITED"},
+        )
+        self.assertRedirects(response, reverse("home:dashboard"))
+        self.resource1.refresh_from_db()
+        self.assertEqual(self.resource1.status, "LIMITED")
+        log = ResourceStatusLog.objects.filter(resource=self.resource1, action_type="STATUS_UPDATE").first()
+        self.assertIsNotNone(log)
+        self.assertEqual(log.previous_status, "OPERATIONAL")
+        self.assertEqual(log.new_status, "LIMITED")
+        self.assertEqual(log.updated_by, self.user)
+
+    def test_update_resource_status_ignores_invalid_or_unchanged_status(self):
+        self.client.force_login(self.user)
+        for bad_status in ("BOGUS", "OPERATIONAL"):
+            with self.subTest(status=bad_status):
+                response = self.client.post(
+                    reverse("home:update_status", args=[self.resource1.id]),
+                    {"status": bad_status},
+                )
+                self.assertRedirects(response, reverse("home:dashboard"))
+                self.resource1.refresh_from_db()
+                self.assertEqual(self.resource1.status, "OPERATIONAL")
+                self.assertFalse(ResourceStatusLog.objects.filter(resource=self.resource1).exists())
 
     def test_add_resource_rejects_identical_open_and_close_times(self):
         self.client.force_login(self.user)

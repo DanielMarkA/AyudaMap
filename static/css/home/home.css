@@ -921,36 +921,6 @@ html.dark-mode .modal-picker-notice {
     }
 }
 
-.map-search-form {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    flex-wrap: wrap;
-    width: 100%;
-}
-
-.map-search-inline {
-    display: flex;
-    align-items: center;
-    gap: 0.45rem;
-    flex: 1 1 220px;
-    padding: 0.4rem 0.75rem;
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-sm);
-    background-color: var(--bg-card);
-    color: var(--text-muted);
-}
-
-.map-search-inline input[type="search"] {
-    border: none;
-    background: transparent;
-    color: var(--text-primary);
-    font-size: 0.88rem;
-    width: 100%;
-    outline: none;
-    padding: 0;
-}
-
 .ledger-services-row {
     display: flex;
     flex-wrap: wrap;
