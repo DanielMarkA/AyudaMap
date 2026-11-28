@@ -13,42 +13,42 @@ from apps.profile.models import Profile
 def _get_impact_summary(resources):
     totals = resources.aggregate(
         total_centers=Count('id'),
-        total_capacity=Sum('capacity_total'),
-        available_capacity=Sum('capacity_available'),
         total_confirmations=Sum('confirmations'),
     )
-    total_cap = totals['total_capacity'] or 0
-    avail_cap = totals['available_capacity'] or 0
-    utilized_cap = max(0, total_cap - avail_cap)
-    utilization_rate = round((utilized_cap / total_cap) * 100, 1) if total_cap > 0 else 0
-    availability_rate = round((avail_cap / total_cap) * 100, 1) if total_cap > 0 else 0
+    total_centers = totals['total_centers'] or 0
+    open_qs = resources.currently_open()
+    open_centers = open_qs.count()
+    cities_covered = resources.exclude(city='').values('city').distinct().count()
+    open_rate = round((open_centers / total_centers) * 100, 1) if total_centers > 0 else 0
+
+    open_by_category = {
+        row['category']: row['open_count']
+        for row in open_qs.values('category').annotate(open_count=Count('id'))
+    }
 
     category_map = dict(Resource.CATEGORY_CHOICES)
     category_stats = []
     for row in resources.values('category').annotate(
         count=Count('id'),
-        avail=Sum('capacity_available'),
-        total=Sum('capacity_total'),
+        confirmations=Sum('confirmations'),
     ).order_by('-count'):
-        row_total = row['total'] or 0
-        row_avail = row['avail'] or 0
-        row_pct = round(((row_total - row_avail) / row_total) * 100) if row_total > 0 else 0
-        avail_pct = round((row_avail / row_total) * 100) if row_total > 0 else 0
+        row_count = row['count'] or 0
+        row_open = open_by_category.get(row['category'], 0)
+        open_pct = round((row_open / row_count) * 100) if row_count > 0 else 0
         category_stats.append({
             'code': row['category'],
             'label': category_map.get(row['category'], row['category']),
-            'count': row['count'],
-            'avail': row_avail,
-            'total': row_total,
-            'utilized_pct': max(0, min(100, row_pct)),
-            'available_pct': max(0, min(100, avail_pct)),
+            'count': row_count,
+            'open_count': row_open,
+            'confirmations': row['confirmations'] or 0,
+            'open_pct': max(0, min(100, open_pct)),
         })
 
     return {
         'totals': totals,
-        'utilized_cap': utilized_cap,
-        'utilization_rate': utilization_rate,
-        'availability_rate': availability_rate,
+        'open_centers': open_centers,
+        'open_rate': open_rate,
+        'cities_covered': cities_covered,
         'category_stats': category_stats,
     }
 
@@ -76,19 +76,22 @@ def _serialize_resources_for_map(resources):
             'name': r.name,
             'category': r.get_category_display(),
             'category_code': r.category,
-            'status': r.status,
-            'status_display': r.get_status_display(),
+            'status': r.effective_status,
+            'stored_status': r.status,
+            'status_display': r.effective_status_display,
+            'is_auto_closed': r.is_auto_closed,
+            'opens_at_display': r.opens_at_display,
             'urgency': r.urgency_level,
             'urgency_display': r.get_urgency_level_display(),
             'city': r.city,
             'location': r.display_location,
             'description': r.description or '',
+            'services': r.service_labels,
+            'service_codes': r.services_offered or [],
             'supplies_needed': r.supplies_needed or '',
-            'capacity_total': r.capacity_total,
-            'capacity_available': r.capacity_available,
-            'occupancy_percentage': r.occupancy_percentage,
             'confirmations': r.confirmations,
-            'operating_hours': r.operating_hours,
+            'is_24_7': r.is_24_7,
+            'operating_hours': r.operating_hours_display,
             'contact_info': r.contact_info,
             'posted_by': posted_by,
             'posted_by_org': posted_by_org,
@@ -115,30 +118,28 @@ def landing_view(request):
     summary['last_updated'] = (
         verified_resources.order_by('-updated_at').values_list('updated_at', flat=True).first()
     )
+    open_resources = verified_resources.currently_open()
     featured = (
-        verified_resources.filter(category='SHELTER', status='OPERATIONAL').order_by('-confirmations', '-capacity_available').first()
-        or verified_resources.filter(status='OPERATIONAL').order_by('-confirmations', '-capacity_available').first()
-        or verified_resources.order_by('-confirmations').first()
+        open_resources.filter(category='SHELTER').order_by('-confirmations', '-updated_at').first()
+        or open_resources.order_by('-confirmations', '-updated_at').first()
+        or verified_resources.order_by('-confirmations', '-updated_at').first()
     )
     status_class_map = {
         'OPERATIONAL': 'open',
-        'FULL_CAPACITY': 'full',
-        'TEMPORARILY_CLOSED': 'closed',
+        'LIMITED': 'full',
+        'CLOSED': 'closed',
     }
     if featured:
-        feat_total = featured.capacity_total or 0
-        feat_avail = featured.capacity_available or 0
-        feat_pct = round((feat_avail / feat_total) * 100) if feat_total > 0 else 0
         summary['featured_hub'] = {
             'name': featured.name,
             'location': featured.display_location,
             'category_code': featured.category,
             'category_label': featured.get_category_display(),
-            'status_display': featured.get_status_display(),
-            'status_class': status_class_map.get(featured.status, 'open'),
-            'capacity_available': feat_avail,
-            'capacity_total': feat_total,
-            'available_pct': max(0, min(100, feat_pct)),
+            'status_display': featured.effective_status_display,
+            'status_class': status_class_map.get(featured.effective_status, 'open'),
+            'operating_hours': featured.operating_hours_display,
+            'confirmations': featured.confirmations,
+            'services': featured.service_labels[:4],
         }
     else:
         summary['featured_hub'] = None
@@ -207,7 +208,7 @@ def dashboard_view(request):
     if selected_category:
         resources = resources.filter(category=selected_category)
     if selected_status:
-        resources = resources.filter(status=selected_status)
+        resources = resources.filter_by_effective_status(selected_status)
     if selected_urgency:
         resources = resources.filter(urgency_level=selected_urgency)
     if local_volunteers:
@@ -244,7 +245,7 @@ def dashboard_view(request):
         'user_map_config': user_map_config,
         'resource_form': resource_form,
         'total_count': resources.count(),
-        'operational_count': resources.filter(status='OPERATIONAL').count(),
+        'operational_count': resources.currently_open().count(),
         'critical_count': resources.filter(urgency_level='CRITICAL').count(),
     }
     return render(request, 'home/home.html', context)
@@ -307,8 +308,6 @@ def update_resource_status_view(request, resource_id):
     if new_status in valid_statuses and new_status != resource.status:
         old_status = resource.status
         resource.status = new_status
-        if new_status == 'FULL_CAPACITY':
-            resource.capacity_available = 0
         resource.save()
 
         ResourceStatusLog.objects.create(

@@ -110,8 +110,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const getStatusBadge = (status, statusDisplay) => {
             let bg = '#2e7d32';
-            if (status === 'FULL_CAPACITY') bg = '#c2410c';
-            else if (status === 'TEMPORARILY_CLOSED') bg = '#c62828';
+            if (status === 'LIMITED') bg = '#c2410c';
+            else if (status === 'CLOSED') bg = '#c62828';
             return `<span class="ayuda-popup-status" style="background: ${bg};">${escapeHtml(statusDisplay || status)}</span>`;
         };
 
@@ -128,8 +128,17 @@ document.addEventListener("DOMContentLoaded", () => {
                     iconAnchor: [14, 14]
                 });
 
+                const services = Array.isArray(res.services) ? res.services : [];
+                const servicesHtml = services.length
+                    ? `<p style="margin: 4px 0; font-size: 0.8rem; color: var(--text-primary);"><strong>Available:</strong> ${escapeHtml(services.join(', '))}</p>`
+                    : '';
+
                 const suppliesHtml = res.supplies_needed
                     ? `<p style="margin: 4px 0; font-size: 0.8rem; color: var(--accent); font-weight: 600;"><i class="fa-solid fa-boxes-stacked"></i> Needed: ${escapeHtml(res.supplies_needed)}</p>`
+                    : '';
+
+                const hoursSuffix = res.is_auto_closed && res.opens_at_display
+                    ? ` (Closed · Opens ${escapeHtml(res.opens_at_display)})`
                     : '';
 
                 const popupContent = `
@@ -139,10 +148,10 @@ document.addEventListener("DOMContentLoaded", () => {
                             <span class="urgency-badge urgency-low">${escapeHtml(res.category)}</span>
                             ${getStatusBadge(res.status, res.status_display)}
                         </div>
-                        <p style="margin: 4px 0; font-size: 0.85rem; color: var(--text-primary);"><strong>Capacity:</strong> ${escapeHtml(res.capacity_available)} / ${escapeHtml(res.capacity_total)} slots</p>
+                        ${servicesHtml}
                         ${suppliesHtml}
                         <p style="margin: 4px 0; font-size: 0.85rem; color: var(--text-muted);"><i class="fa-solid fa-location-dot"></i> ${escapeHtml(res.location)}</p>
-                        <p style="margin: 4px 0; font-size: 0.85rem; color: var(--text-muted);"><i class="fa-solid fa-clock"></i> ${escapeHtml(res.operating_hours)}</p>
+                        <p style="margin: 4px 0; font-size: 0.85rem; color: var(--text-muted);"><i class="fa-solid fa-clock"></i> ${escapeHtml(res.operating_hours)}${hoursSuffix}</p>
                         ${res.contact_info ? `<p style="margin: 4px 0; font-size: 0.85rem; color: var(--text-muted);"><i class="fa-solid fa-phone"></i> ${escapeHtml(res.contact_info)}</p>` : ''}
                         <p style="margin: 6px 0 0 0; font-size: 0.8rem; color: var(--primary-text); font-weight: 600;"><i class="fa-solid fa-thumbs-up"></i> ${escapeHtml(res.confirmations)} community confirmations</p>
                     </div>
@@ -366,6 +375,19 @@ document.addEventListener("DOMContentLoaded", () => {
             saveResourceBtn.disabled = true;
             saveResourceBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin" aria-hidden="true"></i> Saving...';
         });
+    }
+
+    const is247Checkbox = document.querySelector("#addResourceModal input[name='is_24_7']");
+    const opensAtInput = document.querySelector("#addResourceModal input[name='opens_at']");
+    const closesAtInput = document.querySelector("#addResourceModal input[name='closes_at']");
+    if (is247Checkbox && opensAtInput && closesAtInput) {
+        const syncHoursInputs = () => {
+            const disabled = is247Checkbox.checked;
+            opensAtInput.disabled = disabled;
+            closesAtInput.disabled = disabled;
+        };
+        is247Checkbox.addEventListener("change", syncHoursInputs);
+        syncHoursInputs();
     }
 
     const mapFilterMenu = document.getElementById("mapFilterMenu");

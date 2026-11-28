@@ -119,8 +119,8 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     const getStatusMeta = (status) => {
-        if (status === "FULL_CAPACITY") return { cls: "status-full", short: "Full", icon: "fa-circle-exclamation" };
-        if (status === "TEMPORARILY_CLOSED") return { cls: "status-closed", short: "Closed", icon: "fa-circle-xmark" };
+        if (status === "LIMITED") return { cls: "status-full", short: "Limited", icon: "fa-circle-exclamation" };
+        if (status === "CLOSED") return { cls: "status-closed", short: "Closed", icon: "fa-circle-xmark" };
         return { cls: "status-open", short: "Open", icon: "fa-circle-check" };
     };
 
@@ -212,8 +212,21 @@ document.addEventListener("DOMContentLoaded", () => {
         const st = getStatusMeta(resource.status);
         const catClass = `cat-${String(resource.category_code || "").toLowerCase()}`;
         const urgClass = `urgency-${String(resource.urgency || "low").toLowerCase()}`;
-        const isHighOcc = resource.status === "FULL_CAPACITY" || Number(resource.occupancy_percentage) >= 85;
         const directionsUrl = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(resource.lat)},${encodeURIComponent(resource.lng)}`;
+
+        const services = Array.isArray(resource.services) ? resource.services : [];
+        const servicesBlock = services.length
+            ? `<div class="detail-services-box">
+                   <div class="detail-services-title"><i class="fa-solid fa-shield-heart" aria-hidden="true"></i> Available at this Haven</div>
+                   <div class="detail-services-list">
+                       ${services.map((svc) => `<span class="haven-service-tag"><i class="fa-solid fa-check" aria-hidden="true"></i> ${escapeHtml(svc)}</span>`).join("")}
+                   </div>
+               </div>`
+            : "";
+
+        const hoursText = resource.is_auto_closed && resource.opens_at_display
+            ? `${escapeHtml(resource.operating_hours)} <span class="detail-hours-note">(Closed after hours &middot; Opens ${escapeHtml(resource.opens_at_display)})</span>`
+            : escapeHtml(resource.operating_hours);
 
         const suppliesBlock = resource.supplies_needed
             ? `<div class="detail-supplies"><i class="fa-solid fa-boxes-stacked" aria-hidden="true"></i><span><strong>Supplies Needed:</strong> ${escapeHtml(resource.supplies_needed)}</span></div>`
@@ -241,19 +254,11 @@ document.addEventListener("DOMContentLoaded", () => {
                 </div>
             </div>
             ${descBlock}
+            ${servicesBlock}
             ${suppliesBlock}
-            <div class="detail-capacity-box">
-                <div class="detail-capacity-row">
-                    <span><strong>${escapeHtml(resource.capacity_available)} / ${escapeHtml(resource.capacity_total)}</strong> slots available</span>
-                    <span>${escapeHtml(resource.occupancy_percentage)}% occupied</span>
-                </div>
-                <div class="detail-capacity-track" role="progressbar" aria-valuenow="${escapeHtml(resource.occupancy_percentage)}" aria-valuemin="0" aria-valuemax="100" aria-label="Capacity occupied">
-                    <div class="detail-capacity-fill ${isHighOcc ? "detail-capacity-fill--high" : ""}" style="width: ${escapeHtml(resource.occupancy_percentage)}%;"></div>
-                </div>
-            </div>
             <div class="detail-info-list">
                 <div class="detail-info-row"><i class="fa-solid fa-location-dot" aria-hidden="true"></i><span>${escapeHtml(resource.location)}</span></div>
-                <div class="detail-info-row"><i class="fa-solid fa-clock" aria-hidden="true"></i><span>${escapeHtml(resource.operating_hours)}</span></div>
+                <div class="detail-info-row"><i class="fa-solid fa-clock" aria-hidden="true"></i><span>${hoursText}</span></div>
                 ${contactRow}
                 <div class="detail-info-row"><i class="fa-solid fa-thumbs-up" aria-hidden="true"></i><span><strong>${escapeHtml(resource.confirmations)}</strong> field confirmations</span></div>
             </div>
@@ -388,7 +393,7 @@ document.addEventListener("DOMContentLoaded", () => {
                         </div>
                         <div class="result-item-meta">
                             <span><i class="fa-solid fa-location-dot" aria-hidden="true"></i> ${escapeHtml(res.location)}</span>
-                            <span class="num-cell"><i class="fa-solid fa-users" aria-hidden="true"></i> ${escapeHtml(res.capacity_available)} / ${escapeHtml(res.capacity_total)} open</span>
+                            <span class="num-cell"><i class="fa-solid fa-clock" aria-hidden="true"></i> ${escapeHtml(res.operating_hours)}</span>
                         </div>
                         <div class="result-item-volunteer">
                             <i class="fa-solid fa-user-shield" aria-hidden="true"></i> Added by ${escapeHtml(res.posted_by)}
@@ -431,6 +436,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     r.city,
                     r.location,
                     r.supplies_needed,
+                    Array.isArray(r.services) ? r.services.join(" ") : "",
                     r.posted_by,
                     r.category,
                 ]

@@ -579,51 +579,54 @@ html.dark-mode .filter-badge-dot {
     flex-shrink: 0;
 }
 
-.detail-capacity-box {
+.detail-services-box {
     padding: 0.75rem;
     border-radius: var(--radius-sm);
     background-color: var(--bg-main);
     border: 1px solid var(--border-color);
 }
 
-.detail-capacity-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: baseline;
-    font-size: 0.85rem;
-    color: var(--text-muted);
-    margin-bottom: 0.4rem;
-    font-variant-numeric: tabular-nums;
-}
-
-.detail-capacity-row strong {
+.detail-services-title {
+    font-size: 0.8rem;
+    font-weight: 700;
     color: var(--text-primary);
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
 }
 
-.detail-capacity-track {
-    width: 100%;
-    height: 7px;
-    background-color: var(--border-color);
+.detail-services-title i {
+    color: var(--primary-text);
+}
+
+.detail-services-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+}
+
+.haven-service-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.22rem 0.55rem;
     border-radius: 9999px;
-    overflow: hidden;
+    font-size: 0.75rem;
+    font-weight: 600;
+    background-color: var(--bg-card);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
 }
 
-.detail-capacity-fill {
-    height: 100%;
-    background-color: var(--primary-dark);
-    border-radius: 9999px;
+.haven-service-tag i {
+    color: var(--primary-text);
+    font-size: 0.7rem;
 }
 
-html.dark-mode .detail-capacity-fill {
-    background-color: #5eead4;
-}
-
-.detail-capacity-fill--high {
-    background-color: #c2410c;
-}
-
-html.dark-mode .detail-capacity-fill--high {
-    background-color: var(--accent);
+.detail-hours-note {
+    color: var(--text-muted);
+    font-size: 0.8rem;
 }
 
 .detail-info-list {

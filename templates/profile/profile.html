@@ -138,9 +138,9 @@
                             <h2 class="profile-row-title">{{ res.name }}</h2>
                             <div class="profile-row-meta">
                                 <span class="category-badge cat-{{ res.category|lower }}">{{ res.get_category_display }}</span>
-                                {% if res.status == 'FULL_CAPACITY' %}
-                                    <span class="status-pill status-full">Full Capacity</span>
-                                {% elif res.status == 'TEMPORARILY_CLOSED' %}
+                                {% if res.effective_status == 'LIMITED' %}
+                                    <span class="status-pill status-full">Crowded / Limited</span>
+                                {% elif res.effective_status == 'CLOSED' %}
                                     <span class="status-pill status-closed">Closed</span>
                                 {% else %}
                                     <span class="status-pill status-open">Operational</span>

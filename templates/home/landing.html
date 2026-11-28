@@ -75,17 +75,25 @@
                             </div>
                             <p class="preview-hub-meta">
                                 <span class="category-badge cat-{{ featured_hub.category_code|lower }}">{{ featured_hub.category_label }}</span>
-                                &middot; {{ featured_hub.location }} &middot; {{ featured_hub.capacity_available }} / {{ featured_hub.capacity_total }} slots open
+                                &middot; {{ featured_hub.location }} &middot; {{ featured_hub.operating_hours }}
                             </p>
-                            <div class="preview-capacity-track" aria-hidden="true">
-                                <div class="preview-capacity-fill" style="width: {{ featured_hub.available_pct }}%;"></div>
-                            </div>
+                            {% if featured_hub.services %}
+                                <div class="preview-services-row">
+                                    {% for svc in featured_hub.services %}
+                                        <span class="preview-service-pill">{{ svc }}</span>
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                <p class="preview-hub-verified">
+                                    <i class="fa-solid fa-thumbs-up" aria-hidden="true"></i> {{ featured_hub.confirmations }} community confirmation{{ featured_hub.confirmations|pluralize }}
+                                </p>
+                            {% endif %}
                         {% else %}
                             <div class="preview-hub-top">
-                                <strong>Sample Hub Card</strong>
+                                <strong>Sample Haven Card</strong>
                                 <span class="map-preview-badge">Preview</span>
                             </div>
-                            <p class="preview-hub-meta">Register to pin the first verified relief hub and track live shelter capacity.</p>
+                            <p class="preview-hub-meta">Register to pin the first verified safe haven and list available services.</p>
                         {% endif %}
                     </div>
                 </div>
@@ -118,17 +126,17 @@
                 <div class="impact-metric">
                     <span class="impact-label">Verified Aid Hubs</span>
                     <span class="impact-value">{{ totals.total_centers|default:0 }}</span>
-                    <span class="impact-sub">Active nationwide</span>
+                    <span class="impact-sub">Mapped nationwide</span>
                 </div>
                 <div class="impact-metric">
-                    <span class="impact-label">Available Slots / Packs</span>
-                    <span class="impact-value">{{ totals.available_capacity|default:0 }}</span>
-                    <span class="impact-sub">Of {{ totals.total_capacity|default:0 }} total</span>
+                    <span class="impact-label">Open Right Now</span>
+                    <span class="impact-value">{{ open_centers|default:0 }}</span>
+                    <span class="impact-sub">{{ open_rate }}% currently accepting</span>
                 </div>
                 <div class="impact-metric">
-                    <span class="impact-label">Open Capacity</span>
-                    <span class="impact-value">{{ availability_rate }}%</span>
-                    <span class="impact-sub">Remaining across hubs</span>
+                    <span class="impact-label">Cities Covered</span>
+                    <span class="impact-value">{{ cities_covered|default:0 }}</span>
+                    <span class="impact-sub">Cities &amp; municipalities</span>
                 </div>
                 <div class="impact-metric">
                     <span class="impact-label">Community Verifications</span>
@@ -153,9 +161,9 @@
                                 <div><span class="category-badge cat-{{ row.code|lower }}">{{ row.label }}</span></div>
                                 <span class="impact-category-count">{{ row.count }} hub{{ row.count|pluralize }}</span>
                                 <div class="impact-bar-track" aria-hidden="true">
-                                    <div class="impact-bar-fill" style="width: {{ row.available_pct }}%;"></div>
+                                    <div class="impact-bar-fill" style="width: {{ row.open_pct }}%;"></div>
                                 </div>
-                                <span class="impact-category-cap">{% if row.total > 0 %}{{ row.avail }} / {{ row.total }} available{% else %}Capacity not reported{% endif %}</span>
+                                <span class="impact-category-cap">{{ row.open_count }} / {{ row.count }} open now</span>
                             </div>
                         {% endfor %}
                     </div>
@@ -193,17 +201,17 @@
                         <span class="step-num" aria-hidden="true">02</span>
                     </div>
                     <h3>Confirm on the ground</h3>
-                    <p>Pin new hubs via GPS, verify open sites in one tap, or flag full shelters fast.</p>
+                    <p>Pin new havens via GPS, verify open sites in one tap, or flag crowded shelters fast.</p>
                 </li>
                 <li class="workflow-step">
                     <div class="step-head">
                         <div class="step-marker" aria-hidden="true">
-                            <i class="fa-solid fa-chart-line"></i>
+                            <i class="fa-solid fa-clock"></i>
                         </div>
                         <span class="step-num" aria-hidden="true">03</span>
                     </div>
-                    <h3>Track live capacity</h3>
-                    <p>Every update logs automatically so dispatchers see urgent gaps day and night.</p>
+                    <h3>Automatic hours &amp; logs</h3>
+                    <p>Hubs switch to closed automatically after hours, and every field update is logged for coordinators.</p>
                 </li>
             </ol>
 

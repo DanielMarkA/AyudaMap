@@ -120,9 +120,9 @@
                                 data-id="{{ resource.id }}">
                             <div class="result-item-top">
                                 <span class="result-item-title">{{ resource.name }}</span>
-                                {% if resource.status == 'FULL_CAPACITY' %}
-                                    <span class="status-pill status-full">Full</span>
-                                {% elif resource.status == 'TEMPORARILY_CLOSED' %}
+                                {% if resource.effective_status == 'LIMITED' %}
+                                    <span class="status-pill status-full">Limited</span>
+                                {% elif resource.effective_status == 'CLOSED' %}
                                     <span class="status-pill status-closed">Closed</span>
                                 {% else %}
                                     <span class="status-pill status-open">Open</span>
@@ -135,8 +135,8 @@
                                 {% endif %}
                             </div>
                             <div class="result-item-meta">
-                                <span><i class="fa-solid fa-location-dot" aria-hidden="true"></i> {{ resource.location }}</span>
-                                <span class="num-cell"><i class="fa-solid fa-users" aria-hidden="true"></i> {{ resource.capacity_available }} / {{ resource.capacity_total }} open</span>
+                                <span><i class="fa-solid fa-location-dot" aria-hidden="true"></i> {{ resource.display_location }}</span>
+                                <span class="num-cell"><i class="fa-solid fa-clock" aria-hidden="true"></i> {{ resource.operating_hours_display }}</span>
                             </div>
                             <div class="result-item-volunteer">
                                 <i class="fa-solid fa-user-shield" aria-hidden="true"></i>

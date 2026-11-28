@@ -1,8 +1,14 @@
+from datetime import datetime, time
+from unittest.mock import patch
+from zoneinfo import ZoneInfo
+
 from django.test import TestCase
 from django.urls import reverse
 from django.contrib.auth.models import User
 from apps.profile.models import Profile
 from .models import Resource
+
+MANILA_TZ = ZoneInfo("Asia/Manila")
 
 
 class HomeViewTests(TestCase):
@@ -26,7 +32,10 @@ class HomeViewTests(TestCase):
             urgency_level="CRITICAL",
             city="Manila",
             location="Sampaloc, Manila",
-            operating_hours="24/7",
+            is_24_7=True,
+            opens_at=None,
+            closes_at=None,
+            services_offered=["MEDICAL", "WATER"],
             contact_info="12345",
             is_verified=True,
             created_by=self.user,
@@ -34,11 +43,14 @@ class HomeViewTests(TestCase):
         self.resource2 = Resource.objects.create(
             name="Pasig Food Pantry",
             category="FOOD",
-            status="FULL_CAPACITY",
+            status="LIMITED",
             urgency_level="MEDIUM",
             city="Pasig",
             location="Ortigas Ave, Pasig",
-            operating_hours="8am-5pm",
+            is_24_7=False,
+            opens_at=time(8, 0),
+            closes_at=time(17, 0),
+            services_offered=["FOOD", "WATER"],
             contact_info="67890",
             is_verified=True,
         )
@@ -48,6 +60,7 @@ class HomeViewTests(TestCase):
         self.assertEqual(guest_res.status_code, 200)
         self.assertTemplateUsed(guest_res, "home/landing.html")
         self.assertContains(guest_res, "Open Live Aid Map")
+        self.assertContains(guest_res, "Open Right Now")
 
         self.client.login(username="testuser", password="Password123!")
         auth_res = self.client.get(reverse("home:landing"))
@@ -89,6 +102,7 @@ class HomeViewTests(TestCase):
         response = self.client.get(reverse("home:reports"))
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "home/reports.html")
+        self.assertContains(response, "Coverage by Aid Category")
 
     def test_dashboard_view_authenticated(self):
         self.client.login(username="testuser", password="Password123!")
@@ -105,12 +119,44 @@ class HomeViewTests(TestCase):
         self.assertContains(response, "Manila City Clinic")
         self.assertNotContains(response, "Pasig Food Pantry")
 
-    def test_dashboard_filter_by_status(self):
+    def test_dashboard_filter_by_effective_status_during_and_after_hours(self):
         self.client.login(username="testuser", password="Password123!")
-        response = self.client.get(reverse("home:dashboard") + "?status=FULL_CAPACITY")
-        self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "Pasig Food Pantry")
-        self.assertNotContains(response, "Manila City Clinic")
+
+        midday = datetime(2026, 11, 28, 12, 0, tzinfo=MANILA_TZ)
+        with patch("apps.home.models.timezone.localtime", return_value=midday):
+            response = self.client.get(reverse("home:dashboard") + "?status=LIMITED")
+            self.assertEqual(response.status_code, 200)
+            self.assertContains(response, "Pasig Food Pantry")
+            self.assertNotContains(response, "Manila City Clinic")
+
+        evening = datetime(2026, 11, 28, 19, 30, tzinfo=MANILA_TZ)
+        with patch("apps.home.models.timezone.localtime", return_value=evening):
+            closed_res = self.client.get(reverse("home:dashboard") + "?status=CLOSED")
+            self.assertContains(closed_res, "Pasig Food Pantry")
+            self.assertNotContains(closed_res, "Manila City Clinic")
+
+            limited_res = self.client.get(reverse("home:dashboard") + "?status=LIMITED")
+            self.assertNotContains(limited_res, "Pasig Food Pantry")
+
+    def test_overnight_operating_hours_auto_close(self):
+        night_shelter = Resource.objects.create(
+            name="Night Safe Haven",
+            category="SHELTER",
+            status="OPERATIONAL",
+            city="Manila",
+            location="Taft Ave",
+            is_24_7=False,
+            opens_at=time(18, 0),
+            closes_at=time(6, 0),
+            is_verified=True,
+        )
+        late_night = datetime(2026, 11, 28, 22, 0, tzinfo=MANILA_TZ)
+        early_morning = datetime(2026, 11, 28, 3, 0, tzinfo=MANILA_TZ)
+        noon = datetime(2026, 11, 28, 12, 0, tzinfo=MANILA_TZ)
+
+        self.assertTrue(night_shelter.is_within_operating_hours(now=late_night))
+        self.assertTrue(night_shelter.is_within_operating_hours(now=early_morning))
+        self.assertFalse(night_shelter.is_within_operating_hours(now=noon))
 
     def test_dashboard_search_by_query(self):
         self.client.login(username="testuser", password="Password123!")
@@ -131,48 +177,49 @@ class HomeViewTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(list(response.context["resources"]), [])
 
-    def test_add_resource_view(self):
+    def test_add_resource_view_with_services_and_24_7(self):
         self.client.login(username="testuser", password="Password123!")
         response = self.client.post(reverse("home:add_resource"), {
-            "name": "New Shelter Center",
+            "name": "New Shelter Haven",
             "category": "SHELTER",
             "status": "OPERATIONAL",
             "urgency_level": "MEDIUM",
             "description": "Safe shelter for typhoon victims",
-            "capacity_total": 100,
-            "capacity_available": 80,
+            "services_offered": ["SHELTER", "WATER", "POWER"],
             "city": "Quezon City",
             "location": "Maginhawa St, Teachers Village",
             "latitude": 14.65,
             "longitude": 121.05,
-            "operating_hours": "24/7",
+            "is_24_7": "on",
             "contact_info": "555-1234",
         })
         self.assertRedirects(response, reverse("home:dashboard"))
-        res = Resource.objects.filter(name="New Shelter Center").first()
+        res = Resource.objects.filter(name="New Shelter Haven").first()
         self.assertIsNotNone(res)
         self.assertEqual(res.created_by, self.user)
         self.assertEqual(res.status, "OPERATIONAL")
+        self.assertTrue(res.is_24_7)
+        self.assertEqual(res.operating_hours_display, "24/7")
+        self.assertEqual(res.services_offered, ["SHELTER", "WATER", "POWER"])
         self.assertEqual(res.city, "Quezon City")
         self.assertEqual(res.display_location, "Maginhawa St, Teachers Village, Quezon City")
 
-    def test_add_resource_rejects_available_capacity_above_total(self):
+    def test_add_resource_rejects_identical_open_and_close_times(self):
         self.client.force_login(self.user)
         response = self.client.post(reverse("home:add_resource"), {
-            "name": "New Shelter Center",
+            "name": "Bad Hours Haven",
             "category": "SHELTER",
             "status": "OPERATIONAL",
             "urgency_level": "MEDIUM",
-            "capacity_total": 10,
-            "capacity_available": 20,
             "city": "Quezon City",
             "location": "Maginhawa St",
             "latitude": 14.65,
             "longitude": 121.05,
-            "operating_hours": "24/7",
+            "opens_at": "08:00",
+            "closes_at": "08:00",
         }, follow=True)
-        self.assertContains(response, "Available capacity cannot exceed total capacity.")
-        self.assertFalse(Resource.objects.filter(name="New Shelter Center").exists())
+        self.assertContains(response, "Closing time must differ from opening time")
+        self.assertFalse(Resource.objects.filter(name="Bad Hours Haven").exists())
 
     def test_add_resource_rejects_invalid_city(self):
         self.client.force_login(self.user)
@@ -181,13 +228,11 @@ class HomeViewTests(TestCase):
             "category": "SHELTER",
             "status": "OPERATIONAL",
             "urgency_level": "MEDIUM",
-            "capacity_total": 10,
-            "capacity_available": 5,
             "city": "quezon",
             "location": "Some Street",
             "latitude": 14.65,
             "longitude": 121.05,
-            "operating_hours": "24/7",
+            "is_24_7": "on",
         }, follow=True)
         self.assertFalse(Resource.objects.filter(name="Bad City Hub").exists())
 

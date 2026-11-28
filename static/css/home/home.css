@@ -835,6 +835,75 @@ html.dark-mode .modal-picker-notice {
     }
 }
 
+.ledger-services-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    margin-bottom: 0.45rem;
+}
+
+.haven-service-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.2rem 0.55rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    background-color: var(--bg-main);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+}
+
+.haven-service-tag i {
+    color: var(--primary-text);
+    font-size: 0.7rem;
+}
+
+.service-checklist-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+}
+
+.service-checkbox-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.35rem 0.65rem;
+    border-radius: 9999px;
+    border: 1px solid var(--border-color);
+    background-color: var(--bg-main);
+    color: var(--text-primary);
+    font-size: 0.8rem;
+    font-weight: 500;
+    cursor: pointer;
+    margin: 0;
+}
+
+.service-checkbox-pill input[type="checkbox"] {
+    width: auto;
+    margin: 0;
+    accent-color: var(--primary-dark);
+}
+
+.hours-247-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    cursor: pointer;
+    margin: 0;
+}
+
+.hours-247-toggle input[type="checkbox"] {
+    width: auto;
+    margin: 0;
+    accent-color: var(--primary-dark);
+}
+
 @media (prefers-reduced-motion: reduce) {
     .pin-critical {
         animation: none;
@@ -844,7 +913,6 @@ html.dark-mode .modal-picker-notice {
     .modal-dialog {
         animation: none;
     }
-    .capacity-fill,
     .resource-card,
     .category-chip,
     .map-filter-caret,
