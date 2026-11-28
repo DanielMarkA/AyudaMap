@@ -9,8 +9,6 @@
 
 AyudaMap is a Django web application for mapping and coordinating verified community aid resources during disasters and relief operations across the Philippines. Guests can locate open shelters, medical facilities, food hubs, government services, and donation drop-offs with zero sign-up, while field volunteers and coordinators keep operating statuses, service checklists, and audit logs current in real time.
 
-> Built as an individual final project for a Python Django + Supabase course. The SQL `JOIN` (`select_related`) and `SUBQUERY` (`Subquery`) requirements are implemented directly inside the aid directory, volunteer-network filter, and analytics reports.
-
 ---
 
 ## Navigation
@@ -22,7 +20,6 @@ AyudaMap is a Django web application for mapping and coordinating verified commu
 ## Screenshots
 
 ### Public Landing Page (`/`)
-Live relief coverage metrics, featured open safe haven preview, and step-by-step verification overview.
 
 ![AyudaMap Public Landing Page](docs/screenshots/landing-desktop.png)
 
