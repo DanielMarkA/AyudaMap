@@ -148,11 +148,6 @@
             <div class="impact-categories-panel">
                 <div class="impact-categories-head">
                     <h3>Active Coverage by Aid Category</h3>
-                    {% if critical_count > 0 %}
-                        <span class="urgency-badge urgency-critical">
-                            <i class="fa-solid fa-fire" aria-hidden="true"></i> {{ critical_count }} Critical Priority
-                        </span>
-                    {% endif %}
                 </div>
                 {% if category_stats %}
                     <div class="impact-ledger">
@@ -191,7 +186,7 @@
                         <span class="step-num" aria-hidden="true">01</span>
                     </div>
                     <h3>Locate open shelters</h3>
-                    <p>Filter nearby shelters, medical hubs, and food stations by live status and urgency.</p>
+                    <p>Filter nearby shelters, medical hubs, and food stations by live status and available services.</p>
                 </li>
                 <li class="workflow-step">
                     <div class="step-head">

@@ -62,15 +62,9 @@ class Resource(models.Model):
         ('CLOSED', 'Closed'),
     ]
 
-    URGENCY_CHOICES = [
-        ('LOW', 'Normal / Routine'),
-        ('MEDIUM', 'Moderate Need'),
-        ('CRITICAL', 'Critical / Urgent'),
-    ]
-
     SERVICE_CHOICES = [
         ('SHELTER', 'Safe Shelter'),
-        ('WATER', 'Clean Water'),
+        ('WATER', 'Drinking Water'),
         ('FOOD', 'Hot Meals / Packs'),
         ('MEDICAL', 'First Aid / Meds'),
         ('POWER', 'Power / Charging'),
@@ -125,13 +119,6 @@ class Resource(models.Model):
         db_index=True,
         help_text="Current operating status of the relief center"
     )
-    urgency_level = models.CharField(
-        max_length=20,
-        choices=URGENCY_CHOICES,
-        default='LOW',
-        db_index=True,
-        help_text="Priority level for aid distribution or evacuation"
-    )
     services_offered = models.JSONField(
         default=list,
         blank=True,
@@ -140,7 +127,7 @@ class Resource(models.Model):
     supplies_needed = models.CharField(
         max_length=255,
         blank=True,
-        help_text="Comma-separated list of urgent items (e.g., Water, Rice, First Aid)"
+        help_text="Internal coordinator note: urgent items needed (admin only)"
     )
     confirmations = models.PositiveIntegerField(
         default=1,
@@ -158,10 +145,22 @@ class Resource(models.Model):
         indexes = [
             models.Index(fields=['latitude', 'longitude'], name='idx_resource_coords'),
             models.Index(fields=['category', 'is_verified'], name='idx_res_cat_verified'),
-            models.Index(fields=['urgency_level', 'status'], name='idx_res_urgency_status'),
         ]
         verbose_name = 'Aid Resource'
         verbose_name_plural = 'Aid Resources'
+
+    @classmethod
+    def matching_service_codes(cls, query):
+        q = (query or '').strip().lower()
+        if not q:
+            return []
+        tokens = [t for t in q.split() if t]
+        matches = []
+        for code, label in cls.SERVICE_CHOICES:
+            searchable = f"{code.lower()} {label.lower()}"
+            if q in searchable or (tokens and all(tok in searchable for tok in tokens)):
+                matches.append(code)
+        return matches
 
     def clean(self):
         super().clean()

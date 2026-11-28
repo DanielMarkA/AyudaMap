@@ -25,10 +25,7 @@
         <div class="map-header">
             <div class="map-title-group">
                 <h2><i class="fa-solid fa-map-location-dot" aria-hidden="true"></i> Interactive Aid Map</h2>
-                <span class="badge badge-live"><i class="fa-solid fa-signal" aria-hidden="true"></i> {{ total_count }} Active</span>
-                {% if critical_count > 0 %}
-                    <span class="urgency-badge urgency-critical"><i class="fa-solid fa-fire" aria-hidden="true"></i> {{ critical_count }} Critical</span>
-                {% endif %}
+                <span class="badge badge-live"><i class="fa-solid fa-signal" aria-hidden="true"></i> {{ operational_count }} Open / {{ total_count }} Total</span>
             </div>
             <button type="button" class="btn btn-sm btn-outline locate-me-btn" id="locateMeBtn" title="Center map on my current location">
                 <i class="fa-solid fa-location-crosshairs" aria-hidden="true"></i> Locate Me
@@ -36,10 +33,19 @@
         </div>
 
         <div class="map-search-toolbar">
-            <form method="GET" action="{% url 'home:dashboard' %}" id="searchFilterForm">
+            <form method="GET" action="{% url 'home:dashboard' %}" id="searchFilterForm" class="map-search-form">
                 {% if selected_category %}
                     <input type="hidden" name="category" value="{{ selected_category }}">
                 {% endif %}
+
+                <div class="map-search-inline">
+                    <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+                    <input type="search"
+                           name="q"
+                           value="{{ query }}"
+                           placeholder="Search havens, cities, drinking water, first aid..."
+                           aria-label="Search aid havens and services">
+                </div>
 
                 <details class="map-filter-details" id="mapFilterMenu">
                     <summary>
@@ -57,23 +63,17 @@
                                     <option value="{{ key }}" {% if selected_status == key %}selected{% endif %}>{{ val }}</option>
                                 {% endfor %}
                             </select>
-                            <select name="urgency" id="urgencySelect" onchange="this.form.submit()" aria-label="Filter by urgency priority">
-                                <option value="">All Priorities</option>
-                                {% for key, val in urgencies %}
-                                    <option value="{{ key }}" {% if selected_urgency == key %}selected{% endif %}>{{ val }}</option>
-                                {% endfor %}
-                            </select>
                             <label class="map-filter-local-pill" for="localVolunteersSelect" title="Show only sites reported by volunteers in your city">
                                 <input type="checkbox" name="local_volunteers" id="localVolunteersSelect" value="1" {% if local_volunteers %}checked{% endif %} onchange="this.form.submit()">
                                 Local only
                             </label>
                         </div>
                         <div class="map-filter-chips">
-                            <a href="{% url 'home:dashboard' %}{% if query %}?q={{ query }}{% endif %}{% if selected_status %}&status={{ selected_status }}{% endif %}{% if selected_urgency %}&urgency={{ selected_urgency }}{% endif %}" class="map-filter-chip {% if not selected_category %}active{% endif %}">All ({{ total_count }})</a>
+                            <a href="{% url 'home:dashboard' %}{% if query %}?q={{ query|urlencode }}{% endif %}{% if selected_status %}{% if query %}&{% else %}?{% endif %}status={{ selected_status }}{% endif %}" class="map-filter-chip {% if not selected_category %}active{% endif %}">All ({{ total_count }})</a>
                             {% for key, val in categories %}
-                                <a href="{% url 'home:dashboard' %}?category={{ key }}{% if query %}&q={{ query }}{% endif %}{% if selected_status %}&status={{ selected_status }}{% endif %}{% if selected_urgency %}&urgency={{ selected_urgency }}{% endif %}" class="map-filter-chip {% if selected_category == key %}active{% endif %}">{{ val }}</a>
+                                <a href="{% url 'home:dashboard' %}?category={{ key }}{% if query %}&q={{ query|urlencode }}{% endif %}{% if selected_status %}&status={{ selected_status }}{% endif %}" class="map-filter-chip {% if selected_category == key %}active{% endif %}">{{ val }}</a>
                             {% endfor %}
-                            {% if query or selected_category or selected_status or selected_urgency or local_volunteers %}
+                            {% if query or selected_category or selected_status or local_volunteers %}
                                 <a href="{% url 'home:dashboard' %}" class="map-filter-reset-inline" title="Reset all filters">
                                     <i class="fa-solid fa-rotate-left" aria-hidden="true"></i> Reset
                                 </a>
@@ -101,7 +101,7 @@
             <div class="ledger-header">
                 <div>
                     <h2>Verified Relief Centers</h2>
-                    <span class="ledger-hint">Select any row to inspect details &amp; quick controls</span>
+                    <span class="ledger-hint">Select any row to inspect hours, services, directions &amp; controls</span>
                 </div>
                 <span class="count-pill">{{ resources|length }} Results</span>
             </div>
@@ -121,9 +121,6 @@
                                             <span class="status-pill status-closed">Closed</span>
                                         {% else %}
                                             <span class="status-pill status-open">Open</span>
-                                        {% endif %}
-                                        {% if resource.urgency_level == 'CRITICAL' %}
-                                            <span class="urgency-badge urgency-critical">Critical</span>
                                         {% endif %}
                                     </div>
                                     <div class="ledger-item-sub">{{ resource.display_location }}</div>
@@ -151,11 +148,6 @@
                                             {% endfor %}
                                         </div>
                                     {% endif %}
-                                    {% if resource.supplies_needed %}
-                                        <div>
-                                            <span class="supplies-tag"><i class="fa-solid fa-boxes-stacked" aria-hidden="true"></i> Needed: {{ resource.supplies_needed }}</span>
-                                        </div>
-                                    {% endif %}
                                     <div class="ledger-meta-grid">
                                         <span><i class="fa-solid fa-clock" aria-hidden="true"></i> {{ resource.operating_hours_display }}{% if resource.is_auto_closed %} (After hours){% endif %}</span>
                                         {% if resource.contact_info %}
@@ -170,6 +162,9 @@
                                     <button type="button" class="btn btn-sm btn-outline pan-to-pin-btn" data-lat="{{ resource.latitude }}" data-lng="{{ resource.longitude }}" data-id="{{ resource.id }}">
                                         <i class="fa-solid fa-map-pin" aria-hidden="true"></i> View on Map
                                     </button>
+                                    <a href="https://www.google.com/maps/dir/?api=1&destination={{ resource.latitude }},{{ resource.longitude }}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-primary">
+                                        <i class="fa-solid fa-diamond-turn-right" aria-hidden="true"></i> Directions
+                                    </a>
                                     <form method="POST" action="{% url 'home:confirm_resource' resource.id %}" class="inline-action-form">
                                         {% csrf_token %}
                                         <button type="submit" class="btn btn-sm btn-outline" title="Confirm this relief center is currently active">
@@ -234,10 +229,6 @@
                         <label for="{{ resource_form.status.id_for_label }}">Operating Status *</label>
                         {{ resource_form.status }}
                     </div>
-                    <div class="form-group col">
-                        <label for="{{ resource_form.urgency_level.id_for_label }}">Urgency Priority *</label>
-                        {{ resource_form.urgency_level }}
-                    </div>
                 </div>
 
                 <div class="form-group">
@@ -255,11 +246,6 @@
                             </label>
                         {% endfor %}
                     </div>
-                </div>
-
-                <div class="form-group">
-                    <label for="{{ resource_form.supplies_needed.id_for_label }}">Urgent Supplies Needed</label>
-                    {{ resource_form.supplies_needed }}
                 </div>
 
                 <div class="form-row">

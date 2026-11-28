@@ -29,13 +29,13 @@ class HomeViewTests(TestCase):
             name="Manila City Clinic",
             category="MEDICAL",
             status="OPERATIONAL",
-            urgency_level="CRITICAL",
             city="Manila",
             location="Sampaloc, Manila",
             is_24_7=True,
             opens_at=None,
             closes_at=None,
             services_offered=["MEDICAL", "WATER"],
+            supplies_needed="Internal Bandage Stock",
             contact_info="12345",
             is_verified=True,
             created_by=self.user,
@@ -44,13 +44,13 @@ class HomeViewTests(TestCase):
             name="Pasig Food Pantry",
             category="FOOD",
             status="LIMITED",
-            urgency_level="MEDIUM",
             city="Pasig",
             location="Ortigas Ave, Pasig",
             is_24_7=False,
             opens_at=time(8, 0),
             closes_at=time(17, 0),
-            services_offered=["FOOD", "WATER"],
+            services_offered=["FOOD"],
+            supplies_needed="Drinking Water",
             contact_info="67890",
             is_verified=True,
         )
@@ -61,6 +61,7 @@ class HomeViewTests(TestCase):
         self.assertTemplateUsed(guest_res, "home/landing.html")
         self.assertContains(guest_res, "Open Live Aid Map")
         self.assertContains(guest_res, "Open Right Now")
+        self.assertNotContains(guest_res, "Critical Priority")
 
         self.client.login(username="testuser", password="Password123!")
         auth_res = self.client.get(reverse("home:landing"))
@@ -68,13 +69,18 @@ class HomeViewTests(TestCase):
         self.assertTemplateUsed(auth_res, "home/landing.html")
         self.assertContains(auth_res, "Go to Volunteer Dashboard")
 
-    def test_public_map_accessible_to_guests_with_submitter_full_name(self):
+    def test_public_map_accessible_to_guests_without_urgency_or_supplies_needed(self):
         response = self.client.get(reverse("home:map"))
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "home/map.html")
         self.assertContains(response, "Manila City Clinic")
         self.assertContains(response, "Pasig Food Pantry")
         self.assertContains(response, "Juan Dela Cruz")
+        self.assertContains(response, "Drinking Water")
+        self.assertContains(response, "First Aid / Meds")
+        self.assertNotContains(response, "Internal Bandage Stock")
+        self.assertNotContains(response, "mapUrgencyFilter")
+        self.assertNotContains(response, "drawerCriticalBadge")
 
     def test_map_json_escapes_html_characters(self):
         self.resource1.name = "Clinic <East> & West"
@@ -97,20 +103,37 @@ class HomeViewTests(TestCase):
         response = self.client.get(reverse("home:reports"))
         self.assertRedirects(response, f"{reverse('login:login')}?next={reverse('home:reports')}")
 
-    def test_reports_view_authenticated(self):
+    def test_reports_view_shows_open_havens_by_city_and_service(self):
         self.client.login(username="testuser", password="Password123!")
-        response = self.client.get(reverse("home:reports"))
+        evening = datetime(2026, 11, 28, 19, 30, tzinfo=MANILA_TZ)
+        with patch("apps.home.models.timezone.localtime", return_value=evening):
+            response = self.client.get(reverse("home:reports"))
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "home/reports.html")
+        self.assertContains(response, "Currently Open Havens by City")
+        self.assertContains(response, "Currently Open Havens by Service")
         self.assertContains(response, "Coverage by Aid Category")
+        self.assertNotContains(response, "Priority &amp; Urgency Breakdown")
 
-    def test_dashboard_view_authenticated(self):
+        city_map = {row["city"]: row for row in response.context["city_stats"]}
+        self.assertEqual(city_map["Manila"]["open_count"], 1)
+        self.assertEqual(city_map["Pasig"]["open_count"], 0)
+
+        svc_map = {row["code"]: row["open_count"] for row in response.context["service_stats"]}
+        self.assertEqual(svc_map["WATER"], 1)
+        self.assertEqual(svc_map["MEDICAL"], 1)
+        self.assertEqual(svc_map["FOOD"], 0)
+
+    def test_dashboard_view_authenticated_with_directions(self):
         self.client.login(username="testuser", password="Password123!")
         response = self.client.get(reverse("home:dashboard"))
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "home/home.html")
         self.assertContains(response, "Manila City Clinic")
         self.assertContains(response, "Pasig Food Pantry")
+        self.assertContains(response, "https://www.google.com/maps/dir/?api=1&destination=")
+        self.assertNotContains(response, "urgencySelect")
+        self.assertNotContains(response, "Internal Bandage Stock")
 
     def test_dashboard_filter_by_category(self):
         self.client.login(username="testuser", password="Password123!")
@@ -158,12 +181,23 @@ class HomeViewTests(TestCase):
         self.assertTrue(night_shelter.is_within_operating_hours(now=early_morning))
         self.assertFalse(night_shelter.is_within_operating_hours(now=noon))
 
-    def test_dashboard_search_by_query(self):
+    def test_dashboard_search_by_city_and_service_offered(self):
         self.client.login(username="testuser", password="Password123!")
-        response = self.client.get(reverse("home:dashboard") + "?q=Pasig")
-        self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "Pasig Food Pantry")
-        self.assertNotContains(response, "Manila City Clinic")
+
+        city_res = self.client.get(reverse("home:dashboard"), {"q": "Pasig"})
+        self.assertEqual(city_res.status_code, 200)
+        self.assertContains(city_res, "Pasig Food Pantry")
+        self.assertNotContains(city_res, "Manila City Clinic")
+
+        # Searching "drinking water" matches Manila City Clinic (offers WATER),
+        # NOT Pasig Food Pantry (which only has "Drinking Water" in admin-only supplies_needed).
+        water_res = self.client.get(reverse("home:dashboard"), {"q": "drinking water"})
+        self.assertContains(water_res, "Manila City Clinic")
+        self.assertNotContains(water_res, "Pasig Food Pantry")
+
+        first_aid_res = self.client.get(reverse("home:dashboard"), {"q": "first aid"})
+        self.assertContains(first_aid_res, "Manila City Clinic")
+        self.assertNotContains(first_aid_res, "Pasig Food Pantry")
 
     def test_dashboard_local_volunteers_filter_without_profile(self):
         self.client.force_login(self.user)
@@ -183,7 +217,6 @@ class HomeViewTests(TestCase):
             "name": "New Shelter Haven",
             "category": "SHELTER",
             "status": "OPERATIONAL",
-            "urgency_level": "MEDIUM",
             "description": "Safe shelter for typhoon victims",
             "services_offered": ["SHELTER", "WATER", "POWER"],
             "city": "Quezon City",
@@ -210,7 +243,6 @@ class HomeViewTests(TestCase):
             "name": "Bad Hours Haven",
             "category": "SHELTER",
             "status": "OPERATIONAL",
-            "urgency_level": "MEDIUM",
             "city": "Quezon City",
             "location": "Maginhawa St",
             "latitude": 14.65,
@@ -227,7 +259,6 @@ class HomeViewTests(TestCase):
             "name": "Bad City Hub",
             "category": "SHELTER",
             "status": "OPERATIONAL",
-            "urgency_level": "MEDIUM",
             "city": "quezon",
             "location": "Some Street",
             "latitude": 14.65,
@@ -247,7 +278,6 @@ class HomeViewTests(TestCase):
             name="QC Pantry",
             category="FOOD",
             status="OPERATIONAL",
-            urgency_level="LOW",
             city="Quezon City",
             location="Maginhawa St",
             is_verified=True,

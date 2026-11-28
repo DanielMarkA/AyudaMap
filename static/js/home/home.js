@@ -119,11 +119,10 @@ document.addEventListener("DOMContentLoaded", () => {
             if (res.lat && res.lng) {
                 const color = getCategoryColor(res.category_code);
                 const iconClass = getCategoryIconClass(res.category_code);
-                const criticalClass = res.urgency === 'CRITICAL' ? ' pin-critical' : '';
 
                 const customIcon = L.divIcon({
                     className: 'custom-map-pin',
-                    html: `<div class="ayuda-pin-circle${criticalClass}" style="background-color: ${color};"><i class="fa-solid ${iconClass}"></i></div>`,
+                    html: `<div class="ayuda-pin-circle" style="background-color: ${color};"><i class="fa-solid ${iconClass}"></i></div>`,
                     iconSize: [28, 28],
                     iconAnchor: [14, 14]
                 });
@@ -133,27 +132,25 @@ document.addEventListener("DOMContentLoaded", () => {
                     ? `<p style="margin: 4px 0; font-size: 0.8rem; color: var(--text-primary);"><strong>Available:</strong> ${escapeHtml(services.join(', '))}</p>`
                     : '';
 
-                const suppliesHtml = res.supplies_needed
-                    ? `<p style="margin: 4px 0; font-size: 0.8rem; color: var(--accent); font-weight: 600;"><i class="fa-solid fa-boxes-stacked"></i> Needed: ${escapeHtml(res.supplies_needed)}</p>`
-                    : '';
-
                 const hoursSuffix = res.is_auto_closed && res.opens_at_display
                     ? ` (Closed · Opens ${escapeHtml(res.opens_at_display)})`
                     : '';
+
+                const directionsUrl = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(res.lat)},${encodeURIComponent(res.lng)}`;
 
                 const popupContent = `
                     <div style="font-family: system-ui, sans-serif; min-width: 230px; padding: 4px; color: var(--text-primary);">
                         <h4 style="margin: 0 0 5px 0; font-size: 0.95rem; font-weight: 700; color: var(--text-primary);">${escapeHtml(res.name)}</h4>
                         <div style="margin-bottom: 7px;">
-                            <span class="urgency-badge urgency-low">${escapeHtml(res.category)}</span>
+                            <span class="category-badge cat-${escapeHtml(String(res.category_code || '').toLowerCase())}">${escapeHtml(res.category)}</span>
                             ${getStatusBadge(res.status, res.status_display)}
                         </div>
                         ${servicesHtml}
-                        ${suppliesHtml}
                         <p style="margin: 4px 0; font-size: 0.85rem; color: var(--text-muted);"><i class="fa-solid fa-location-dot"></i> ${escapeHtml(res.location)}</p>
                         <p style="margin: 4px 0; font-size: 0.85rem; color: var(--text-muted);"><i class="fa-solid fa-clock"></i> ${escapeHtml(res.operating_hours)}${hoursSuffix}</p>
                         ${res.contact_info ? `<p style="margin: 4px 0; font-size: 0.85rem; color: var(--text-muted);"><i class="fa-solid fa-phone"></i> ${escapeHtml(res.contact_info)}</p>` : ''}
-                        <p style="margin: 6px 0 0 0; font-size: 0.8rem; color: var(--primary-text); font-weight: 600;"><i class="fa-solid fa-thumbs-up"></i> ${escapeHtml(res.confirmations)} community confirmations</p>
+                        <p style="margin: 6px 0 6px 0; font-size: 0.8rem; color: var(--primary-text); font-weight: 600;"><i class="fa-solid fa-thumbs-up"></i> ${escapeHtml(res.confirmations)} community confirmations</p>
+                        <a href="${directionsUrl}" target="_blank" rel="noopener noreferrer" style="display: inline-flex; align-items: center; gap: 5px; font-size: 0.82rem; font-weight: 600; color: var(--primary-text); text-decoration: none;"><i class="fa-solid fa-diamond-turn-right"></i> Get Directions &rarr;</a>
                     </div>
                 `;
 

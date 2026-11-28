@@ -52,8 +52,8 @@
                        id="mapSearchInput"
                        class="drawer-search-input"
                        value="{{ query }}"
-                       placeholder="Search shelters, clinics, cities, supplies..."
-                       aria-label="Search verified aid resources">
+                       placeholder="Search shelters, cities, drinking water, first aid..."
+                       aria-label="Search verified aid havens and services">
                 <button type="button" id="mapClearSearchBtn" class="drawer-clear-btn" aria-label="Clear search" hidden>
                     <i class="fa-solid fa-xmark" aria-hidden="true"></i>
                 </button>
@@ -63,14 +63,14 @@
                     class="drawer-icon-btn"
                     aria-expanded="false"
                     aria-controls="mapFilterPanel"
-                    title="Filter by status and urgency"
-                    aria-label="Filter by status and urgency">
+                    title="Filter by operating status"
+                    aria-label="Filter by operating status">
                 <i class="fa-solid fa-sliders" aria-hidden="true"></i>
                 <span class="filter-badge-dot" id="filterActiveDot" hidden></span>
             </button>
         </div>
 
-        <!-- Collapsible Secondary Filters (Status & Urgency) -->
+        <!-- Collapsible Secondary Filters (Status) -->
         <div class="drawer-filter-panel" id="mapFilterPanel" hidden>
             <div class="drawer-filter-grid">
                 <div class="drawer-filter-field">
@@ -79,15 +79,6 @@
                         <option value="">All Statuses</option>
                         {% for key, val in statuses %}
                             <option value="{{ key }}" {% if selected_status == key %}selected{% endif %}>{{ val }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <div class="drawer-filter-field">
-                    <label for="mapUrgencyFilter">Urgency</label>
-                    <select id="mapUrgencyFilter" class="form-control">
-                        <option value="">All Priorities</option>
-                        {% for key, val in urgencies %}
-                            <option value="{{ key }}" {% if selected_urgency == key %}selected{% endif %}>{{ val }}</option>
                         {% endfor %}
                     </select>
                 </div>
@@ -106,9 +97,6 @@
                 <div class="drawer-list-header">
                     <span class="drawer-result-count num-cell" id="drawerResultCount">
                         {{ total_count }} verified hub{{ total_count|pluralize }}
-                    </span>
-                    <span class="urgency-badge urgency-critical" id="drawerCriticalBadge" {% if critical_count == 0 %}hidden{% endif %}>
-                        <i class="fa-solid fa-fire" aria-hidden="true"></i> <span id="drawerCriticalNum">{{ critical_count }}</span> Critical
                     </span>
                 </div>
 
@@ -130,10 +118,14 @@
                             </div>
                             <div class="result-item-badges">
                                 <span class="category-badge cat-{{ resource.category|lower }}">{{ resource.get_category_display }}</span>
-                                {% if resource.urgency_level == 'CRITICAL' %}
-                                    <span class="urgency-badge urgency-critical"><i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i> Critical</span>
-                                {% endif %}
                             </div>
+                            {% if resource.service_labels %}
+                                <div class="result-item-services">
+                                    {% for svc in resource.service_labels|slice:":3" %}
+                                        <span class="result-service-pill">{{ svc }}</span>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
                             <div class="result-item-meta">
                                 <span><i class="fa-solid fa-location-dot" aria-hidden="true"></i> {{ resource.display_location }}</span>
                                 <span class="num-cell"><i class="fa-solid fa-clock" aria-hidden="true"></i> {{ resource.operating_hours_display }}</span>

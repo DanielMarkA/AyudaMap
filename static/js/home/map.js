@@ -17,7 +17,7 @@ document.addEventListener("DOMContentLoaded", () => {
         } catch (e) {}
     }
 
-    let filters = { q: "", category: "", status: "", urgency: "" };
+    let filters = { q: "", category: "", status: "" };
     const initFiltersEl = document.getElementById("publicInitialFiltersJson");
     if (initFiltersEl && initFiltersEl.textContent.trim()) {
         try {
@@ -49,14 +49,11 @@ document.addEventListener("DOMContentLoaded", () => {
     const filterPanel = document.getElementById("mapFilterPanel");
     const filterActiveDot = document.getElementById("filterActiveDot");
     const statusFilter = document.getElementById("mapStatusFilter");
-    const urgencyFilter = document.getElementById("mapUrgencyFilter");
     const resetFiltersBtn = document.getElementById("mapResetFiltersBtn");
     const categoryChips = Array.from(document.querySelectorAll(".map-cat-chip"));
 
     const resultsListEl = document.getElementById("mapResultsList");
     const resultCountEl = document.getElementById("drawerResultCount");
-    const criticalBadgeEl = document.getElementById("drawerCriticalBadge");
-    const criticalNumEl = document.getElementById("drawerCriticalNum");
     const sheetHandleBtn = document.getElementById("sheetHandleBtn");
     const sheetSummaryText = document.getElementById("sheetSummaryText");
     const drawerCollapseBtn = document.getElementById("drawerCollapseBtn");
@@ -211,7 +208,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const st = getStatusMeta(resource.status);
         const catClass = `cat-${String(resource.category_code || "").toLowerCase()}`;
-        const urgClass = `urgency-${String(resource.urgency || "low").toLowerCase()}`;
         const directionsUrl = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(resource.lat)},${encodeURIComponent(resource.lng)}`;
 
         const services = Array.isArray(resource.services) ? resource.services : [];
@@ -227,10 +223,6 @@ document.addEventListener("DOMContentLoaded", () => {
         const hoursText = resource.is_auto_closed && resource.opens_at_display
             ? `${escapeHtml(resource.operating_hours)} <span class="detail-hours-note">(Closed after hours &middot; Opens ${escapeHtml(resource.opens_at_display)})</span>`
             : escapeHtml(resource.operating_hours);
-
-        const suppliesBlock = resource.supplies_needed
-            ? `<div class="detail-supplies"><i class="fa-solid fa-boxes-stacked" aria-hidden="true"></i><span><strong>Supplies Needed:</strong> ${escapeHtml(resource.supplies_needed)}</span></div>`
-            : "";
 
         const descBlock = resource.description
             ? `<p class="detail-desc">${escapeHtml(resource.description)}</p>`
@@ -250,12 +242,10 @@ document.addEventListener("DOMContentLoaded", () => {
                 <div class="detail-badges">
                     <span class="status-pill ${st.cls}"><i class="fa-solid ${st.icon}" aria-hidden="true"></i> ${escapeHtml(resource.status_display)}</span>
                     <span class="category-badge ${escapeHtml(catClass)}">${escapeHtml(resource.category)}</span>
-                    <span class="urgency-badge ${escapeHtml(urgClass)}">${resource.urgency === "CRITICAL" ? '<i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i> ' : ""}${escapeHtml(resource.urgency_display)}</span>
                 </div>
             </div>
             ${descBlock}
             ${servicesBlock}
-            ${suppliesBlock}
             <div class="detail-info-list">
                 <div class="detail-info-row"><i class="fa-solid fa-location-dot" aria-hidden="true"></i><span>${escapeHtml(resource.location)}</span></div>
                 <div class="detail-info-row"><i class="fa-solid fa-clock" aria-hidden="true"></i><span>${hoursText}</span></div>
@@ -327,11 +317,10 @@ document.addEventListener("DOMContentLoaded", () => {
             if (!res.lat || !res.lng) return;
             const color = getCategoryColor(res.category_code);
             const iconClass = getCategoryIconClass(res.category_code);
-            const criticalClass = res.urgency === "CRITICAL" ? "pin-critical" : "";
 
             const icon = L.divIcon({
                 className: "custom-map-pin",
-                html: `<div class="${criticalClass}" style="background-color: ${color}; width: 32px; height: 32px; border-radius: 50%; border: 2.5px solid white; box-shadow: 0 3px 10px rgba(0,0,0,0.35); display: flex; align-items: center; justify-content: center; color: white; font-size: 0.85rem; cursor: pointer;"><i class="fa-solid ${iconClass}"></i></div>`,
+                html: `<div style="background-color: ${color}; width: 32px; height: 32px; border-radius: 50%; border: 2.5px solid white; box-shadow: 0 3px 10px rgba(0,0,0,0.35); display: flex; align-items: center; justify-content: center; color: white; font-size: 0.85rem; cursor: pointer;"><i class="fa-solid ${iconClass}"></i></div>`,
                 iconSize: [32, 32],
                 iconAnchor: [16, 16],
             });
@@ -347,7 +336,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const renderList = (items) => {
         const count = items.length;
-        const criticalCount = items.filter((r) => r.urgency === "CRITICAL").length;
         const plural = count === 1 ? "" : "s";
 
         if (resultCountEl) {
@@ -355,10 +343,6 @@ document.addEventListener("DOMContentLoaded", () => {
         }
         if (sheetSummaryText) {
             sheetSummaryText.innerHTML = `<strong>${count}</strong> verified aid hub${plural} &middot; Tap to browse`;
-        }
-        if (criticalBadgeEl && criticalNumEl) {
-            criticalNumEl.textContent = String(criticalCount);
-            criticalBadgeEl.hidden = criticalCount === 0;
         }
 
         if (!resultsListEl) return;
@@ -377,10 +361,10 @@ document.addEventListener("DOMContentLoaded", () => {
                 const st = getStatusMeta(res.status);
                 const catClass = `cat-${String(res.category_code || "").toLowerCase()}`;
                 const selectedCls = res.id === selectedResourceId ? "is-selected" : "";
-                const critBadge =
-                    res.urgency === "CRITICAL"
-                        ? `<span class="urgency-badge urgency-critical"><i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i> Critical</span>`
-                        : "";
+                const services = Array.isArray(res.services) ? res.services.slice(0, 3) : [];
+                const servicesRow = services.length
+                    ? `<div class="result-item-services">${services.map((s) => `<span class="result-service-pill">${escapeHtml(s)}</span>`).join("")}</div>`
+                    : "";
                 return `
                     <button type="button" class="map-result-item ${selectedCls}" data-id="${escapeHtml(res.id)}">
                         <div class="result-item-top">
@@ -389,8 +373,8 @@ document.addEventListener("DOMContentLoaded", () => {
                         </div>
                         <div class="result-item-badges">
                             <span class="category-badge ${escapeHtml(catClass)}">${escapeHtml(res.category)}</span>
-                            ${critBadge}
                         </div>
+                        ${servicesRow}
                         <div class="result-item-meta">
                             <span><i class="fa-solid fa-location-dot" aria-hidden="true"></i> ${escapeHtml(res.location)}</span>
                             <span class="num-cell"><i class="fa-solid fa-clock" aria-hidden="true"></i> ${escapeHtml(res.operating_hours)}</span>
@@ -417,7 +401,6 @@ document.addEventListener("DOMContentLoaded", () => {
         if (filters.q) params.set("q", filters.q);
         if (filters.category) params.set("category", filters.category);
         if (filters.status) params.set("status", filters.status);
-        if (filters.urgency) params.set("urgency", filters.urgency);
         const queryStr = params.toString();
         const nextUrl = queryStr ? `${window.location.pathname}?${queryStr}` : window.location.pathname;
         window.history.replaceState({}, "", nextUrl);
@@ -428,14 +411,12 @@ document.addEventListener("DOMContentLoaded", () => {
         currentFiltered = allResources.filter((r) => {
             if (filters.category && r.category_code !== filters.category) return false;
             if (filters.status && r.status !== filters.status) return false;
-            if (filters.urgency && r.urgency !== filters.urgency) return false;
             if (q) {
                 const haystack = [
                     r.name,
                     r.description,
                     r.city,
                     r.location,
-                    r.supplies_needed,
                     Array.isArray(r.services) ? r.services.join(" ") : "",
                     r.posted_by,
                     r.category,
@@ -448,7 +429,7 @@ document.addEventListener("DOMContentLoaded", () => {
         });
 
         if (clearSearchBtn) clearSearchBtn.hidden = !filters.q;
-        if (filterActiveDot) filterActiveDot.hidden = !(filters.status || filters.urgency);
+        if (filterActiveDot) filterActiveDot.hidden = !filters.status;
 
         categoryChips.forEach((chip) => {
             chip.classList.toggle("active", (chip.dataset.category || "") === (filters.category || ""));
@@ -505,20 +486,11 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    if (urgencyFilter) {
-        urgencyFilter.addEventListener("change", () => {
-            filters.urgency = urgencyFilter.value;
-            showListView();
-            applyFilters(true);
-        });
-    }
-
     if (resetFiltersBtn) {
         resetFiltersBtn.addEventListener("click", () => {
-            filters = { q: "", category: "", status: "", urgency: "" };
+            filters = { q: "", category: "", status: "" };
             if (searchInput) searchInput.value = "";
             if (statusFilter) statusFilter.value = "";
-            if (urgencyFilter) urgencyFilter.value = "";
             showListView();
             applyFilters(true);
         });

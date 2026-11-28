@@ -1,3 +1,4 @@
+from collections import Counter
 from django.conf import settings
 from django.db.models import Q, F, Count, Sum, Subquery
 from django.shortcuts import render, redirect, get_object_or_404
@@ -81,14 +82,11 @@ def _serialize_resources_for_map(resources):
             'status_display': r.effective_status_display,
             'is_auto_closed': r.is_auto_closed,
             'opens_at_display': r.opens_at_display,
-            'urgency': r.urgency_level,
-            'urgency_display': r.get_urgency_level_display(),
             'city': r.city,
             'location': r.display_location,
             'description': r.description or '',
             'services': r.service_labels,
             'service_codes': r.services_offered or [],
-            'supplies_needed': r.supplies_needed or '',
             'confirmations': r.confirmations,
             'is_24_7': r.is_24_7,
             'operating_hours': r.operating_hours_display,
@@ -114,7 +112,6 @@ def _get_user_map_config(request):
 def landing_view(request):
     verified_resources = Resource.objects.filter(is_verified=True)
     summary = _get_impact_summary(verified_resources)
-    summary['critical_count'] = verified_resources.filter(urgency_level='CRITICAL').count()
     summary['last_updated'] = (
         verified_resources.order_by('-updated_at').values_list('updated_at', flat=True).first()
     )
@@ -151,7 +148,6 @@ def map_view(request):
     query = request.GET.get('q', '').strip()
     selected_category = request.GET.get('category', '').strip()
     selected_status = request.GET.get('status', '').strip()
-    selected_urgency = request.GET.get('urgency', '').strip()
 
     all_verified = Resource.objects.filter(is_verified=True).select_related('created_by', 'created_by__profile')
     map_data = _serialize_resources_for_map(all_verified)
@@ -161,20 +157,16 @@ def map_view(request):
         'q': query,
         'category': selected_category,
         'status': selected_status,
-        'urgency': selected_urgency,
     }
 
     context = {
         'resources': all_verified,
         'total_count': all_verified.count(),
-        'critical_count': all_verified.filter(urgency_level='CRITICAL').count(),
         'categories': Resource.CATEGORY_CHOICES,
         'statuses': Resource.STATUS_CHOICES,
-        'urgencies': Resource.URGENCY_CHOICES,
         'query': query,
         'selected_category': selected_category,
         'selected_status': selected_status,
-        'selected_urgency': selected_urgency,
         'map_data': map_data,
         'user_map_config': user_map_config,
         'initial_filters': initial_filters,
@@ -186,7 +178,6 @@ def map_view(request):
 def dashboard_view(request):
     query = request.GET.get('q', '').strip()
     selected_status = request.GET.get('status', '').strip()
-    selected_urgency = request.GET.get('urgency', '').strip()
     local_volunteers = request.GET.get('local_volunteers', '').strip()
 
     if 'category' in request.GET:
@@ -198,19 +189,19 @@ def dashboard_view(request):
     resources = Resource.objects.filter(is_verified=True).select_related('created_by', 'created_by__profile')
 
     if query:
-        resources = resources.filter(
+        search_q = (
             Q(name__icontains=query) |
             Q(description__icontains=query) |
             Q(city__icontains=query) |
-            Q(location__icontains=query) |
-            Q(supplies_needed__icontains=query)
+            Q(location__icontains=query)
         )
+        for code in Resource.matching_service_codes(query):
+            search_q |= Q(services_offered__icontains=f'"{code}"')
+        resources = resources.filter(search_q)
     if selected_category:
         resources = resources.filter(category=selected_category)
     if selected_status:
         resources = resources.filter_by_effective_status(selected_status)
-    if selected_urgency:
-        resources = resources.filter(urgency_level=selected_urgency)
     if local_volunteers:
         profile = getattr(request.user, 'profile', None)
         city = normalize_city(getattr(profile, 'city', ''))
@@ -236,17 +227,14 @@ def dashboard_view(request):
         'query': query,
         'selected_category': selected_category,
         'selected_status': selected_status,
-        'selected_urgency': selected_urgency,
         'local_volunteers': local_volunteers,
         'categories': Resource.CATEGORY_CHOICES,
         'statuses': Resource.STATUS_CHOICES,
-        'urgencies': Resource.URGENCY_CHOICES,
         'map_data': map_data,
         'user_map_config': user_map_config,
         'resource_form': resource_form,
         'total_count': resources.count(),
         'operational_count': resources.currently_open().count(),
-        'critical_count': resources.filter(urgency_level='CRITICAL').count(),
     }
     return render(request, 'home/home.html', context)
 
@@ -269,7 +257,7 @@ def add_resource_view(request):
             updated_by=request.user,
             action_type='STATUS_UPDATE',
             new_status=resource.status,
-            note=f"Initial submission ({resource.get_urgency_level_display()})",
+            note="Initial haven submission",
         )
         messages.success(request, f"Resource '{resource.name}' was successfully added to AyudaMap!")
     else:
@@ -326,24 +314,44 @@ def update_resource_status_view(request, resource_id):
 def reports_view(request):
     resources = Resource.objects.filter(is_verified=True)
     summary = _get_impact_summary(resources)
+    open_resources = resources.currently_open()
 
-    # Breakdown by urgency
-    urgency_map = dict(Resource.URGENCY_CHOICES)
-    urgency_stats = []
-    for row in resources.values('urgency_level').annotate(count=Count('id')).order_by('-count'):
-        urgency_stats.append({
-            'code': row['urgency_level'],
-            'label': urgency_map.get(row['urgency_level'], row['urgency_level']),
-            'count': row['count'],
+    open_by_city = {
+        row['city']: row['open_count']
+        for row in open_resources.exclude(city='').values('city').annotate(open_count=Count('id'))
+    }
+    city_stats = []
+    for row in resources.exclude(city='').values('city').annotate(total_count=Count('id')).order_by('city'):
+        city_name = row['city']
+        city_stats.append({
+            'city': city_name,
+            'open_count': open_by_city.get(city_name, 0),
+            'total_count': row['total_count'],
         })
+    city_stats.sort(key=lambda item: (-item['open_count'], -item['total_count'], item['city']))
 
-    critical_resources = resources.filter(urgency_level='CRITICAL').order_by('-updated_at')
+    service_counter = Counter()
+    for services in open_resources.values_list('services_offered', flat=True):
+        if isinstance(services, list):
+            for code in set(services):
+                service_counter[code] += 1
+
+    service_stats = [
+        {
+            'code': code,
+            'label': label,
+            'open_count': service_counter.get(code, 0),
+        }
+        for code, label in Resource.SERVICE_CHOICES
+    ]
+    service_stats.sort(key=lambda item: (-item['open_count'], item['label']))
+
     recent_logs = ResourceStatusLog.objects.select_related('resource', 'updated_by')[:15]
 
     context = {
         **summary,
-        'urgency_stats': urgency_stats,
-        'critical_resources': critical_resources,
+        'city_stats': city_stats,
+        'service_stats': service_stats,
         'recent_logs': recent_logs,
     }
     return render(request, 'home/reports.html', context)

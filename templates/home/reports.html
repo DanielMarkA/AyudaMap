@@ -12,7 +12,7 @@
 <div class="home-hero">
     <div class="hero-content">
         <h1><i class="fa-solid fa-chart-line" aria-hidden="true"></i> Relief Operations &amp; Coverage Analytics</h1>
-        <p>Live aggregation of verified safe havens, currently open hubs, critical priorities, and field verification logs.</p>
+        <p>Live aggregation of verified safe havens, open coverage by city and service, and field verification logs.</p>
     </div>
     <div class="hero-actions">
         <a href="{% url 'home:dashboard' %}" class="btn btn-primary btn-hero">
@@ -45,30 +45,28 @@
     </div>
 </div>
 
-<!-- Category & Priority Breakdowns -->
+<!-- Open Havens by City & Service -->
 <div class="reports-split">
     <div class="card reports-panel">
-        <h2><i class="fa-solid fa-layer-group" aria-hidden="true"></i> Coverage by Aid Category</h2>
+        <h2><i class="fa-solid fa-city" aria-hidden="true"></i> Currently Open Havens by City</h2>
         <div class="table-responsive">
             <table class="stat-table">
                 <thead>
                     <tr>
-                        <th scope="col">Category</th>
-                        <th scope="col">Centers</th>
+                        <th scope="col">City / Municipality</th>
                         <th scope="col">Open Now</th>
-                        <th scope="col">Verifications</th>
+                        <th scope="col">Total Mapped</th>
                     </tr>
                 </thead>
                 <tbody>
-                    {% for row in category_stats %}
+                    {% for row in city_stats %}
                         <tr>
-                            <td><strong>{{ row.label }}</strong></td>
-                            <td class="num-cell">{{ row.count }}</td>
-                            <td class="num-cell">{{ row.open_count }}</td>
-                            <td class="num-cell">{{ row.confirmations }}</td>
+                            <td><strong>{{ row.city }}</strong></td>
+                            <td class="num-cell"><strong>{{ row.open_count }}</strong></td>
+                            <td class="num-cell">{{ row.total_count }}</td>
                         </tr>
                     {% empty %}
-                        <tr><td colspan="4">No category data recorded yet.</td></tr>
+                        <tr><td colspan="3">No city data recorded yet.</td></tr>
                     {% endfor %}
                 </tbody>
             </table>
@@ -76,36 +74,56 @@
     </div>
 
     <div class="card reports-panel">
-        <h2><i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i> Priority &amp; Urgency Breakdown</h2>
+        <h2><i class="fa-solid fa-shield-heart" aria-hidden="true"></i> Currently Open Havens by Service</h2>
         <div class="table-responsive">
             <table class="stat-table">
                 <thead>
                     <tr>
-                        <th scope="col">Urgency Level</th>
-                        <th scope="col">Active Centers</th>
+                        <th scope="col">Service Offered</th>
+                        <th scope="col">Open Havens</th>
                     </tr>
                 </thead>
                 <tbody>
-                    {% for row in urgency_stats %}
+                    {% for row in service_stats %}
                         <tr>
-                            <td><span class="urgency-pill urgency-{{ row.code }}">{{ row.label }}</span></td>
-                            <td class="num-cell"><strong>{{ row.count }}</strong></td>
+                            <td><strong>{{ row.label }}</strong></td>
+                            <td class="num-cell"><strong>{{ row.open_count }}</strong></td>
                         </tr>
                     {% empty %}
-                        <tr><td colspan="2">No priority records found.</td></tr>
+                        <tr><td colspan="2">No services recorded yet.</td></tr>
                     {% endfor %}
                 </tbody>
             </table>
         </div>
+    </div>
+</div>
 
-        {% if critical_resources %}
-            <h3 class="critical-heading"><i class="fa-solid fa-fire" aria-hidden="true"></i> Critical Priority Centers</h3>
-            <ul class="critical-list">
-                {% for cr in critical_resources %}
-                    <li><strong>{{ cr.name }}</strong> &mdash; {{ cr.display_location }} {% if cr.supplies_needed %}(Needs: {{ cr.supplies_needed }}){% endif %}</li>
+<!-- Category Breakdown -->
+<div class="card reports-panel">
+    <h2><i class="fa-solid fa-layer-group" aria-hidden="true"></i> Coverage by Aid Category</h2>
+    <div class="table-responsive">
+        <table class="stat-table">
+            <thead>
+                <tr>
+                    <th scope="col">Category</th>
+                    <th scope="col">Centers</th>
+                    <th scope="col">Open Now</th>
+                    <th scope="col">Verifications</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in category_stats %}
+                    <tr>
+                        <td><strong>{{ row.label }}</strong></td>
+                        <td class="num-cell">{{ row.count }}</td>
+                        <td class="num-cell">{{ row.open_count }}</td>
+                        <td class="num-cell">{{ row.confirmations }}</td>
+                    </tr>
+                {% empty %}
+                    <tr><td colspan="4">No category data recorded yet.</td></tr>
                 {% endfor %}
-            </ul>
-        {% endif %}
+            </tbody>
+        </table>
     </div>
 </div>
 
